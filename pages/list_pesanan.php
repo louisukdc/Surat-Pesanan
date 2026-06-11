@@ -1,7 +1,27 @@
 <div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
         <div class="section-title" style="margin-bottom: 0; border: none;">Daftar Pesanan</div>
         <a href="dashboard.php?page=order_form" class="btn btn-primary"><i class="fas fa-plus"></i> Buat Pesanan Baru</a>
+    </div>
+
+    <!-- Filter Bar -->
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+        <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; font-size: 12px; margin-bottom: 5px; color: #666;">Cari (No SP / Supplier)</label>
+            <input type="text" id="filterSearch" class="form-control" placeholder="Ketik kata kunci...">
+        </div>
+        <div>
+            <label style="display: block; font-size: 12px; margin-bottom: 5px; color: #666;">Dari Tanggal</label>
+            <input type="date" id="filterStartDate" class="form-control">
+        </div>
+        <div>
+            <label style="display: block; font-size: 12px; margin-bottom: 5px; color: #666;">Sampai Tanggal</label>
+            <input type="date" id="filterEndDate" class="form-control">
+        </div>
+        <div>
+            <button class="btn btn-primary" onclick="currentPage=1; loadOrders();"><i class="fas fa-search"></i> Filter</button>
+            <button class="btn btn-outline" onclick="resetFilter()"><i class="fas fa-undo"></i> Reset</button>
+        </div>
     </div>
 
     <div class="table-responsive">
@@ -21,36 +41,79 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Pagination Controls -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+        <div id="pageInfo" style="font-size: 14px; color: #666;">Menampilkan 0 data</div>
+        <div style="display: flex; gap: 5px;">
+            <button class="btn btn-outline" id="btnPrev" onclick="changePage(-1)" style="padding: 5px 15px;">&laquo; Prev</button>
+            <button class="btn btn-outline" id="btnNext" onclick="changePage(1)" style="padding: 5px 15px;">Next &raquo;</button>
+        </div>
+    </div>
 </div>
 
 <script>
+let currentPage = 1;
+const limitPerPage = 50;
+let totalPages = 1;
+
 function loadOrders() {
+    const search = $('#filterSearch').val();
+    const startDate = $('#filterStartDate').val();
+    const endDate = $('#filterEndDate').val();
+
     $.ajax({
-        url: 'api/orders.php',
+        url: `api/orders.php?page=${currentPage}&limit=${limitPerPage}&search=${encodeURIComponent(search)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`,
         method: 'GET',
         dataType: 'json',
-        success: function(data) {
+        success: function(res) {
             let html = '';
-            data.forEach(o => {
-                html += `<tr>
-                    <td><span style="font-weight: 600; color: var(--primary);">${o.no_sp}</span></td>
-                    <td>${o.tgl_sp}</td>
-                    <td>${o.namasup}</td>
-                    <td>${o.unit}</td>
-                    <td class="text-right">Rp ${parseFloat(o.flag).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-                    <td class="text-center">
-                        <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;" onclick="editOrder('${o.no_sp}')" title="Edit/Lihat"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-danger" style="padding: 4px 8px; font-size: 12px;" onclick="deleteOrder('${o.no_sp}')" title="Hapus"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>`;
-            });
+            if (res.data && res.data.length > 0) {
+                res.data.forEach(o => {
+                    html += `<tr>
+                        <td><span style="font-weight: 600; color: var(--primary);">${o.no_sp}</span></td>
+                        <td>${o.tgl_sp}</td>
+                        <td>${o.namasup}</td>
+                        <td>${o.unit}</td>
+                        <td class="text-right">Rp ${parseFloat(o.flag).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                        <td class="text-center">
+                            <a href="detail_kwitansi.php?id=${encodeURIComponent(o.no_sp)}" target="_blank" class="btn" style="padding: 4px 8px; font-size: 12px; background-color: #f1f5f9; color: var(--text-main); border: 1px solid var(--border); text-decoration: none;" title="Detail Kwitansi"><i class="fas fa-eye"></i> Detail</a>
+                            <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;" onclick="editOrder('${o.no_sp}')" title="Edit"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-danger" style="padding: 4px 8px; font-size: 12px;" onclick="deleteOrder('${o.no_sp}')" title="Hapus"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+                });
+            } else {
+                html = '<tr><td colspan="6" class="text-center">Tidak ada data pesanan ditemukan.</td></tr>';
+            }
             $('#ordersTable tbody').html(html);
+
+            // Update Pagination state
+            totalPages = res.total_pages || 1;
+            $('#pageInfo').html(`Total <strong>${res.total}</strong> Pesanan (Halaman ${currentPage} dari ${totalPages})`);
+            $('#btnPrev').prop('disabled', currentPage <= 1);
+            $('#btnNext').prop('disabled', currentPage >= totalPages);
         }
     });
 }
 
+function resetFilter() {
+    $('#filterSearch').val('');
+    $('#filterStartDate').val('');
+    $('#filterEndDate').val('');
+    currentPage = 1;
+    loadOrders();
+}
+
+function changePage(delta) {
+    let newPage = currentPage + delta;
+    if (newPage >= 1 && newPage <= totalPages) {
+        currentPage = newPage;
+        loadOrders();
+    }
+}
+
 function editOrder(no_sp) {
-    // We redirect to the order form. We can modify order_form.php to auto-load if a parameter is passed.
     window.location.href = 'dashboard.php?page=order_form&load=' + encodeURIComponent(no_sp);
 }
 
@@ -74,5 +137,10 @@ function deleteOrder(no_sp) {
 
 $(document).ready(function() {
     loadOrders();
+    
+    // Auto search on enter
+    $('#filterSearch').on('keypress', function(e) {
+        if(e.which == 13) { currentPage = 1; loadOrders(); }
+    });
 });
 </script>

@@ -81,13 +81,49 @@ try {
             exit;
         }
 
-        // Default GET: list orders
-        $result = $conn->query("SELECT DISTINCT no_sp, tgl_sp, namasup, unit, flag FROM sp_pesanan ORDER BY tgl_sp DESC LIMIT 200");
-        $data = [];
-        while($row = $result->fetch_assoc()) {
-            $data[] = $row;
+        // Default GET: list orders with pagination and filtering
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
+        $search = isset($_GET['search']) ? $conn->real_escape_string(trim($_GET['search'])) : '';
+        $start_date = isset($_GET['start_date']) ? $conn->real_escape_string(trim($_GET['start_date'])) : '';
+        $end_date = isset($_GET['end_date']) ? $conn->real_escape_string(trim($_GET['end_date'])) : '';
+
+        if ($page < 1) $page = 1;
+        if ($limit < 1 || $limit > 200) $limit = 50;
+        $offset = ($page - 1) * $limit;
+
+        $where = "1=1";
+        if (!empty($search)) {
+            $where .= " AND (no_sp LIKE '%$search%' OR namasup LIKE '%$search%')";
         }
-        echo json_encode($data);
+        if (!empty($start_date)) {
+            $where .= " AND tgl_sp >= '$start_date'";
+        }
+        if (!empty($end_date)) {
+            $where .= " AND tgl_sp <= '$end_date'";
+        }
+
+        $count_sql = "SELECT COUNT(DISTINCT no_sp) as total FROM sp_pesanan WHERE $where";
+        $total_res = $conn->query($count_sql);
+        $total_row = $total_res->fetch_assoc();
+        $total_records = (int)$total_row['total'];
+
+        $sql = "SELECT DISTINCT no_sp, tgl_sp, namasup, unit, flag FROM sp_pesanan WHERE $where ORDER BY tgl_sp DESC LIMIT $offset, $limit";
+        $result = $conn->query($sql);
+        
+        $data = [];
+        if ($result) {
+            while($row = $result->fetch_assoc()) {
+                $data[] = $row;
+            }
+        }
+
+        echo json_encode([
+            'data' => $data,
+            'total' => $total_records,
+            'page' => $page,
+            'total_pages' => ceil($total_records / $limit)
+        ]);
         exit;
     }
 

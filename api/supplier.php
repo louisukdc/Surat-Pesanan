@@ -23,12 +23,40 @@ try {
                 echo json_encode(['error' => 'Not found']);
             }
         } else {
-            $result = $conn->query("SELECT KodeSupplier, NamaSupplier, ContactPerson, Telp1, Kota1 FROM m_supplier ORDER BY IdSupplier DESC LIMIT 100");
-            $data = [];
-            while($row = $result->fetch_assoc()) {
-                $data[] = $row;
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
+            $search = isset($_GET['search']) ? $conn->real_escape_string(trim($_GET['search'])) : '';
+
+            if ($page < 1) $page = 1;
+            if ($limit < 1 || $limit > 200) $limit = 50;
+            $offset = ($page - 1) * $limit;
+
+            $where = "1=1";
+            if (!empty($search)) {
+                $where .= " AND (KodeSupplier LIKE '%$search%' OR NamaSupplier LIKE '%$search%')";
             }
-            echo json_encode($data);
+
+            $count_sql = "SELECT COUNT(*) as total FROM m_supplier WHERE $where";
+            $total_res = $conn->query($count_sql);
+            $total_row = $total_res->fetch_assoc();
+            $total_records = (int)$total_row['total'];
+
+            $sql = "SELECT KodeSupplier, NamaSupplier, ContactPerson, Telp1, Kota1 FROM m_supplier WHERE $where ORDER BY IdSupplier DESC LIMIT $offset, $limit";
+            $result = $conn->query($sql);
+            
+            $data = [];
+            if ($result) {
+                while($row = $result->fetch_assoc()) {
+                    $data[] = $row;
+                }
+            }
+
+            echo json_encode([
+                'data' => $data,
+                'total' => $total_records,
+                'page' => $page,
+                'total_pages' => ceil($total_records / $limit)
+            ]);
         }
         exit;
     }
