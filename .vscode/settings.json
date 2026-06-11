@@ -1,0 +1,12 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "supplier",
+            "group": "db1",
+            "database": "${workspaceFolder:Askes}/Database/m_supplier"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}

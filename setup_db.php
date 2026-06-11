@@ -44,19 +44,19 @@ function executeSqlFile($conn, $filepath) {
 
 // 2. Import Schemas and Data
 echo "Importing database_init.sql (users)...<br>";
-executeSqlFile($conn, 'database_init.sql');
+executeSqlFile($conn, 'Database/database_init.sql');
 
 echo "Importing data_askes.sql (schema m_supplier)...<br>";
-executeSqlFile($conn, 'data_askes.sql');
+executeSqlFile($conn, 'Database/data_askes.sql');
 
 echo "Importing m_supplier.sql (data m_supplier)...<br>";
-executeSqlFile($conn, 'm_supplier.sql');
+executeSqlFile($conn, 'Database/m_supplier.sql');
 
 echo "Importing data_old.sql (schema sp_pesanan)...<br>";
-executeSqlFile($conn, 'data_old.sql');
+executeSqlFile($conn, 'Database/data_old.sql');
 
 echo "Importing sp_pesanan.sql (data sp_pesanan)...<br>";
-executeSqlFile($conn, 'sp_pesanan.sql');
+executeSqlFile($conn, 'Database/sp_pesanan.sql');
 
 echo "<br><b>Setup Complete!</b> <a href='index.php'>Go to Login</a>";
 ?>
