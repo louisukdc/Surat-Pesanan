@@ -44,8 +44,13 @@ if ($_SESSION['role'] !== 'admin') {
             </div>
             
             <div class="form-group">
-                <label class="form-label">Password <small id="pwdHelp"></small></label>
-                <input type="password" id="password" name="password" class="form-control">
+                <div class="form-group text-left" style="text-align: left; margin-bottom: 30px; position: relative;">
+                    <label class="form-label">Password<small id="pwdHelp"></small></label>
+                    <input type="password" name="password" id="myPassword" class="form-control" required placeholder="••••••••" style="padding-right: 40px;">
+                    <span id="togglePassword" style="position: absolute; right: 15px; top: 38px; cursor: pointer; color: #666;">
+                        <i class="fas fa-eye" id="eyeIcon"></i>
+                    </span>
+                </div>
             </div>
 
             <div class="form-group">
@@ -171,4 +176,19 @@ function saveUser(e) {
 $(document).ready(function() {
     loadUsers();
 });
+
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordField = document.getElementById('myPassword');
+        const eyeIcon = document.getElementById('eyeIcon');
+
+        togglePassword.addEventListener('click', function () {
+            // Toggle the input type
+            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordField.setAttribute('type', type);
+            
+            // Toggle the eye icon
+            eyeIcon.classList.toggle('fa-eye');
+            eyeIcon.classList.toggle('fa-eye-slash');
+        });
+
 </script>

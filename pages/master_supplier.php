@@ -102,7 +102,7 @@
 
 <script>
 let currentPage = 1;
-const limitPerPage = 50;
+const limitPerPage = 25;
 let totalPages = 1;
 
 function loadSuppliers() {
@@ -123,7 +123,9 @@ function loadSuppliers() {
                         <td>${s.Telp1 || '-'}</td>
                         <td>${s.Kota1 || '-'}</td>
                         <td class="text-center">
-                            <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;" onclick="editSupplier('${s.KodeSupplier}')" title="Edit"><i class="fas fa-edit"></i></button>
+                            <?php if ($_SESSION['role'] === 'admin'): ?>
+                                <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;" onclick="editSupplier('${s.KodeSupplier}')" title="Edit"><i class="fas fa-edit"></i></button>
+                            <?php endif; ?>
                             <button class="btn btn-danger" style="padding: 4px 8px; font-size: 12px;" onclick="deleteSupplier('${s.KodeSupplier}')" title="Hapus"><i class="fas fa-trash"></i></button>
                         </td>
                     </tr>`;
