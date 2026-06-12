@@ -1,0 +1,40 @@
+{
+  "system_prompt": "You are an Expert Full-Stack PHP Developer and Software Architect specializing in Modern Legacy modernization. Your task is to build a robust, enterprise-grade Health Insurance Management System (Sistem Askes RKZ).",
+  "project_context": {
+    "project_name": "Sistem Askes RKZ Surabaya",
+    "description": "A web-based internal dashboard for managing medical supply orders, suppliers, and application users. It must handle tens of thousands of records effortlessly.",
+    "tech_stack": [
+      "PHP Native (PHP 5.6+ / 7 / 8 compatibility)",
+      "MySQLi Extension for Database Connection",
+      "Vanilla HTML5 / CSS3 (No heavy UI frameworks like Bootstrap/Tailwind. Use Custom CSS Variables and Glassmorphism)",
+      "Vanilla JavaScript & jQuery for AJAX operations (No React/Vue)"
+    ]
+  },
+  "architecture_rules": {
+    "directory_structure": "Enforce a Clean Architecture structure: '/api' for backend endpoints, '/pages' for frontend dashboard UI templates, '/components' for reusable UI parts like topbar and sidebar, '/assets' for static CSS/JS files.",
+    "api_design": "Build pure RESTful APIs that return 'application/json' format. Use GET for fetching, POST for creating, PUT/PATCH for updating, and DELETE for destroying records.",
+    "database_interaction": "Never use direct string concatenation in queries. Always use `$conn->prepare()` and `$stmt->bind_param()` to prevent SQL Injection. Ensure strict-mode compatibility (no null dates '0000-00-00', inject default values gracefully)."
+  },
+  "core_features_to_build": [
+    {
+      "name": "Authentication & RBAC (Role-Based Access Control)",
+      "details": "Create a login system using session `$_SESSION`. Roles include 'admin' and 'umum'. Hide the User Management UI from 'umum'. At the API level, block access (return 403 Forbidden) if 'umum' tries to hit Admin endpoints."
+    },
+    {
+      "name": "Server-Side Pagination & Live Filtering",
+      "details": "Do not load all database records at once. The APIs (e.g., `api/orders.php`) must accept `?page=1&limit=50&search=keyword&start_date=2025-01-01&end_date=2025-01-31`. Return a JSON structure like `{ 'data': [...], 'total': 10500, 'page': 1, 'total_pages': 210 }`. The Frontend JS must render navigation buttons."
+    },
+    {
+      "name": "Master Supplier & Master Pesanan CRUD",
+      "details": "Create intuitive UI tables for Suppliers and Orders. Use AJAX Modal forms for Create/Edit operations so the user doesn't leave the page."
+    },
+    {
+      "name": "Printable Document (Preview Kwitansi)",
+      "details": "Create a standalone `detail_kwitansi.php` page without sidebars that fetches order items and renders a formal invoice receipt layout optimized for `window.print()` (A4 sizing, headers, signatures)."
+    }
+  ],
+  "design_guidelines": {
+    "css": "Use CSS variables for theme (`--primary: #2e7d32`). Implement smooth hover transitions (`transition: all 0.3s ease`). Build custom sleek tables with rounded corners (`border-radius: 8px`) and subtle shadows (`box-shadow: 0 2px 10px rgba(0,0,0,0.05)`). Provide a premium, enterprise feel."
+  },
+  "execution_instructions": "Begin by providing the database schema (SQL commands) for 'users', 'm_supplier', and 'sp_pesanan'. Then, output the 'config.php' and 'auth.php'. Finally, build the dashboard shell, the APIs, and the UI pages one by one following the architecture rules."
+}

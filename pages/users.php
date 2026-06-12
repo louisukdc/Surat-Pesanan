@@ -150,7 +150,7 @@ function saveUser(e) {
     let payload = {
         id: $('#userId').val(),
         username: $('#username').val(),
-        password: $('#password').val(),
+        password: $('#myPassword').val(),
         role: $('#role').val()
     };
 
