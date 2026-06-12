@@ -1,7 +1,10 @@
 <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
         <div class="section-title" style="margin-bottom: 0; border: none;">Daftar Pesanan</div>
-        <a href="dashboard.php?page=order_form" class="btn btn-primary"><i class="fas fa-plus"></i> Buat Pesanan Baru</a>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn btn-success" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Export Excel</button>
+            <a href="dashboard.php?page=order_form" class="btn btn-primary"><i class="fas fa-plus"></i> Buat Pesanan Baru</a>
+        </div>
     </div>
 
     <!-- Filter Bar -->
@@ -135,6 +138,53 @@ function deleteOrder(no_sp) {
             }
         });
     }
+}
+
+function exportToExcel() {
+    const search = $('#filterSearch').val();
+    const startDate = $('#filterStartDate').val();
+    const endDate = $('#filterEndDate').val();
+    
+    // Disable button to prevent spam
+    const btn = event.currentTarget;
+    const oldText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+    btn.disabled = true;
+
+    $.ajax({
+        url: `api/orders.php?page=1&limit=1000000&search=${encodeURIComponent(search)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`,
+        method: 'GET',
+        dataType: 'json',
+        success: function(res) {
+            btn.innerHTML = oldText;
+            btn.disabled = false;
+            
+            if(res.data && res.data.length > 0) {
+                const exportData = res.data.map(o => ({
+                    "No SP": o.no_sp,
+                    "Tanggal": o.tgl_sp,
+                    "Supplier": o.namasup,
+                    "Kode Supplier": o.kodesup,
+                    "Unit/Bagian": o.unit,
+                    "Total (Rp)": parseFloat(o.flag)
+                }));
+                
+                const worksheet = XLSX.utils.json_to_sheet(exportData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Data_Pesanan");
+                
+                const d = new Date().toISOString().slice(0,10);
+                XLSX.writeFile(workbook, `Pesanan_RKZ_${d}.xlsx`);
+            } else {
+                alert('Tidak ada data untuk diexport.');
+            }
+        },
+        error: function() {
+            btn.innerHTML = oldText;
+            btn.disabled = false;
+            alert('Gagal mengambil data untuk export.');
+        }
+    });
 }
 
 $(document).ready(function() {

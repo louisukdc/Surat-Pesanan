@@ -161,7 +161,7 @@ while($row = $res_items->fetch_assoc()) {
 
 <div class="print-container">
     <div class="header">
-        <h1>Surat Pesanan / Bukti Transaksi</h1>
+        <h1>Bukti Transaksi</h1>
         <p>Sistem Informasi Askes RKZ</p>
     </div>
 

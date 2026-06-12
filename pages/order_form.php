@@ -1,7 +1,21 @@
 <div class="toolbar">
     <button class="btn btn-primary" onclick="newOrder()"><i class="fas fa-plus"></i> BARU</button>
     <button class="btn btn-outline" onclick="searchOrder()"><i class="fas fa-search"></i> CARI DATA</button>
-    <button class="btn btn-outline" onclick="printOrder()"><i class="fas fa-print"></i> CETAK</button>
+    <!-- <button class="btn btn-outline" onclick="printOrder()"><i class="fas fa-print"></i> CETAK</button> -->
+</div>
+
+<div class="card" style="margin-bottom: 20px; background: #e3f2fd; border: 1px solid #90caf9;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h4 style="margin:0; color: #1565c0;"><i class="fas fa-file-import"></i> Import Pesanan Massal (Excel/CSV/DBF)</h4>
+            <p style="margin: 5px 0 0 0; font-size: 13px; color: #0d47a1;">Unggah file untuk membuat banyak surat pesanan sekaligus secara otomatis.</p>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button class="btn btn-outline" onclick="downloadTemplate()" style="background: white; border-color: #1565c0; color: #1565c0;"><i class="fas fa-download"></i> Unduh Template</button>
+            <input type="file" id="importFile" accept=".xlsx, .xls, .csv, .dbf" style="display: none;" onchange="handleImport(event)">
+            <button class="btn btn-primary" onclick="document.getElementById('importFile').click()"><i class="fas fa-upload"></i> Unggah File</button>
+        </div>
+    </div>
 </div>
 
 <div class="card compact-form">
@@ -487,4 +501,124 @@ $(document).ready(function() {
     }
     <?php endif; ?>
 });
+
+// Import Logic
+function downloadTemplate() {
+    const ws_data = [
+        ["No_SP", "Tanggal_SP", "Kode_Supplier", "Nama_Supplier", "Unit", "Barang", "Qty", "Harga", "Satuan", "PPN_Persen"],
+        ["PO/001/01/26", "2026-01-01", "S001", "PT Medika Sehat", "Farmasi", "Paracetamol", 100, 5000, "Box", 11],
+        ["PO/001/01/26", "2026-01-01", "S001", "PT Medika Sehat", "Farmasi", "Amoxicillin", 50, 12000, "Box", 11],
+        ["PO/002/01/26", "2026-01-02", "S002", "Apotek Maju", "IGD", "Jarum Suntik", 200, 1500, "Pcs", 0]
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Template_Pesanan");
+    XLSX.writeFile(wb, "Template_Import_Pesanan.xlsx");
+}
+
+async function handleImport(event) {
+    const file = event.target.files[0];
+    if(!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const json = XLSX.utils.sheet_to_json(worksheet);
+            
+            if(json.length === 0) {
+                alert("File kosong!");
+                return;
+            }
+            
+            // Group by No_SP
+            const orders = {};
+            json.forEach(row => {
+                const no_sp = row['No_SP'];
+                if(!no_sp) return;
+                
+                if(!orders[no_sp]) {
+                    orders[no_sp] = {
+                        header: {
+                            no_sp: no_sp,
+                            tgl_sp: row['Tanggal_SP'] || new Date().toISOString().slice(0,10),
+                            kodesup: row['Kode_Supplier'] || '',
+                            namasup: row['Nama_Supplier'] || '',
+                            unit: row['Unit'] || 'UMUM',
+                            user: 'System Import',
+                            ppn: 0,
+                            grand_total: 0
+                        },
+                        items: [],
+                        ppn_persen: parseFloat(row['PPN_Persen']) || 0
+                    };
+                }
+                
+                const qty = parseFloat(row['Qty']) || 0;
+                const harga = parseFloat(row['Harga']) || 0;
+                const total = qty * harga;
+                
+                orders[no_sp].items.push({
+                    barang: row['Barang'] || 'Unknown Item',
+                    qty: qty,
+                    satuan: row['Satuan'] || 'Pcs',
+                    harga: harga,
+                    total: total,
+                    potongan: 0,
+                    merk: '', model: '', spec: ''
+                });
+            });
+            
+            let successCount = 0;
+            const orderKeys = Object.keys(orders);
+            
+            if(!confirm(`Ditemukan ${orderKeys.length} pesanan. Mulai proses import?`)) {
+                event.target.value = '';
+                return;
+            }
+            
+            for(let key of orderKeys) {
+                let order = orders[key];
+                let subtotal = order.items.reduce((sum, item) => sum + item.total, 0);
+                order.header.ppn = subtotal * (order.ppn_persen / 100);
+                order.header.grand_total = subtotal + order.header.ppn;
+                
+                // Ensure null safety for other fields
+                order.header.no_tawar = '';
+                order.header.tgl_tawar = '';
+                order.header.pembayaran = '';
+                order.header.noteout = '';
+                order.header.noteout1 = '';
+                order.header.noteout2 = '';
+                order.header.notein = '';
+                
+                try {
+                    await $.ajax({
+                        url: 'api/orders.php',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            header: order.header,
+                            items: order.items
+                        })
+                    });
+                    successCount++;
+                } catch(err) {
+                    console.error("Gagal import SP: " + key, err);
+                }
+            }
+            
+            alert(`Import selesai! Berhasil: ${successCount} dari ${orderKeys.length} pesanan.`);
+            window.location.href = 'dashboard.php?page=list_pesanan';
+            
+        } catch(err) {
+            alert("Gagal membaca file: " + err.message);
+        }
+        event.target.value = ''; // reset file input
+    };
+    reader.readAsArrayBuffer(file);
+}
 </script>
