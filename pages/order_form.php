@@ -1,10 +1,73 @@
-<div class="toolbar">
+<style>
+.material-panel {
+    background: #fff;
+    border-top: 15px solid rgba(179, 178, 175, 0.12);
+    border-bottom: 15px solid rgba(179, 178, 175, 0.12);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    margin-bottom: 15px; /* Reduced margin */
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    border-radius: 4px;
+}
+.material-panel-title {
+    color: #2e7d32;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 10px 15px 5px 15px; /* Reduced padding */
+}
+.material-panel-body {
+    padding: 5px 15px 15px 15px; /* Reduced padding */
+    max-height: 40vh;
+    overflow-y: auto;
+}
+/* Compact form styling to reduce scrolling */
+.material-panel .form-group {
+    margin-bottom: 8px;
+}
+.material-panel .form-label {
+    margin-bottom: 2px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.material-panel .form-control {
+    padding: 4px 8px;
+    height: 30px;
+    font-size: 12px;
+}
+.material-panel .grid-2 {
+    gap: 15px; /* Reduce gap between grids */
+}
+.material-panel .grid-4 {
+    gap: 10px; /* Reduce gap between grids */
+}
+.material-panel .btn {
+    padding: 4px 12px;
+    font-size: 12px;
+}
+
+/* Scrollbar styling for material panel */
+.material-panel-body::-webkit-scrollbar {
+    width: 8px;
+}
+.material-panel-body::-webkit-scrollbar-track {
+    background: #f1f1f1; 
+}
+.material-panel-body::-webkit-scrollbar-thumb {
+    background: rgba(179, 178, 175, 0.5); 
+    border-radius: 4px;
+}
+.material-panel-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(179, 178, 175, 0.8); 
+}
+</style>
+
+<!-- <div class="toolbar">
     <button class="btn btn-primary" onclick="newOrder()"><i class="fas fa-plus"></i> BARU</button>
     <button class="btn btn-outline" onclick="searchOrder()"><i class="fas fa-search"></i> CARI DATA</button>
-    <!-- <button class="btn btn-outline" onclick="printOrder()"><i class="fas fa-print"></i> CETAK</button> -->
-</div>
+    <button class="btn btn-outline" onclick="printOrder()"><i class="fas fa-print"></i> CETAK</button>
+</div> -->
 
-<div class="card" style="margin-bottom: 20px; background: #e3f2fd; border: 1px solid #90caf9;">
+<!-- <div class="card" style="margin-bottom: 30px; background: #e3f2fd; border: 1px solid #90caf9;">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
         <div>
             <h4 style="margin:0; color: #1565c0;"><i class="fas fa-file-import"></i> Import Pesanan Massal (Excel/CSV/DBF)</h4>
@@ -16,28 +79,12 @@
             <button class="btn btn-primary" onclick="document.getElementById('importFile').click()"><i class="fas fa-upload"></i> Unggah File</button>
         </div>
     </div>
-</div>
+</div> -->
 
-<div class="card compact-form">
-    <!-- Stepper Navigation -->
-    <div class="stepper-wrapper">
-        <div class="stepper-item active" id="step1-nav">
-            <div class="step-counter">1</div>
-            <div class="step-name">Info Dasar</div>
-        </div>
-        <div class="stepper-item" id="step2-nav">
-            <div class="step-counter">2</div>
-            <div class="step-name">Detail Barang</div>
-        </div>
-        <div class="stepper-item" id="step3-nav">
-            <div class="step-counter">3</div>
-            <div class="step-name">Ringkasan</div>
-        </div>
-    </div>
-
-    <!-- Step 1: Informasi Dasar -->
-    <div class="step-content active" id="step1">
-        <div class="section-title">Informasi Dasar Pesanan</div>
+<!-- Panel 1: Informasi Dasar -->
+<div class="material-panel">
+    <div class="material-panel-title">Informasi Dasar Pesanan</div>
+    <div class="material-panel-body">
         <div class="grid-2">
             <div>
                 <div class="form-group position-relative">
@@ -89,14 +136,13 @@
                 </div>
             </div>
         </div>
-        <div class="stepper-actions" style="justify-content: flex-end;">
-            <button class="btn btn-primary" onclick="nextStep(2)">Lanjut <i class="fas fa-arrow-right"></i></button>
-        </div>
     </div>
+</div>
 
-    <!-- Step 2: Detail Barang -->
-    <div class="step-content" id="step2">
-        <div class="section-title">Detail Barang Pesanan</div>
+<!-- Panel 2: Detail Barang & Ringkasan -->
+<div class="material-panel">
+    <div class="material-panel-title">Detail Barang Pesanan</div>
+    <div class="material-panel-body">
         
         <div style="background: var(--input-bg); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px;">
             <div class="grid-4">
@@ -141,13 +187,13 @@
                     <input type="number" id="item_total" class="form-control" readonly style="background: #e2e8f0; font-weight: bold;">
                 </div>
                 <div class="form-group" style="grid-column: span 3;">
-                    <button class="btn btn-primary" onclick="addItem()"><i class="fas fa-plus"></i> TAMBAH</button>
+                    <button class="btn btn-primary" onclick="addItem()" style="background-color: #009688; border-color: #009688;"><i class="fas fa-plus"></i> TAMBAH</button>
                     <button class="btn btn-outline" onclick="clearItemForm()"><i class="fas fa-eraser"></i> BERSIHKAN</button>
                 </div>
             </div>
         </div>
 
-        <div class="table-responsive">
+        <div class="table-responsive" style="margin-bottom: 30px;">
             <table class="data-table" id="itemsTable">
                 <thead>
                     <tr>
@@ -168,16 +214,7 @@
             </table>
         </div>
 
-        <div class="stepper-actions">
-            <button class="btn btn-outline" onclick="prevStep(1)"><i class="fas fa-arrow-left"></i> Kembali</button>
-            <button class="btn btn-primary" onclick="nextStep(3)">Lanjut <i class="fas fa-arrow-right"></i></button>
-        </div>
-    </div>
-
-    <!-- Step 3: Ringkasan & Catatan -->
-    <div class="step-content" id="step3">
-        <div class="section-title">Ringkasan & Catatan Akhir</div>
-        
+        <div class="section-title" style="margin-top: 20px;">Ringkasan & Catatan Akhir</div>
         <div class="grid-2">
             <div>
                 <div class="form-group">
@@ -216,58 +253,15 @@
                 </div>
             </div>
         </div>
-
-        <div class="stepper-actions">
-            <button class="btn btn-outline" onclick="prevStep(2)"><i class="fas fa-arrow-left"></i> Kembali</button>
-            <button class="btn btn-success" onclick="saveOrder()"><i class="fas fa-save"></i> SIMPAN PESANAN</button>
-        </div>
     </div>
 </div>
 
+<div style="margin-top: 20px; text-align: right;">
+    <button class="btn btn-success" onclick="saveOrder()" style="padding: 12px 24px; font-size: 16px;"><i class="fas fa-save"></i> SIMPAN PESANAN</button>
+</div>
+
 <script>
-let currentStep = 1;
 let orderItems = [];
-
-// Navigation Logic
-function nextStep(step) {
-    if (step === 2) {
-        if(!$('#kodesup').val() || !$('#no_sp').val()) {
-            alert("Harap lengkapi No. SP dan pilih Supplier terlebih dahulu!");
-            return;
-        }
-    }
-    if (step === 3) {
-        if(orderItems.length === 0) {
-            if(!confirm("Anda belum menambahkan barang. Lanjut ke ringkasan?")) return;
-        }
-    }
-    
-    // Update UI
-    $('.step-content').removeClass('active');
-    $('#step' + step).addClass('active');
-    
-    // Update Stepper nav
-    $('.stepper-item').removeClass('active completed');
-    for(let i=1; i<step; i++) {
-        $('#step' + i + '-nav').addClass('completed');
-    }
-    $('#step' + step + '-nav').addClass('active');
-    
-    currentStep = step;
-}
-
-function prevStep(step) {
-    $('.step-content').removeClass('active');
-    $('#step' + step).addClass('active');
-    
-    $('.stepper-item').removeClass('active completed');
-    for(let i=1; i<step; i++) {
-        $('#step' + i + '-nav').addClass('completed');
-    }
-    $('#step' + step + '-nav').addClass('active');
-    
-    currentStep = step;
-}
 
 // Format Currency
 function formatCurrency(num) {
@@ -396,7 +390,6 @@ function newOrder() {
         orderItems = [];
         renderItemsTable();
         calculateGrandTotal();
-        prevStep(1); // Go back to step 1
     }
 }
 
@@ -434,8 +427,6 @@ function loadOrderData(no_sp) {
         renderItemsTable();
         calculateGrandTotal();
         
-        // Go to Step 1 automatically so user can review from start
-        prevStep(1);
     }, 'json');
 }
 
@@ -487,10 +478,6 @@ function saveOrder() {
             alert("Error: " + (err.responseJSON ? err.responseJSON.error : 'Unknown error'));
         }
     });
-}
-
-function printOrder() {
-    window.print();
 }
 
 $(document).ready(function() {

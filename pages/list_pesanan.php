@@ -152,7 +152,7 @@ function exportToExcel() {
     btn.disabled = true;
 
     $.ajax({
-        url: `api/orders.php?page=1&limit=1000000&search=${encodeURIComponent(search)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`,
+        url: `api/orders.php?export=1&page=1&limit=1000000&search=${encodeURIComponent(search)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`,
         method: 'GET',
         dataType: 'json',
         success: function(res) {
@@ -164,17 +164,22 @@ function exportToExcel() {
                     "No SP": o.no_sp,
                     "Tanggal": o.tgl_sp,
                     "Supplier": o.namasup,
-                    "Kode Supplier": o.kodesup,
                     "Unit/Bagian": o.unit,
-                    "Total (Rp)": parseFloat(o.flag)
+                    "Dibuat Oleh": o.user || '',
+                    "Pembayaran": o.pembayaran || '',
+                    "Nama Barang": o.barang || '',
+                    "Qty": parseFloat(o.qty) || 0,
+                    "Harga Satuan (Rp)": parseFloat(o.harga) || 0,
+                    "Subtotal (Rp)": parseFloat(o.total) || 0,
+                    "Grand Total SP (Rp)": parseFloat(o.flag)
                 }));
                 
                 const worksheet = XLSX.utils.json_to_sheet(exportData);
                 const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "Data_Pesanan");
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Data_Pesanan_Detail");
                 
                 const d = new Date().toISOString().slice(0,10);
-                XLSX.writeFile(workbook, `Pesanan_RKZ_${d}.xlsx`);
+                XLSX.writeFile(workbook, `Rekap_Pesanan_Detail_${d}.xlsx`);
             } else {
                 alert('Tidak ada data untuk diexport.');
             }

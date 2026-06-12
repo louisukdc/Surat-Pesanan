@@ -103,12 +103,23 @@ try {
             $where .= " AND tgl_sp <= '$end_date'";
         }
 
+        $is_export = isset($_GET['export']) && $_GET['export'] == '1';
+
         $count_sql = "SELECT COUNT(DISTINCT no_sp) as total FROM sp_pesanan WHERE $where";
         $total_res = $conn->query($count_sql);
         $total_row = $total_res->fetch_assoc();
         $total_records = (int)$total_row['total'];
 
-        $sql = "SELECT DISTINCT no_sp, tgl_sp, namasup, unit, flag FROM sp_pesanan WHERE $where ORDER BY tgl_sp DESC LIMIT $offset, $limit";
+        if ($is_export) {
+            // For export, return all items without DISTINCT and include item details
+            $sql = "SELECT no_sp, tgl_sp, namasup, unit, flag, user, pembayaran, barang, qty, harga, total 
+                    FROM sp_pesanan WHERE $where ORDER BY tgl_sp DESC";
+        } else {
+            // For normal list view, return grouped header data
+            $sql = "SELECT DISTINCT no_sp, tgl_sp, namasup, unit, flag 
+                    FROM sp_pesanan WHERE $where ORDER BY tgl_sp DESC LIMIT $offset, $limit";
+        }
+        
         $result = $conn->query($sql);
         
         $data = [];
