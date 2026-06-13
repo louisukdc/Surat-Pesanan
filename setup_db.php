@@ -58,5 +58,8 @@ executeSqlFile($conn, 'Database/data_old.sql');
 echo "Importing sp_pesanan.sql (data sp_pesanan)...<br>";
 executeSqlFile($conn, 'Database/sp_pesanan.sql');
 
+echo "Importing sp_permintaan.sql (schema sp_permintaan)...<br>";
+executeSqlFile($conn, 'Database/sp_permintaan.sql');
+
 echo "<br><b>Setup Complete!</b> <a href='index.php'>Go to Login</a>";
 ?>

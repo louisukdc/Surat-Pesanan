@@ -5,7 +5,7 @@
     </div>
 
     <!-- Filter Bar -->
-    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
         <div style="flex: 1; min-width: 200px;">
             <label style="display: block; font-size: 12px; margin-bottom: 5px; color: #666;">Cari (Kode / Nama Supplier)</label>
             <input type="text" id="filterSearch" class="form-control" placeholder="Ketik kata kunci...">
@@ -47,7 +47,7 @@
 <!-- Modal Form -->
 <div id="supplierModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
     <div class="card" style="width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <h3 id="modalTitle">Tambah Supplier</h3>
             <button class="btn btn-outline" style="padding: 5px 10px;" onclick="hideForm()"><i class="fas fa-times"></i></button>
         </div>

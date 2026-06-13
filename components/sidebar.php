@@ -15,8 +15,28 @@
             </a>
         </li>
         <li>
+            <a href="dashboard.php?page=pr_form" class="<?php echo $page == 'pr_form' ? 'active' : ''; ?>">
+                <i class="fas fa-hand-paper"></i> Permintaan Barang
+            </a>
+        </li>
+        <li>
+            <a href="dashboard.php?page=approval" class="<?php echo $page == 'approval' ? 'active' : ''; ?>">
+                <i class="fas fa-check-double"></i> Persetujuan SP
+            </a>
+        </li>
+        <li>
             <a href="dashboard.php?page=order_form" class="<?php echo $page == 'order_form' ? 'active' : ''; ?>">
                 <i class="fas fa-plus-circle"></i> Tambah Pesanan
+            </a>
+        </li>
+        <li>
+            <a href="dashboard.php?page=gr_form" class="<?php echo $page == 'gr_form' ? 'active' : ''; ?>">
+                <i class="fas fa-box-open"></i> Penerimaan Barang
+            </a>
+        </li>
+        <li>
+            <a href="dashboard.php?page=retur_form" class="<?php echo $page == 'retur_form' ? 'active' : ''; ?>">
+                <i class="fas fa-undo-alt"></i> Retur Pembelian
             </a>
         </li>
         <li>

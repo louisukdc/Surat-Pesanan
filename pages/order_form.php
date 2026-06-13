@@ -193,7 +193,7 @@
             </div>
         </div>
 
-        <div class="table-responsive" style="margin-bottom: 30px;">
+        <div class="table-responsive" style="margin-bottom: 10px;">
             <table class="data-table" id="itemsTable">
                 <thead>
                     <tr>

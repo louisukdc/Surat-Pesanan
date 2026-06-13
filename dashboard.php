@@ -15,6 +15,7 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'order_form';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -27,7 +28,7 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'order_form';
             <div class="content-wrapper">
                 <?php
                 // Include the requested page
-                $allowed_pages = ['home', 'order_form', 'list_pesanan', 'master_supplier', 'laporan', 'users'];
+                $allowed_pages = ['home', 'order_form', 'list_pesanan', 'master_supplier', 'laporan', 'users', 'pr_form', 'approval', 'gr_form', 'retur_form'];
                 if (in_array($page, $allowed_pages)) {
                     include 'pages/' . $page . '.php';
                 } else {
