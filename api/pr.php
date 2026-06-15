@@ -73,7 +73,7 @@ try {
         $tgl_pr = $data['tgl_pr'];
         $unit = $data['unit'];
         $user = $_SESSION['username'];
-        $keterangan = $data['keterangan'] ?? '';
+        $keterangan = isset($data['keterangan']) ? $data['keterangan'] : '';
 
         $conn->begin_transaction();
         try {
@@ -112,7 +112,7 @@ try {
             $stmt = $conn->prepare("UPDATE sp_permintaan SET status = 'Approved' WHERE no_pr = ?");
             $stmt->bind_param("s", $no_pr);
         } else if ($action === 'reject') {
-            $alasan = $data['alasan'] ?? 'Tidak ada alasan';
+            $alasan = isset($data['alasan']) ? $data['alasan'] : 'Tidak ada alasan';
             $stmt = $conn->prepare("UPDATE sp_permintaan SET status = 'Rejected', alasan_tolak = ? WHERE no_pr = ?");
             $stmt->bind_param("ss", $alasan, $no_pr);
         } else {

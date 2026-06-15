@@ -61,5 +61,8 @@ executeSqlFile($conn, 'Database/sp_pesanan.sql');
 echo "Importing sp_permintaan.sql (schema sp_permintaan)...<br>";
 executeSqlFile($conn, 'Database/sp_permintaan.sql');
 
+echo "Importing fase3.sql (schema penerimaan dan retur)...<br>";
+executeSqlFile($conn, 'Database/fase3.sql');
+
 echo "<br><b>Setup Complete!</b> <a href='index.php'>Go to Login</a>";
 ?>

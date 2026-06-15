@@ -351,6 +351,14 @@ function removeItem(index) {
     calculateGrandTotal();
 }
 
+function updateInlineItem(index, field, value) {
+    orderItems[index][field] = parseFloat(value) || 0;
+    // Auto calculate total
+    orderItems[index].total = (orderItems[index].qty * orderItems[index].harga) - orderItems[index].potongan;
+    renderItemsTable();
+    calculateGrandTotal();
+}
+
 function renderItemsTable() {
     let html = '';
     orderItems.forEach((item, idx) => {
@@ -358,11 +366,19 @@ function renderItemsTable() {
             <td>${item.barang}</td>
             <td>${item.merk}</td>
             <td>${item.model}</td>
-            <td>${item.qty}</td>
+            <td>
+                <input type="number" class="form-control" value="${item.qty}" onchange="updateInlineItem(${idx}, 'qty', this.value)" style="width:60px;">
+            </td>
             <td>${item.satuan}</td>
-            <td class="text-right">${formatCurrency(item.harga)}</td>
-            <td class="text-right">${formatCurrency(item.potongan)}</td>
-            <td class="text-right">${formatCurrency(item.total)}</td>
+            <td class="text-right">
+                <input type="number" class="form-control text-right" value="${item.harga}" onchange="updateInlineItem(${idx}, 'harga', this.value)" style="width:100px;">
+            </td>
+            <td class="text-right">
+                <input type="number" class="form-control text-right" value="${item.potongan}" onchange="updateInlineItem(${idx}, 'potongan', this.value)" style="width:80px;">
+            </td>
+            <td class="text-right" style="font-weight:bold; vertical-align:middle;">
+                ${formatCurrency(item.total)}
+            </td>
             <td class="text-center">
                 <button class="btn btn-danger" style="padding: 4px 8px; font-size: 12px;" onclick="removeItem(${idx})"><i class="fas fa-trash"></i></button>
             </td>
@@ -430,9 +446,44 @@ function loadOrderData(no_sp) {
     }, 'json');
 }
 
+function loadPRData(no_pr) {
+    $.get('api/pr.php?no_pr=' + encodeURIComponent(no_pr), function(res) {
+        if(res.header) {
+            let suggestedPO = res.header.no_pr.replace(/^PR/i, 'PO');
+            $('#no_sp').val(suggestedPO);
+            $('#unit').val(res.header.unit);
+            $('#noteout').val("Referensi PR: " + res.header.no_pr + "\nKeterangan: " + res.header.keterangan);
+            
+            orderItems = res.items.map(item => ({
+                barang: item.barang,
+                merk: '',
+                model: '',
+                spec: '',
+                qty: parseFloat(item.qty) || 0,
+                satuan: item.satuan,
+                harga: 0,
+                potongan: 0,
+                total: 0
+            }));
+            
+            renderItemsTable();
+            calculateGrandTotal();
+        }
+    }, 'json');
+}
+
 function saveOrder() {
-    if(!$('#no_sp').val() || !$('#kodesup').val() || orderItems.length === 0) {
+    let noSp = $('#no_sp').val().trim();
+    if(!noSp || !$('#kodesup').val() || orderItems.length === 0) {
         alert("No. SP, Supplier, dan Item tidak boleh kosong!");
+        return;
+    }
+    
+    // Validasi format No SP
+    const spFormat = /^PO\/\d+\/\d{2}\/\d{2}$/i;
+    if (!spFormat.test(noSp)) {
+        alert("Format No. SP salah!\nSilakan tulis ulang sesuai format: PO/XXX/XX/XX\nContoh: PO/001/01/26 atau PO/10188/09/25");
+        $('#no_sp').focus();
         return;
     }
     
@@ -485,6 +536,13 @@ $(document).ready(function() {
     let loadSp = "<?php echo addslashes($_GET['load']); ?>";
     if(loadSp) {
         loadOrderData(loadSp);
+    }
+    <?php endif; ?>
+
+    <?php if(isset($_GET['loadpr'])): ?>
+    let loadPr = "<?php echo addslashes($_GET['loadpr']); ?>";
+    if(loadPr) {
+        loadPRData(loadPr);
     }
     <?php endif; ?>
 });

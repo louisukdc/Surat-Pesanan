@@ -47,6 +47,37 @@
     </div>
 </div>
 
+<!-- Modal Detail -->
+<div id="detailModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:20px; border-radius:8px; width:700px; max-width:90%; max-height:80vh; display:flex; flex-direction:column;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3 style="margin:0; color:#2e7d32;">Detail Permintaan: <span id="detail-no-pr"></span></h3>
+            <button onclick="$('#detailModal').css('display','none')" style="background:none; border:none; font-size:20px; cursor:pointer;">&times;</button>
+        </div>
+        <div style="overflow-y:auto; flex-grow:1;">
+            <table class="data-table" style="font-size:12px;">
+                <thead>
+                    <tr>
+                        <th width="40">No</th>
+                        <th>Barang</th>
+                        <th width="80">Qty</th>
+                        <th width="80">Satuan</th>
+                    </tr>
+                </thead>
+                <tbody id="detail-items-body">
+                    <tr><td colspan="4" class="text-center">Memuat data...</td></tr>
+                </tbody>
+            </table>
+            <div style="margin-top:10px; padding:10px; background:#f8f9fa; border-radius:4px; font-size:12px;">
+                <strong>Keterangan:</strong> <span id="detail-keterangan"></span>
+            </div>
+        </div>
+        <div style="text-align:right; margin-top:15px;">
+            <button class="btn btn-outline" onclick="$('#detailModal').css('display','none')">Tutup</button>
+        </div>
+    </div>
+</div>
+
 <script>
 let currentRejectPr = '';
 
@@ -74,16 +105,15 @@ function loadPRs() {
                         badge += `<div style="font-size:10px; color:#ef4444; margin-top:4px;">Alasan: ${pr.alasan_tolak}</div>`;
                     }
 
-                    let actions = '';
+                    let actions = `<button class="btn btn-outline" style="padding:4px 8px; font-size:11px; margin-right:4px; margin-bottom:4px;" onclick="openDetailModal('${pr.no_pr}')"><i class="fas fa-eye"></i> Detail</button><br>`;
+
                     if(pr.status === 'Pending') {
-                        actions = `
+                        actions += `
                             <button class="btn btn-success" style="padding:4px 8px; font-size:11px; margin-right:4px;" onclick="approvePR('${pr.no_pr}')"><i class="fas fa-check"></i> Setujui</button>
                             <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="openRejectModal('${pr.no_pr}')"><i class="fas fa-times"></i> Tolak</button>
                         `;
                     } else if(pr.status === 'Approved') {
-                        actions = `<button class="btn btn-primary" style="padding:4px 8px; font-size:11px;" onclick="window.location.href='dashboard.php?page=order_form&loadpr=${pr.no_pr}'"><i class="fas fa-file-import"></i> Buat SP</button>`;
-                    } else {
-                        actions = '-';
+                        actions += `<button class="btn btn-primary" style="padding:4px 8px; font-size:11px;" onclick="window.location.href='dashboard.php?page=order_form&loadpr=${pr.no_pr}'"><i class="fas fa-file-import"></i> Buat SP</button>`;
                     }
 
                     html += `
@@ -105,6 +135,40 @@ function loadPRs() {
         },
         error: function() {
             $('#pr-table-body').html('<tr><td colspan="7" class="text-center" style="color:red;">Gagal memuat data.</td></tr>');
+        }
+    });
+}
+
+function openDetailModal(no_pr) {
+    $('#detail-no-pr').text(no_pr);
+    $('#detail-items-body').html('<tr><td colspan="4" class="text-center"><i class="fas fa-spinner fa-spin"></i> Memuat...</td></tr>');
+    $('#detail-keterangan').text('-');
+    $('#detailModal').css('display', 'flex');
+
+    $.ajax({
+        url: 'api/pr.php?no_pr=' + encodeURIComponent(no_pr),
+        method: 'GET',
+        success: function(res) {
+            if(res.header) {
+                $('#detail-keterangan').text(res.header.keterangan || '-');
+                let html = '';
+                if(res.items && res.items.length > 0) {
+                    res.items.forEach((item, idx) => {
+                        html += `<tr>
+                            <td>${idx + 1}</td>
+                            <td><span style="font-weight:600;">${item.barang}</span></td>
+                            <td>${item.qty}</td>
+                            <td>${item.satuan}</td>
+                        </tr>`;
+                    });
+                } else {
+                    html = '<tr><td colspan="4" class="text-center">Tidak ada barang</td></tr>';
+                }
+                $('#detail-items-body').html(html);
+            }
+        },
+        error: function() {
+            $('#detail-items-body').html('<tr><td colspan="4" class="text-center" style="color:red;">Gagal memuat detail.</td></tr>');
         }
     });
 }
