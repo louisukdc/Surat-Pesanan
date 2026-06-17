@@ -1,6 +1,53 @@
 <?php
-// index.php - Login Page
+// index.php - Login Page & API Endpoint
 session_start();
+
+// Handle REST API JSON Login Request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
+    $input = file_get_contents('php://input');
+    $data = json_decode($input, true);
+    
+    // Always return JSON if it's an API request
+    header('Content-Type: application/json');
+    
+    if (!$data || !is_array($data)) {
+        http_response_code(400);
+        echo json_encode([
+            "success" => false, 
+            "message" => "Invalid JSON payload or empty body.",
+            "debug_raw_input" => $input
+        ]);
+        exit;
+    }
+    
+    if (isset($data['username']) && isset($data['password'])) {
+        require_once 'config.php';
+        
+        $username = $data['username'];
+        $password = md5($data['password']);
+        
+        $stmt = $conn->prepare("SELECT id, username, role FROM users WHERE username = ? AND password = ?");
+        $stmt->bind_param("ss", $username, $password);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($row = $result->fetch_assoc()) {
+            $_SESSION['user_id'] = $row['id'];
+            $_SESSION['username'] = $row['username'];
+            $_SESSION['role'] = $row['role'];
+            echo json_encode(["success" => true, "message" => "Login successful", "data" => $row]);
+        } else {
+            http_response_code(401);
+            echo json_encode(["success" => false, "message" => "Invalid username or password"]);
+        }
+        exit;
+    } else {
+        http_response_code(400);
+        echo json_encode(["success" => false, "message" => "Missing username or password in JSON"]);
+        exit;
+    }
+}
+
 if (isset($_SESSION['user_id'])) {
     header("Location: dashboard.php");
     exit;

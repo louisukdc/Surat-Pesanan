@@ -154,6 +154,9 @@ try {
         try {
             // Delete existing items for this no_sp to do a clean replace
             $stmt_del = $conn->prepare("DELETE FROM sp_pesanan WHERE no_sp = ?");
+            if ($stmt_del === false) {
+                throw new Exception("Prepare failed: " . $conn->error);
+            };
             $stmt_del->bind_param("s", $header['no_sp']);
             if(!$stmt_del->execute()) throw new Exception($stmt_del->error);
             
