@@ -1,0 +1,48 @@
+//Post API Tambah Pesanan
+{
+    "header": {
+        "no_sp": "PO/999/06/26",
+        "tgl_sp": "2026-06-17",
+        "namasup": "PT Mitra Medika",
+        "kodesup": "SUP-01",
+        "no_tawar": "TW-123",
+        "tgl_tawar": "2026-06-15",
+        "unit": "FARMASI",
+        "pembayaran": "Kredit",
+        "pembayaran1": "30 Hari",
+        "noteout": "Tolong segera dikirim besok pagi.",
+        "noteout1": "",
+        "noteout2": "",
+        "notein": "Barang harus dicek kadaluarsanya",
+        "user": "admin",
+        "ppn": 10000,
+        "flag": 110000,
+        "uang": "Rupiah",
+        "xx": "0"
+    },
+    "items": [
+        {
+            "barang": "Paracetamol 500mg",
+            "merk": "Generic",
+            "model": "-",
+            "spec": "Tablet",
+            "qty": 100,
+            "satuan": "Box",
+            "harga": 1000,
+            "potongan": 0,
+            "total": 100000
+        },
+        {
+            "barang": "Amoxicillin 250mg",
+            "merk": "Dexa",
+            "model": "-",
+            "spec": "Sirup",
+            "qty": 10,
+            "satuan": "Botol",
+            "harga": 15000,
+            "potongan": 2000,
+            "total": 148000
+        }
+    ]
+}
+// Post API Permintaan Barang
