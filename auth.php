@@ -36,11 +36,25 @@ if (isset($_GET['action']) && $_GET['action'] == 'logout') {
 // Function to check if user is logged in
 function checkAuth($allowed_roles = array()) {
     if (!isset($_SESSION['user_id'])) {
-        header("Location: index.php");
+        // If it's an API request (URL contains /api/), return JSON instead of redirecting
+        if (strpos($_SERVER['REQUEST_URI'], '/api/') !== false) {
+            header('Content-Type: application/json');
+            http_response_code(401);
+            echo json_encode(["success" => false, "message" => "Unauthorized. Please login first."]);
+            exit;
+        }
+        // Otherwise redirect to the main login page (using absolute path to avoid 404 in subfolders)
+        header("Location: /index.php");
         exit;
     }
     
     if (!empty($allowed_roles) && !in_array($_SESSION['role'], $allowed_roles)) {
+        if (strpos($_SERVER['REQUEST_URI'], '/api/') !== false) {
+            header('Content-Type: application/json');
+            http_response_code(403);
+            echo json_encode(["success" => false, "message" => "Access Denied."]);
+            exit;
+        }
         die("Access Denied.");
     }
 }
