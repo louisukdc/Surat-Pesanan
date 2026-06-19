@@ -5,7 +5,7 @@ Dokumen ini merangkum seluruh kerangka kerja (*framework*), arsitektur, dan renc
 ![Arsitektur Sistem](./non-essential/PRD_SP_Pembelian.svg)
 
 ## 1. Stack Teknologi (Tech Stack)
-*   **Backend:** PHP Native (Minimal PHP 5.6+, direkomendasikan PHP 7/8).
+*   **Backend:** PHP Native (Minimal PHP 5.6+).
 *   **Database:** MySQL / MariaDB (Driver menggunakan `mysqli` secara eksklusif).
 *   **Frontend:** HTML5, CSS3 (Vanilla dengan CSS Variables), JavaScript (Vanilla & jQuery untuk AJAX).
 *   **UI/UX:** Desain khusus dengan efek *Glassmorphism*, *Micro-animations*, dan gaya responsif ala *Enterprise Dashboard*.
