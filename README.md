@@ -1,6 +1,7 @@
 # Sistem Askes RKZ - Arsitektur & Panduan Implementasi Penuh
 
 Dokumen ini merangkum seluruh kerangka kerja (*framework*), arsitektur, dan rencana implementasi yang digunakan untuk membangun Sistem Askes RKZ dari awal. Dokumen ini sangat berguna sebagai panduan *Developer* (*Developer Handbook*).
+
 ![Arsitektur Sistem](./non-essential/PRD_SP_Pembelian.svg)
 
 ## 1. Stack Teknologi (Tech Stack)
