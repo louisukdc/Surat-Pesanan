@@ -2,6 +2,8 @@
 
 Dokumen ini merangkum seluruh kerangka kerja (*framework*), arsitektur, dan rencana implementasi yang digunakan untuk membangun Sistem Askes RKZ dari awal. Dokumen ini sangat berguna sebagai panduan *Developer* (*Developer Handbook*).
 
+![Arsitektur Sistem](./non-essential/PRD_SP_Pembelian.svg)
+
 ## 1. Stack Teknologi (Tech Stack)
 *   **Backend:** PHP Native (Minimal PHP 5.6+, direkomendasikan PHP 7/8).
 *   **Database:** MySQL / MariaDB (Driver menggunakan `mysqli` secara eksklusif).
