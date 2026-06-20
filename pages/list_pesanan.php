@@ -80,7 +80,7 @@ function loadOrders() {
                         <td>${o.unit}</td>
                         <td class="text-right">Rp ${parseFloat(o.flag).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
                         <td class="text-center">
-                            <a href="detail_kwitansi.php?id=${encodeURIComponent(o.no_sp)}" target="_blank" class="btn" style="padding: 4px 8px; font-size: 12px; background-color: #f1f5f9; color: var(--text-main); border: 1px solid var(--border); text-decoration: none;" title="Detail Kwitansi"><i class="fas fa-eye"></i> Detail</a>
+                            <a href="dashboard.php?page=detail_kwitansi&id=${encodeURIComponent(o.no_sp)}" target="_blank" class="btn" style="padding: 4px 8px; font-size: 12px; background-color: #f1f5f9; color: var(--text-main); border: 1px solid var(--border); text-decoration: none;" title="Detail Kwitansi"><i class="fas fa-eye"></i> Detail</a>
                             <?php if ($_SESSION['role'] === 'admin'): ?>
                                 <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;" onclick="editOrder('${o.no_sp}')" title="Edit"><i class="fas fa-edit"></i></button>
                             <?php endif; ?>

@@ -1,5 +1,5 @@
-//Post API Tambah Pesanan
 {
+    "_description_": "Post API Tambah Pesanan",
     "header": {
         "no_sp": "PO/999/06/26",
         "tgl_sp": "2026-06-17",
@@ -45,4 +45,3 @@
         }
     ]
 }
-// Post API Permintaan Barang
