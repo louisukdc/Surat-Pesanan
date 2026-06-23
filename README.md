@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Sistem Askes RKZ - Arsitektur & Panduan Implementasi Penuh
 
 Dokumen ini merangkum seluruh kerangka kerja (*framework*), arsitektur, dan rencana implementasi yang digunakan untuk membangun Sistem Askes RKZ dari awal. Dokumen ini sangat berguna sebagai panduan *Developer* (*Developer Handbook*).
@@ -57,6 +56,3 @@ Aplikasi memisahkan antara antarmuka (UI), logika backend (API), dan komponen *r
     *   `.form-control` (Kotak input modern).
     *   `.data-table` (Tabel bersih dengan *padding* lebar dan *border-bottom*).
 *   **Modal Form:** Popup statis di atas halaman utama untuk proses *Tambah* dan *Edit* data tanpa berpindah halaman.
-=======
-new
->>>>>>> origin/pembelian
