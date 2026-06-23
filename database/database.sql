@@ -103,7 +103,7 @@ ALTER TABLE `spu_h`
 ADD CONSTRAINT `fk_spu_h_to_supplier` FOREIGN KEY (`id_supplier`) REFERENCES `m_supplier` (`KodeSupplier`) ON DELETE RESTRICT ON UPDATE CASCADE;
 -- ========================================================
 -- 6. TABEL USERS UNTUK LOGIN
--- ========================================================
+-- =======================================================
 CREATE TABLE IF NOT EXISTS `users` (
     `id` INT(11) NOT NULL AUTO_INCREMENT,
     `username` VARCHAR(50) NOT NULL,
