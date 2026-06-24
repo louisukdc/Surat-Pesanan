@@ -40,7 +40,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="Salinan dari Halaman-1" id="6uuurBWjh3WP47qk0eaf">
-    <mxGraphModel dx="2364" dy="1620" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="3940" dy="2700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="f01ANIdvxND82kdcVqZB-0" />
         <mxCell id="f01ANIdvxND82kdcVqZB-1" parent="f01ANIdvxND82kdcVqZB-0" />
@@ -141,9 +141,9 @@
             <mxGeometry height="118.68738306710162" width="389.6" x="160.61" y="245.98683275914752" as="geometry" />
           </mxCell>
         </UserObject>
-        <UserObject label="10. Teknisi:&#xa;Cek &amp;amp; Upload Surat Jalan" mermaidId="n:L" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=default;strokeColor=#6c757d;fontColor=#495057;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="10. Teknisi:&#xa;Cek &amp; Upload Surat Jalan" id="uXYgXxdGHQif1uGFz_v7-133">
+        <UserObject label="11. Teknisi RKZ: cek barang datang dan servis yang dikerjakan." mermaidId="n:L" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=default;strokeColor=#6c757d;fontColor=#495057;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="10. Teknisi:&#xa;Cek &amp; Upload Surat Jalan" id="uXYgXxdGHQif1uGFz_v7-133">
           <mxCell parent="uXYgXxdGHQif1uGFz_v7-130" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=default;strokeColor=#6c757d;fontColor=#495057;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=30;" vertex="1">
-            <mxGeometry height="136.24688110375334" width="296.67" x="205.95" y="468.2218454651017" as="geometry" />
+            <mxGeometry height="136.25" width="352.62" x="179.11" y="460" as="geometry" />
           </mxCell>
         </UserObject>
         <UserObject label="&lt;font style=&quot;font-size: 30px;&quot;&gt;Kategori?&lt;/font&gt;" mermaidId="n:M" mermaidBaseStyle="rhombus;html=1;strokeWidth=2;whiteSpace=wrap;fillColor=#fff3e0;strokeColor=#fb8c00;fontColor=#e65100;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Kategori?" id="uXYgXxdGHQif1uGFz_v7-134">
@@ -167,12 +167,12 @@
             </mxGeometry>
           </mxCell>
         </UserObject>
-        <UserObject label="11a. Sistem:&#xa;Generate Berita Acara" mermaidId="n:N" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=#e8f5e9;strokeColor=#43a047;fontColor=#1b5e20;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="11a. Sistem:&#xa;Generate Berita Acara" id="uXYgXxdGHQif1uGFz_v7-135">
+        <UserObject label="12a. Sistem:&lt;br&gt;input Berita Acara" mermaidId="n:N" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=#e8f5e9;strokeColor=#43a047;fontColor=#1b5e20;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="11a. Sistem:&#xa;Generate Berita Acara" id="uXYgXxdGHQif1uGFz_v7-135">
           <mxCell parent="uXYgXxdGHQif1uGFz_v7-130" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=#e8f5e9;strokeColor=#43a047;fontColor=#1b5e20;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=30;" vertex="1">
             <mxGeometry height="114.44738012715281" width="268.48" x="400" y="1002.3096193918146" as="geometry" />
           </mxCell>
         </UserObject>
-        <UserObject label="11b. Sistem:&#xa;Generate Laporan Kerja" mermaidId="n:O" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=#e8f5e9;strokeColor=#43a047;fontColor=#1b5e20;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="11b. Sistem:&#xa;Generate Laporan Kerja" id="uXYgXxdGHQif1uGFz_v7-136">
+        <UserObject label="12b. Sistem:&lt;br&gt;input Laporan Kerja" mermaidId="n:O" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=#e8f5e9;strokeColor=#43a047;fontColor=#1b5e20;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="11b. Sistem:&#xa;Generate Laporan Kerja" id="uXYgXxdGHQif1uGFz_v7-136">
           <mxCell parent="uXYgXxdGHQif1uGFz_v7-130" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=#e8f5e9;strokeColor=#43a047;fontColor=#1b5e20;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=30;" vertex="1">
             <mxGeometry height="114.24992087917637" width="284.41" x="50" y="982.8401375413365" as="geometry" />
           </mxCell>
@@ -184,7 +184,7 @@
             </mxGeometry>
           </mxCell>
         </UserObject>
-        <UserObject label="12. Keuangan:&#xa;Validasi Dokumen Lengkap" mermaidId="n:P" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=default;strokeColor=#6c757d;fontColor=#495057;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="12. Keuangan:&#xa;Validasi Dokumen Lengkap" id="uXYgXxdGHQif1uGFz_v7-137">
+        <UserObject label="13. Keuangan:&lt;br&gt;Validasi Dokumen Lengkap, dan BBM." mermaidId="n:P" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=default;strokeColor=#6c757d;fontColor=#495057;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="12. Keuangan:&#xa;Validasi Dokumen Lengkap" id="uXYgXxdGHQif1uGFz_v7-137">
           <mxCell parent="uXYgXxdGHQif1uGFz_v7-130" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=default;strokeColor=#6c757d;fontColor=#495057;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=30;" vertex="1">
             <mxGeometry height="130.1321210798169" width="305.25" x="201.05" y="1166.8958517651488" as="geometry" />
           </mxCell>
@@ -192,7 +192,7 @@
         <mxCell id="uXYgXxdGHQif1uGFz_v7-159" edge="1" parent="uXYgXxdGHQif1uGFz_v7-130" source="uXYgXxdGHQif1uGFz_v7-136" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;startSize=8;endSize=8;" target="uXYgXxdGHQif1uGFz_v7-137">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <UserObject label="13. Keuangan:&#xa;Cetak Bukti Bayar" mermaidId="n:Q" mermaidBaseStyle="html=1;rounded=1;whiteSpace=wrap;arcSize=50;strokeWidth=2;fillColor=#e3f2fd;strokeColor=#1e88e5;fontColor=#0d47a1;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="13. Keuangan:&#xa;Cetak Bukti Bayar" id="uXYgXxdGHQif1uGFz_v7-138">
+        <UserObject label="14. Keuangan:&lt;br&gt;Cetak Bukti Bayar" mermaidId="n:Q" mermaidBaseStyle="html=1;rounded=1;whiteSpace=wrap;arcSize=50;strokeWidth=2;fillColor=#e3f2fd;strokeColor=#1e88e5;fontColor=#0d47a1;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="13. Keuangan:&#xa;Cetak Bukti Bayar" id="uXYgXxdGHQif1uGFz_v7-138">
           <mxCell parent="uXYgXxdGHQif1uGFz_v7-130" style="html=1;rounded=1;whiteSpace=wrap;arcSize=50;strokeWidth=2;fillColor=#e3f2fd;strokeColor=#1e88e5;fontColor=#0d47a1;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=30;" vertex="1">
             <mxGeometry height="94.34824022672711" width="298.88" x="204.24" y="1345.651759773273" as="geometry" />
           </mxCell>
@@ -297,22 +297,9 @@
         </mxCell>
         <UserObject label="&lt;span style=&quot;font-size: 28px;&quot;&gt;Surat PO itu ada 3 warna:&lt;/span&gt;&lt;div&gt;&lt;ol&gt;&lt;li&gt;&lt;span style=&quot;font-size: 28px;&quot;&gt;&lt;b&gt;Putih&lt;/b&gt;; itu yang Asli yang diberikan ke Vendor dan vendor wajib bawa itu buat claim pembayaran (PO+Berita Acara/Laporan Kerja+Surat Jalan) ✔️&lt;/span&gt;&lt;/li&gt;&lt;li&gt;&lt;span style=&quot;font-size: 28px;&quot;&gt;&lt;b&gt;Biru&lt;/b&gt;; itu diambil Administrasi/ADM✔️&lt;/span&gt;&lt;/li&gt;&lt;li&gt;&lt;span style=&quot;font-size: 28px;&quot;&gt;&lt;b&gt;Kuning&lt;/b&gt;; itu arsip punya pembelian✔️&lt;/span&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/div&gt;" placeholders="1" name="Variable" id="gwzgKl9MxLUdBJqcUl12-52">
           <mxCell parent="uXYgXxdGHQif1uGFz_v7-37" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;overflow=hidden;" vertex="1">
-            <mxGeometry height="320" width="550" x="1140" y="290" as="geometry" />
+            <mxGeometry height="320" width="550" x="1060" y="262.02" as="geometry" />
           </mxCell>
         </UserObject>
-        <mxCell id="gwzgKl9MxLUdBJqcUl12-54" edge="1" parent="uXYgXxdGHQif1uGFz_v7-37" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0.007;entryY=0.348;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;entryPerimeter=0;" target="gwzgKl9MxLUdBJqcUl12-52">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="577" y="260" />
-              <mxPoint x="960" y="260" />
-              <mxPoint x="960" y="290" />
-              <mxPoint x="1080" y="290" />
-              <mxPoint x="1080" y="401" />
-            </Array>
-            <mxPoint x="576.7499999999993" y="229.99905198169563" as="sourcePoint" />
-            <mxPoint x="1140.0000000000002" y="304.1700000000003" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
         <mxCell id="gwzgKl9MxLUdBJqcUl12-56" edge="1" parent="uXYgXxdGHQif1uGFz_v7-37" source="gwzgKl9MxLUdBJqcUl12-55" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;startSize=8;endSize=8;startArrow=classic;startFill=1;endArrow=none;endFill=0;" value="">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
@@ -326,6 +313,25 @@
             <mxGeometry height="120" width="370" x="2590" y="100" as="geometry" />
           </mxCell>
         </UserObject>
+        <mxCell id="gwzgKl9MxLUdBJqcUl12-57" edge="1" parent="uXYgXxdGHQif1uGFz_v7-37" source="uXYgXxdGHQif1uGFz_v7-131" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=-0.004;entryY=0.404;entryDx=0;entryDy=0;entryPerimeter=0;fontSize=12;startSize=8;endSize=8;" target="gwzgKl9MxLUdBJqcUl12-52">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="512" y="264" />
+              <mxPoint x="819" y="264" />
+              <mxPoint x="819" y="242" />
+              <mxPoint x="910" y="242" />
+              <mxPoint x="910" y="392" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <UserObject label="&lt;span style=&quot;font-size: 28px;&quot;&gt;Bukti Barang Masuk /(BBM) dibuatkan; (disi tanggal datang, foto, dan anam brang, qty)&lt;/span&gt;" placeholders="1" name="Variable" id="gwzgKl9MxLUdBJqcUl12-58">
+          <mxCell parent="uXYgXxdGHQif1uGFz_v7-37" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;overflow=hidden;" vertex="1">
+            <mxGeometry height="212.5" width="410" x="980" y="615" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="gwzgKl9MxLUdBJqcUl12-59" edge="1" parent="uXYgXxdGHQif1uGFz_v7-37" source="uXYgXxdGHQif1uGFz_v7-133" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="gwzgKl9MxLUdBJqcUl12-58">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
         <UserObject label="&lt;font style=&quot;font-size: 28px;&quot;&gt;ada 3 keputusan penawaran:&lt;/font&gt;&lt;div&gt;&lt;ol&gt;&lt;li&gt;&lt;font style=&quot;font-size: 28px;&quot;&gt;bisa approve ✔️&lt;/font&gt;&lt;/li&gt;&lt;li&gt;&lt;font style=&quot;font-size: 28px;&quot;&gt;bisa reject ✖️&lt;/font&gt;&lt;/li&gt;&lt;li&gt;&lt;font style=&quot;font-size: 28px;&quot;&gt;bisa pending ⏯️&lt;/font&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/div&gt;" placeholders="1" name="Variable" id="gwzgKl9MxLUdBJqcUl12-38">
           <mxCell parent="f01ANIdvxND82kdcVqZB-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;overflow=hidden;" vertex="1">
             <mxGeometry height="180" width="370" x="4000" y="299" as="geometry" />
