@@ -2,7 +2,7 @@
 
 Dokumen ini merangkum seluruh kerangka kerja (*framework*), arsitektur, dan rencana implementasi yang digunakan untuk membangun Sistem Askes RKZ dari awal. Dokumen ini sangat berguna sebagai panduan *Developer* (*Developer Handbook*).
 
-![Arsitektur Sistem](./img/material.png)
+![Arsitektur Sistem](./img/database.png)
 
 ## 1. Stack Teknologi (Tech Stack)
 *   **Backend:** PHP Native (Minimal PHP 5.6+).
@@ -29,6 +29,7 @@ Aplikasi memisahkan antara antarmuka (UI), logika backend (API), dan komponen *r
 ```
 
 ## 3. Fitur Utama & Fungsionalitas
+![Workflow Sistem](./img/Flowchart.png)
 ### A. Autentikasi & RBAC (Role-Based Access Control)
 *   Terdapat 2 Role: **Admin** dan **Umum**.
 *   Frontend akan menyembunyikan menu manajemen berdasarkan Session Role.

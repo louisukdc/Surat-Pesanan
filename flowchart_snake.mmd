@@ -1,0 +1,37 @@
+flowchart TD
+    classDef default fill:#f8f9fa,stroke:#adb5bd,stroke-width:1px,color:#212529,font-size:50px;
+    classDef start_end fill:#e3f2fd,stroke:#1e88e5,stroke-width:2px,color:#0d47a1,font-size:50px;
+    classDef process fill:#ffffff,stroke:#6c757d,stroke-width:1px,color:#495057,font-size:50px;
+    classDef decision fill:#fff3e0,stroke:#fb8c00,stroke-width:2px,color:#e65100,font-size:50px;
+    classDef system fill:#e8f5e9,stroke:#43a047,stroke-width:1px,color:#1b5e20,font-size:50px;
+    classDef approval fill:#f3e5f5,stroke:#8e24aa,stroke-width:2px,color:#4a148c,font-size:50px;
+
+    subgraph Baris1 [Tahap 1: Pengajuan & Draf PO]
+        direction LR
+        A([1. Administrasi:<br/>Buat Surat Permohonan]):::start_end --> B{Kategori?}:::decision
+        B -->|IT / AC / Medis| C[2. Pembelian:<br/>Minta & Input Harga Vendor]:::process
+        C --> D[3. Suster:<br/>Review & Tambah Catatan]:::process
+        D --> E[4. Pembelian:<br/>Buat Draf PO]:::process
+    end
+
+    subgraph Baris2 [Tahap 2: Persetujuan & Order]
+        direction RL
+        I([7. Sistem:<br/>Generate PDF PO Sah]):::system --> H[6. Suster:<br/>TTE & Stempel Digital]:::approval
+        H --> G[5. Kepala Bagian:<br/>TTE ACC Teknis]:::approval
+        G --> F{Hierarki Persetujuan}:::decision
+    end
+
+    subgraph Baris3 [Tahap 3: Penerimaan & Pembayaran]
+        direction LR
+        J[8. Pembelian:<br/>Kirim PO ke Vendor]:::process --> K[9. Vendor:<br/>Bawa Barang/Servis + Surat Jalan]:::process
+        K --> L[10. Teknisi:<br/>Cek & Upload Surat Jalan]:::process
+        L --> M{Kategori?}:::decision
+        M -->|Barang| N[11a. Sistem:<br/>Generate Berita Acara]:::system
+        M -->|Jasa| O[11b. Sistem:<br/>Generate Laporan Kerja]:::system
+        N --> P[12. Keuangan:<br/>Validasi Dokumen Lengkap]:::process
+        O --> P
+        P --> Q([13. Keuangan:<br/>Cetak Bukti Bayar]):::start_end
+    end
+
+    E --> F
+    I --> J
