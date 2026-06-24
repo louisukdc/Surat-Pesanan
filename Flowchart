@@ -40,7 +40,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="Salinan dari Halaman-1" id="6uuurBWjh3WP47qk0eaf">
-    <mxGraphModel dx="1970" dy="1350" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="2364" dy="1620" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="f01ANIdvxND82kdcVqZB-0" />
         <mxCell id="f01ANIdvxND82kdcVqZB-1" parent="f01ANIdvxND82kdcVqZB-0" />
@@ -295,6 +295,37 @@
         <mxCell id="gwzgKl9MxLUdBJqcUl12-47" edge="1" parent="uXYgXxdGHQif1uGFz_v7-37" source="uXYgXxdGHQif1uGFz_v7-124" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="gwzgKl9MxLUdBJqcUl12-46">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
+        <UserObject label="&lt;span style=&quot;font-size: 28px;&quot;&gt;Surat PO itu ada 3 warna:&lt;/span&gt;&lt;div&gt;&lt;ol&gt;&lt;li&gt;&lt;span style=&quot;font-size: 28px;&quot;&gt;&lt;b&gt;Putih&lt;/b&gt;; itu yang Asli yang diberikan ke Vendor dan vendor wajib bawa itu buat claim pembayaran (PO+Berita Acara/Laporan Kerja+Surat Jalan) ✔️&lt;/span&gt;&lt;/li&gt;&lt;li&gt;&lt;span style=&quot;font-size: 28px;&quot;&gt;&lt;b&gt;Biru&lt;/b&gt;; itu diambil Administrasi/ADM✔️&lt;/span&gt;&lt;/li&gt;&lt;li&gt;&lt;span style=&quot;font-size: 28px;&quot;&gt;&lt;b&gt;Kuning&lt;/b&gt;; itu arsip punya pembelian✔️&lt;/span&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/div&gt;" placeholders="1" name="Variable" id="gwzgKl9MxLUdBJqcUl12-52">
+          <mxCell parent="uXYgXxdGHQif1uGFz_v7-37" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;overflow=hidden;" vertex="1">
+            <mxGeometry height="320" width="550" x="1140" y="290" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="gwzgKl9MxLUdBJqcUl12-54" edge="1" parent="uXYgXxdGHQif1uGFz_v7-37" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0.007;entryY=0.348;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;entryPerimeter=0;" target="gwzgKl9MxLUdBJqcUl12-52">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="577" y="260" />
+              <mxPoint x="960" y="260" />
+              <mxPoint x="960" y="290" />
+              <mxPoint x="1080" y="290" />
+              <mxPoint x="1080" y="401" />
+            </Array>
+            <mxPoint x="576.7499999999993" y="229.99905198169563" as="sourcePoint" />
+            <mxPoint x="1140.0000000000002" y="304.1700000000003" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="gwzgKl9MxLUdBJqcUl12-56" edge="1" parent="uXYgXxdGHQif1uGFz_v7-37" source="gwzgKl9MxLUdBJqcUl12-55" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;startSize=8;endSize=8;startArrow=classic;startFill=1;endArrow=none;endFill=0;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2840" y="290" />
+            </Array>
+            <mxPoint x="3330" y="290" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <UserObject label="&lt;span style=&quot;font-size: 28px;&quot;&gt;Kepala bagian TTD lebih dulu Surta Permohonan/SuPer&lt;/span&gt;" placeholders="1" name="Variable" id="gwzgKl9MxLUdBJqcUl12-55">
+          <mxCell parent="uXYgXxdGHQif1uGFz_v7-37" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;overflow=hidden;" vertex="1">
+            <mxGeometry height="120" width="370" x="2590" y="100" as="geometry" />
+          </mxCell>
+        </UserObject>
         <UserObject label="&lt;font style=&quot;font-size: 28px;&quot;&gt;ada 3 keputusan penawaran:&lt;/font&gt;&lt;div&gt;&lt;ol&gt;&lt;li&gt;&lt;font style=&quot;font-size: 28px;&quot;&gt;bisa approve ✔️&lt;/font&gt;&lt;/li&gt;&lt;li&gt;&lt;font style=&quot;font-size: 28px;&quot;&gt;bisa reject ✖️&lt;/font&gt;&lt;/li&gt;&lt;li&gt;&lt;font style=&quot;font-size: 28px;&quot;&gt;bisa pending ⏯️&lt;/font&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/div&gt;" placeholders="1" name="Variable" id="gwzgKl9MxLUdBJqcUl12-38">
           <mxCell parent="f01ANIdvxND82kdcVqZB-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;overflow=hidden;" vertex="1">
             <mxGeometry height="180" width="370" x="4000" y="299" as="geometry" />
@@ -327,7 +358,7 @@
             <mxPoint x="3580" y="1035" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <UserObject label="&lt;span style=&quot;font-size: 28px;&quot;&gt;pembelian mencari vendor dengan harga paling murah; misalkan beli di shopee atau tokopedia itu di print&lt;/span&gt;" placeholders="1" name="Variable" id="gwzgKl9MxLUdBJqcUl12-48">
+        <UserObject label="&lt;span style=&quot;font-size: 28px;&quot;&gt;pembelian mencari vendor dengan harga paling murah; misalkan beli di shopee atau tokopedia itu di print 🖨️&lt;/span&gt;" placeholders="1" name="Variable" id="gwzgKl9MxLUdBJqcUl12-48">
           <mxCell parent="f01ANIdvxND82kdcVqZB-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;overflow=hidden;" vertex="1">
             <mxGeometry height="180" width="370" x="4000" y="80" as="geometry" />
           </mxCell>
@@ -335,11 +366,14 @@
         <mxCell id="gwzgKl9MxLUdBJqcUl12-49" edge="1" parent="f01ANIdvxND82kdcVqZB-1" source="uXYgXxdGHQif1uGFz_v7-115" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="gwzgKl9MxLUdBJqcUl12-48">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <UserObject label="&lt;span style=&quot;font-size: 28px;&quot;&gt;pembelian mencari vendor dengan harga paling murah; misalkan beli di shopee atau tokopedia itu di print&lt;/span&gt;" placeholders="1" name="Variable" id="gwzgKl9MxLUdBJqcUl12-50">
+        <UserObject label="&lt;span style=&quot;font-size: 28px;&quot;&gt;pembelian order barang ke vendor atau online shop lalu nota di lampirkan juga ke sistem E-Proccurment 📦&lt;/span&gt;" placeholders="1" name="Variable" id="gwzgKl9MxLUdBJqcUl12-50">
           <mxCell parent="f01ANIdvxND82kdcVqZB-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;overflow=hidden;" vertex="1">
-            <mxGeometry height="180" width="370" x="3990" y="610" as="geometry" />
+            <mxGeometry height="180" width="370" x="4020" y="610" as="geometry" />
           </mxCell>
         </UserObject>
+        <mxCell id="gwzgKl9MxLUdBJqcUl12-51" edge="1" parent="f01ANIdvxND82kdcVqZB-1" source="uXYgXxdGHQif1uGFz_v7-116" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="gwzgKl9MxLUdBJqcUl12-50">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
