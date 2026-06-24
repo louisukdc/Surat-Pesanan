@@ -40,18 +40,18 @@
     </mxGraphModel>
   </diagram>
   <diagram name="Salinan dari Halaman-1" id="6uuurBWjh3WP47qk0eaf">
-    <mxGraphModel dx="2955" dy="2025" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="1970" dy="1350" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="f01ANIdvxND82kdcVqZB-0" />
         <mxCell id="f01ANIdvxND82kdcVqZB-1" parent="f01ANIdvxND82kdcVqZB-0" />
         <UserObject label="" mermaidData="{&#xa;  &quot;data&quot;: &quot;flowchart TD\n    classDef default fill:#f8f9fa,stroke:#adb5bd,stroke-width:1px,color:#212529,font-size:50px;\n    classDef start_end fill:#e3f2fd,stroke:#1e88e5,stroke-width:2px,color:#0d47a1,font-size:50px;\n    classDef process fill:#ffffff,stroke:#6c757d,stroke-width:1px,color:#495057,font-size:50px;\n    classDef decision fill:#fff3e0,stroke:#fb8c00,stroke-width:2px,color:#e65100,font-size:50px;\n    classDef system fill:#e8f5e9,stroke:#43a047,stroke-width:1px,color:#1b5e20,font-size:50px;\n    classDef approval fill:#f3e5f5,stroke:#8e24aa,stroke-width:2px,color:#4a148c,font-size:50px;\n\n    subgraph Baris1 [Tahap 1: Pengajuan &amp; Draf PO]\n        direction LR\n        A([1. Administrasi:&lt;br/&gt;Buat Surat Permohonan]):::start_end --&gt; B{Kategori?}:::decision\n        B --&gt;|IT / AC / Medis| C[2. Pembelian:&lt;br/&gt;Minta &amp; Input Harga Vendor]:::process\n        C --&gt; D[3. Suster:&lt;br/&gt;Review &amp; Tambah Catatan]:::process\n        D --&gt; E[4. Pembelian:&lt;br/&gt;Buat Draf PO]:::process\n    end\n\n    subgraph Baris2 [Tahap 2: Persetujuan &amp; Order]\n        direction RL\n        I([7. Sistem:&lt;br/&gt;Generate PDF PO Sah]):::system --&gt; H[6. Suster:&lt;br/&gt;TTE &amp; Stempel Digital]:::approval\n        H --&gt; G[5. Kepala Bagian:&lt;br/&gt;TTE ACC Teknis]:::approval\n        G --&gt; F{Hierarki Persetujuan}:::decision\n    end\n\n    subgraph Baris3 [Tahap 3: Penerimaan &amp; Pembayaran]\n        direction LR\n        J[8. Pembelian:&lt;br/&gt;Kirim PO ke Vendor]:::process --&gt; K[9. Vendor:&lt;br/&gt;Bawa Barang/Servis + Surat Jalan]:::process\n        K --&gt; L[10. Teknisi:&lt;br/&gt;Cek &amp; Upload Surat Jalan]:::process\n        L --&gt; M{Kategori?}:::decision\n        M --&gt;|Barang| N[11a. Sistem:&lt;br/&gt;Generate Berita Acara]:::system\n        M --&gt;|Jasa| O[11b. Sistem:&lt;br/&gt;Generate Laporan Kerja]:::system\n        N --&gt; P[12. Keuangan:&lt;br/&gt;Validasi Dokumen Lengkap]:::process\n        O --&gt; P\n        P --&gt; Q([13. Keuangan:&lt;br/&gt;Cetak Bukti Bayar]):::start_end\n    end\n\n    E --&gt; F\n    I --&gt; J\n&quot;,&#xa;  &quot;config&quot;: null&#xa;}" id="uXYgXxdGHQif1uGFz_v7-37">
           <mxCell connectable="0" parent="f01ANIdvxND82kdcVqZB-1" style="group;transparentBounds=1;editIcon=1;lockedGroup=0;groupPadding=20;imageAspect=1;" vertex="1">
-            <mxGeometry height="1520" width="2230" as="geometry" />
+            <mxGeometry height="1520" width="2990" as="geometry" />
           </mxCell>
         </UserObject>
         <UserObject label="&lt;font style=&quot;font-size: 35px;&quot;&gt;&lt;b&gt;Tahap 1: Pengajuan &amp;amp; Draf PO&lt;/b&gt;&lt;/font&gt;" mermaidId="n:Baris1" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;verticalAlign=top;fillColor=light-dark(#ffffde,#1f2020);strokeColor=light-dark(#aaaa33,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Tahap 1: Pengajuan &amp; Draf PO" id="uXYgXxdGHQif1uGFz_v7-112">
           <mxCell parent="uXYgXxdGHQif1uGFz_v7-37" style="html=1;whiteSpace=wrap;strokeWidth=1;verticalAlign=top;fillColor=light-dark(#ffffde,#1f2020);strokeColor=light-dark(#aaaa33,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="1305" width="530" x="1680" y="85" as="geometry" />
+            <mxGeometry height="1305" width="530" x="3150" y="60" as="geometry" />
           </mxCell>
         </UserObject>
         <UserObject label="1. Administrasi:&#xa;Buat Surat Permohonan" mermaidId="n:A" mermaidBaseStyle="html=1;rounded=1;whiteSpace=wrap;arcSize=50;strokeWidth=2;fillColor=#e3f2fd;strokeColor=#1e88e5;fontColor=#0d47a1;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="1. Administrasi:&#xa;Buat Surat Permohonan" id="uXYgXxdGHQif1uGFz_v7-113">
@@ -66,7 +66,7 @@
         </UserObject>
         <UserObject label="&lt;font style=&quot;font-size: 35px;&quot;&gt;&lt;b&gt;Tahap 2: Persetujuan &amp;amp; Order&lt;/b&gt;&lt;/font&gt;" mermaidId="n:Baris2" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;verticalAlign=top;fillColor=light-dark(#ffffde,#1f2020);strokeColor=light-dark(#aaaa33,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Tahap 2: Persetujuan &amp; Order" id="uXYgXxdGHQif1uGFz_v7-122">
           <mxCell parent="uXYgXxdGHQif1uGFz_v7-37" style="html=1;whiteSpace=wrap;strokeWidth=1;verticalAlign=top;fillColor=light-dark(#ffffde,#1f2020);strokeColor=light-dark(#aaaa33,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="1205" width="570" x="980" y="80" as="geometry" />
+            <mxGeometry height="1205" width="570" x="1790" y="90" as="geometry" />
           </mxCell>
         </UserObject>
         <UserObject label="8. Sistem Generate PDF PO yang SAH" mermaidId="n:H" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=2;fillColor=#f3e5f5;strokeColor=#8e24aa;fontColor=#4a148c;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="6. Suster:&#xa;TTE &amp; Stempel Digital" id="gwzgKl9MxLUdBJqcUl12-14">
@@ -202,7 +202,7 @@
         </mxCell>
         <UserObject label="2. Pembelian:&#xa;Minta &amp;amp; Input Harga Vendor" mermaidId="n:C" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=default;strokeColor=#6c757d;fontColor=#495057;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="2. Pembelian:&#xa;Minta &amp; Input Harga Vendor" id="uXYgXxdGHQif1uGFz_v7-115">
           <mxCell parent="uXYgXxdGHQif1uGFz_v7-37" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=default;strokeColor=#6c757d;fontColor=#495057;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=30;" vertex="1">
-            <mxGeometry height="114.03137789904501" width="416.890243902439" x="1736.5548780487804" y="390.0048158253752" as="geometry" />
+            <mxGeometry height="114.03137789904501" width="416.890243902439" x="3206.5548780487807" y="365.0048158253752" as="geometry" />
           </mxCell>
         </UserObject>
         <UserObject label="&lt;font style=&quot;font-size: 30px;&quot;&gt;IT / AC / Medis&lt;/font&gt;" mermaidId="e:B-&gt;C#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="IT / AC / Medis" id="uXYgXxdGHQif1uGFz_v7-119">
@@ -210,7 +210,7 @@
             <mxGeometry relative="1" x="-0.0667" as="geometry">
               <mxPoint y="2" as="offset" />
               <Array as="points" />
-              <mxPoint x="1945" y="240" as="sourcePoint" />
+              <mxPoint x="3415" y="215" as="sourcePoint" />
             </mxGeometry>
           </mxCell>
         </UserObject>
@@ -228,10 +228,10 @@
         <mxCell id="gwzgKl9MxLUdBJqcUl12-27" edge="1" parent="uXYgXxdGHQif1uGFz_v7-37" source="gwzgKl9MxLUdBJqcUl12-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;startSize=8;endSize=8;exitX=1;exitY=0.5;exitDx=0;exitDy=0;">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="2280" y="685" />
-              <mxPoint x="2280" y="350" />
+              <mxPoint x="3750" y="660" />
+              <mxPoint x="3750" y="325" />
             </Array>
-            <mxPoint x="1949.5686063738567" y="350" as="targetPoint" />
+            <mxPoint x="3419.5686063738567" y="325" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="gwzgKl9MxLUdBJqcUl12-31" connectable="0" parent="gwzgKl9MxLUdBJqcUl12-27" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="&lt;font style=&quot;font-size: 28px;&quot;&gt;Tidak Setuju&lt;/font&gt;" vertex="1">
@@ -241,38 +241,42 @@
         </mxCell>
         <UserObject label="Persetujuan" mermaidId="n:B" mermaidBaseStyle="rhombus;html=1;strokeWidth=2;whiteSpace=wrap;fillColor=#fff3e0;strokeColor=#fb8c00;fontColor=#e65100;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Kategori?" id="gwzgKl9MxLUdBJqcUl12-24">
           <mxCell parent="uXYgXxdGHQif1uGFz_v7-37" style="rhombus;html=1;strokeWidth=2;whiteSpace=wrap;fillColor=#fff3e0;strokeColor=#fb8c00;fontColor=#e65100;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=30;" vertex="1">
-            <mxGeometry height="190.29049901748505" width="197.1341463414634" x="1846.43" y="590.0017431192662" as="geometry" />
+            <mxGeometry height="190.29049901748505" width="197.1341463414634" x="3316.4300000000003" y="565.0017431192662" as="geometry" />
           </mxCell>
         </UserObject>
-        <mxCell id="gwzgKl9MxLUdBJqcUl12-29" edge="1" parent="uXYgXxdGHQif1uGFz_v7-37" source="uXYgXxdGHQif1uGFz_v7-117" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="gwzgKl9MxLUdBJqcUl12-0">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="gwzgKl9MxLUdBJqcUl12-43" edge="1" parent="uXYgXxdGHQif1uGFz_v7-37" source="uXYgXxdGHQif1uGFz_v7-117" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="gwzgKl9MxLUdBJqcUl12-0" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2719" y="1210" />
+              <mxPoint x="2719" y="1105" />
+            </Array>
+          </mxGeometry>
         </mxCell>
         <UserObject label="4. Pembelian:&#xa;Buat Draf PO" mermaidId="n:E" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=default;strokeColor=#6c757d;fontColor=#495057;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="4. Pembelian:&#xa;Buat Draf PO" id="uXYgXxdGHQif1uGFz_v7-117">
           <mxCell parent="uXYgXxdGHQif1uGFz_v7-37" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=default;strokeColor=#6c757d;fontColor=#495057;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=30;" vertex="1">
-            <mxGeometry height="129.96589358799454" width="256.92073170731703" x="1811.9075609756098" y="1169.9984651748362" as="geometry" />
+            <mxGeometry height="129.96589358799454" width="256.92073170731703" x="3281.90756097561" y="1144.9984651748362" as="geometry" />
           </mxCell>
         </UserObject>
         <mxCell id="gwzgKl9MxLUdBJqcUl12-28" edge="1" parent="uXYgXxdGHQif1uGFz_v7-37" source="uXYgXxdGHQif1uGFz_v7-116" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="uXYgXxdGHQif1uGFz_v7-117">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="gwzgKl9MxLUdBJqcUl12-30" edge="1" parent="uXYgXxdGHQif1uGFz_v7-37" source="gwzgKl9MxLUdBJqcUl12-0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="uXYgXxdGHQif1uGFz_v7-117">
+        <mxCell id="gwzgKl9MxLUdBJqcUl12-44" edge="1" parent="uXYgXxdGHQif1uGFz_v7-37" source="gwzgKl9MxLUdBJqcUl12-0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="uXYgXxdGHQif1uGFz_v7-117">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1100" y="1095" />
-              <mxPoint x="1100" y="1370" />
-              <mxPoint x="2180" y="1370" />
-              <mxPoint x="2180" y="1235" />
+              <mxPoint x="1880" y="1105" />
+              <mxPoint x="1880" y="1400" />
+              <mxPoint x="3410" y="1400" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="gwzgKl9MxLUdBJqcUl12-35" connectable="0" parent="gwzgKl9MxLUdBJqcUl12-30" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="&lt;font style=&quot;font-size: 28px;&quot;&gt;Tidak Setuju&lt;/font&gt;" vertex="1">
-          <mxGeometry relative="1" x="-0.0924" y="3" as="geometry">
-            <mxPoint as="offset" />
+        <mxCell id="gwzgKl9MxLUdBJqcUl12-45" connectable="0" parent="gwzgKl9MxLUdBJqcUl12-44" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="&lt;font style=&quot;font-size: 28px;&quot;&gt;Tidak Setuju&lt;/font&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.1742" y="-1" as="geometry">
+            <mxPoint x="1" as="offset" />
           </mxGeometry>
         </mxCell>
         <UserObject label="Persetujuan" mermaidId="n:B" mermaidBaseStyle="rhombus;html=1;strokeWidth=2;whiteSpace=wrap;fillColor=#fff3e0;strokeColor=#fb8c00;fontColor=#e65100;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Kategori?" id="gwzgKl9MxLUdBJqcUl12-0">
           <mxCell parent="uXYgXxdGHQif1uGFz_v7-37" style="rhombus;html=1;strokeWidth=2;whiteSpace=wrap;fillColor=#fff3e0;strokeColor=#fb8c00;fontColor=#e65100;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=30;" vertex="1">
-            <mxGeometry height="190.29049901748505" width="197.1341463414634" x="1148.68" y="1000.0017431192662" as="geometry" />
+            <mxGeometry height="190.29049901748505" width="197.1341463414634" x="1958.68" y="1010.0017431192662" as="geometry" />
           </mxCell>
         </UserObject>
         <mxCell id="gwzgKl9MxLUdBJqcUl12-6" edge="1" parent="uXYgXxdGHQif1uGFz_v7-37" source="gwzgKl9MxLUdBJqcUl12-0" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="uXYgXxdGHQif1uGFz_v7-125">
@@ -283,38 +287,59 @@
             <mxPoint y="1" as="offset" />
           </mxGeometry>
         </mxCell>
+        <UserObject label="&lt;span style=&quot;font-size: 28px;&quot;&gt;ada 3 status surat PO:&lt;/span&gt;&lt;div&gt;&lt;ol&gt;&lt;li&gt;&lt;font style=&quot;font-size: 28px;&quot;&gt;bisa approve ✔️&lt;/font&gt;&lt;/li&gt;&lt;li&gt;&lt;font style=&quot;font-size: 28px;&quot;&gt;bisa reject ✖️&lt;/font&gt;&lt;/li&gt;&lt;li&gt;&lt;font style=&quot;font-size: 28px;&quot;&gt;bisa pending ⏯️&lt;/font&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/div&gt;" placeholders="1" name="Variable" id="gwzgKl9MxLUdBJqcUl12-46">
+          <mxCell parent="uXYgXxdGHQif1uGFz_v7-37" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;overflow=hidden;" vertex="1">
+            <mxGeometry height="180" width="370" x="2560" y="365" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="gwzgKl9MxLUdBJqcUl12-47" edge="1" parent="uXYgXxdGHQif1uGFz_v7-37" source="uXYgXxdGHQif1uGFz_v7-124" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="gwzgKl9MxLUdBJqcUl12-46">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
         <UserObject label="&lt;font style=&quot;font-size: 28px;&quot;&gt;ada 3 keputusan penawaran:&lt;/font&gt;&lt;div&gt;&lt;ol&gt;&lt;li&gt;&lt;font style=&quot;font-size: 28px;&quot;&gt;bisa approve ✔️&lt;/font&gt;&lt;/li&gt;&lt;li&gt;&lt;font style=&quot;font-size: 28px;&quot;&gt;bisa reject ✖️&lt;/font&gt;&lt;/li&gt;&lt;li&gt;&lt;font style=&quot;font-size: 28px;&quot;&gt;bisa pending ⏯️&lt;/font&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/div&gt;" placeholders="1" name="Variable" id="gwzgKl9MxLUdBJqcUl12-38">
           <mxCell parent="f01ANIdvxND82kdcVqZB-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;overflow=hidden;" vertex="1">
-            <mxGeometry height="180" width="370" x="2530" y="324" as="geometry" />
+            <mxGeometry height="180" width="370" x="4000" y="299" as="geometry" />
           </mxCell>
         </UserObject>
         <mxCell id="gwzgKl9MxLUdBJqcUl12-39" edge="1" parent="f01ANIdvxND82kdcVqZB-1" source="gwzgKl9MxLUdBJqcUl12-24" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="gwzgKl9MxLUdBJqcUl12-38">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1994" y="770" />
-              <mxPoint x="2410" y="770" />
-              <mxPoint x="2410" y="414" />
+              <mxPoint x="3464" y="745" />
+              <mxPoint x="3880" y="745" />
+              <mxPoint x="3880" y="389" />
             </Array>
           </mxGeometry>
         </mxCell>
         <UserObject label="&lt;span style=&quot;font-size: 28px;&quot;&gt;catatan suster ttg penawaran:&lt;/span&gt;&lt;div&gt;&lt;ol&gt;&lt;li&gt;&lt;span style=&quot;font-size: 28px;&quot;&gt;minta diskon lebih ✔️&lt;/span&gt;&lt;/li&gt;&lt;li&gt;&lt;span style=&quot;font-size: 28px;&quot;&gt;tambahan juga dari kepala ✔️ pembelian, sama kayak suster diskon minta di lebihkan&lt;/span&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 28px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;" placeholders="1" name="Variable" id="gwzgKl9MxLUdBJqcUl12-40">
           <mxCell parent="f01ANIdvxND82kdcVqZB-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;overflow=hidden;" vertex="1">
-            <mxGeometry height="180" width="450" x="2440" y="940" as="geometry" />
+            <mxGeometry height="180" width="450" x="3910" y="915" as="geometry" />
           </mxCell>
         </UserObject>
         <mxCell id="gwzgKl9MxLUdBJqcUl12-41" edge="1" parent="f01ANIdvxND82kdcVqZB-1" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="gwzgKl9MxLUdBJqcUl12-40">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="2140" y="1085" />
-              <mxPoint x="2140" y="1160" />
-              <mxPoint x="2270" y="1160" />
-              <mxPoint x="2270" y="1085" />
-              <mxPoint x="2400" y="1085" />
-              <mxPoint x="2400" y="1030" />
+              <mxPoint x="3610" y="1060" />
+              <mxPoint x="3610" y="1135" />
+              <mxPoint x="3740" y="1135" />
+              <mxPoint x="3740" y="1060" />
+              <mxPoint x="3870" y="1060" />
+              <mxPoint x="3870" y="1005" />
             </Array>
-            <mxPoint x="2110" y="1060" as="sourcePoint" />
+            <mxPoint x="3580" y="1035" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
+        <UserObject label="&lt;span style=&quot;font-size: 28px;&quot;&gt;pembelian mencari vendor dengan harga paling murah; misalkan beli di shopee atau tokopedia itu di print&lt;/span&gt;" placeholders="1" name="Variable" id="gwzgKl9MxLUdBJqcUl12-48">
+          <mxCell parent="f01ANIdvxND82kdcVqZB-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;overflow=hidden;" vertex="1">
+            <mxGeometry height="180" width="370" x="4000" y="80" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <mxCell id="gwzgKl9MxLUdBJqcUl12-49" edge="1" parent="f01ANIdvxND82kdcVqZB-1" source="uXYgXxdGHQif1uGFz_v7-115" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="gwzgKl9MxLUdBJqcUl12-48">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <UserObject label="&lt;span style=&quot;font-size: 28px;&quot;&gt;pembelian mencari vendor dengan harga paling murah; misalkan beli di shopee atau tokopedia itu di print&lt;/span&gt;" placeholders="1" name="Variable" id="gwzgKl9MxLUdBJqcUl12-50">
+          <mxCell parent="f01ANIdvxND82kdcVqZB-1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;overflow=hidden;" vertex="1">
+            <mxGeometry height="180" width="370" x="3990" y="610" as="geometry" />
+          </mxCell>
+        </UserObject>
       </root>
     </mxGraphModel>
   </diagram>
