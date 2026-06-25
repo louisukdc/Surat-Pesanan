@@ -65,6 +65,7 @@ try {
                         'qty' => $d['qty'],
                         'harga' => $d['harga'],
                         'disc' => $d['disc'],
+                        'ppn' => $d['ppn'],
                         'jumlah' => $d['jumlah']
                     ];
                 }
@@ -224,7 +225,7 @@ try {
                 $sp_id = $id;
             } else {
                 // Insert new
-                $stmt_ins = $conn->prepare("INSERT INTO spu_h (tgl_pesan, id_supplier, no_penawaran, tgl_penawaran, tgl_kirim, gudang, jenis_bayar, keterangan, user_created, dtime_created, date_acc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), '1900-01-01')");
+                $stmt_ins = $conn->prepare("INSERT INTO spu_h (tgl_pesan, id_supplier, no_penawaran, tgl_penawaran, tgl_kirim, gudang, jenis_bayar, keterangan, user_created, dtime_created, user_acc, date_acc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), '', '1900-01-01')");
                 $user = $_SESSION['username'];
                 $stmt_ins->bind_param("sssssssss", 
                     $tgl_pesan, $header['id_supplier'], $header['no_penawaran'], $tgl_penawaran, $tgl_kirim, $header['gudang'], $header['jenis_bayar'], $header['keterangan'], $user
@@ -234,17 +235,18 @@ try {
             }
             
             // Insert Items
-            $stmt_det = $conn->prepare("INSERT INTO spu_d (id_sp, barang, model, merk, spec, qty, harga, disc, jumlah, date_created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+            $stmt_det = $conn->prepare("INSERT INTO spu_d (id_sp, barang, model, merk, spec, qty, harga, disc, ppn, jumlah, date_created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
             foreach ($items as $item) {
                 $qty = (float)(isset($item['qty']) ? $item['qty'] : 0);
                 $harga = (float)(isset($item['harga']) ? $item['harga'] : 0);
                 $disc = (float)(isset($item['disc']) ? $item['disc'] : 0);
+                $ppn = (float)(isset($item['ppn']) ? $item['ppn'] : 0);
                 $jumlah = (float)(isset($item['jumlah']) ? $item['jumlah'] : 0);
                 $model = isset($item['model']) ? $item['model'] : '';
                 $merk = isset($item['merk']) ? $item['merk'] : '';
                 $spec = isset($item['spec']) ? $item['spec'] : '';
                 
-                $stmt_det->bind_param("issssdddd", $sp_id, $item['barang'], $model, $merk, $spec, $qty, $harga, $disc, $jumlah);
+                $stmt_det->bind_param("issssddddd", $sp_id, $item['barang'], $model, $merk, $spec, $qty, $harga, $disc, $ppn, $jumlah);
                 if(!$stmt_det->execute()) throw new Exception("Insert detail failed: " . $stmt_det->error);
             }
             

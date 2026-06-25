@@ -57,3 +57,11 @@ ALTER TABLE `pembayaran` ADD FOREIGN KEY (`surat_jalan_id`) REFERENCES `surat_ja
 ALTER TABLE `berita_acara` ADD FOREIGN KEY (`surat_jalan_id`) REFERENCES `pembayaran` (`surat_jalan_id`);
 
 ALTER TABLE `laporan_kerja` ADD FOREIGN KEY (`surat_jalan_id`) REFERENCES `pembayaran` (`surat_jalan_id`);
+
+CREATE TABLE IF NOT EXISTS `users` (
+    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `username` VARCHAR(50) NOT NULL,
+    `password` VARCHAR(255) NOT NULL,
+    `role` VARCHAR(20) DEFAULT 'user',
+    PRIMARY KEY (`id`)
+) ENGINE = InnoDB DEFAULT CHARSET = latin1;

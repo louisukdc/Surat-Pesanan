@@ -11,24 +11,26 @@ if (empty($total_supplier)) {
     $total_supplier = 0;
 }
 
-// Get Total Orders (Unique no_sp) for the selected month
-$res_ord = $conn->query("SELECT COUNT(DISTINCT no_sp) as count FROM sp_pesanan WHERE tgl_sp LIKE '$filter_month%'");
-$total_orders = $res_ord->fetch_assoc()['count'];
+// Get Total Orders for the selected month
+$res_ord = $conn->query("SELECT COUNT(id) as count FROM spu_h WHERE tgl_pesan LIKE '$filter_month%'");
+$total_orders = $res_ord ? $res_ord->fetch_assoc()['count'] : 0;
 // if (empty($total_orders)) {
 //     $total_orders = 0;
 // }
 
 // Get Total Value for the selected month
-$res_val = $conn->query("SELECT SUM(flag) as total FROM (SELECT DISTINCT no_sp, flag FROM sp_pesanan WHERE tgl_sp LIKE '$filter_month%') as unique_orders");
-// $total_value = $res_val->fetch_assoc()['total'];
-$total_value = $res_val->fetch_assoc()['total'];
+$res_val = $conn->query("SELECT SUM(d.jumlah) as total FROM spu_h h JOIN spu_d d ON h.id = d.id_sp WHERE h.tgl_pesan LIKE '$filter_month%'");
+$total_value = $res_val ? $res_val->fetch_assoc()['total'] : 0;
 if (empty($total_value)) {
     $total_value = 0;
 }
 
 
 // Get Recent 5 Orders for the selected month
-$recent_orders = $conn->query("SELECT DISTINCT no_sp, tgl_sp, namasup, flag FROM sp_pesanan WHERE tgl_sp LIKE '$filter_month%' ORDER BY tgl_sp DESC LIMIT 5");
+$recent_orders = $conn->query("SELECT h.id, h.tgl_pesan as tgl_sp, s.NamaSupplier as namasup, 
+    (SELECT SUM(jumlah) FROM spu_d WHERE id_sp = h.id) as total_nilai 
+    FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier 
+    WHERE h.tgl_pesan LIKE '$filter_month%' ORDER BY h.id DESC LIMIT 5");
 ?>
 
 <div class="grid-3" style="margin-bottom: 10px;">
@@ -74,15 +76,15 @@ function filterDashboard() {
                 </tr>
             </thead>
             <tbody>
-                <?php while($row = $recent_orders->fetch_assoc()): ?>
+                <?php if($recent_orders): while($row = $recent_orders->fetch_assoc()): ?>
                 <tr>
-                    <td><span style="font-weight: 600; color: var(--primary);"><?php echo htmlspecialchars($row['no_sp']); ?></span></td>
+                    <td><span style="font-weight: 600; color: var(--primary);">PO-<?php echo str_pad($row['id'], 5, '0', STR_PAD_LEFT); ?></span></td>
                     <td><?php echo htmlspecialchars($row['tgl_sp']); ?></td>
                     <td><?php echo htmlspecialchars($row['namasup']); ?></td>
-                    <td class="text-right">Rp <?php echo number_format($row['flag'], 2); ?></td>
+                    <td class="text-right">Rp <?php echo number_format($row['total_nilai'], 2); ?></td>
                 </tr>
-                <?php endwhile; ?>
-                <?php if($recent_orders->num_rows == 0): ?>
+                <?php endwhile; endif; ?>
+                <?php if(!$recent_orders || $recent_orders->num_rows == 0): ?>
                 <tr>
                     <td colspan="4" class="text-center">Belum ada data pesanan</td>
                 </tr>

@@ -448,6 +448,7 @@
                         <th class="sp-text-center" style="width:96px;">Qty</th>
                         <th class="sp-text-right" style="width:128px;">Harga Satuan</th>
                         <th class="sp-text-right" style="width:128px;">Diskon</th>
+                        <th class="sp-text-right" style="width:100px;">PPN</th>
                         <th class="sp-text-right" style="width:128px;">Subtotal</th>
                         <th class="sp-text-center" style="width:64px;">Aksi</th>
                     </tr>
@@ -508,7 +509,7 @@
                     <input type="text" id="item_model" class="sp-input" style="flex-grow: 1;">
                 </div>
                 
-                <div class="sp-grid sp-grid-cols-3 sp-gap-3 sp-border-t sp-pt-4 sp-mt-2">
+                <div class="sp-grid sp-grid-cols-4 sp-gap-3 sp-border-t sp-pt-4 sp-mt-2">
                     <div>
                         <label class="sp-label">Kuantitas (Qty)</label>
                         <input type="number" id="item_qty" class="sp-input sp-text-center sp-text-lg sp-font-semibold" value="1" onchange="calculateItemTotal()">
@@ -526,6 +527,14 @@
                             <span class="sp-input-prefix">Rp</span>
                             <input type="number" id="item_disc" class="sp-input sp-input-with-prefix sp-text-right sp-font-semibold sp-text-red" value="0" onkeyup="calculateItemTotal()">
                         </div>
+                    </div>
+                    <div>
+                        <label class="sp-label">PPN (%)</label>
+                        <div class="sp-input-group">
+                            <input type="number" id="item_ppn_persen" class="sp-input sp-text-right sp-font-semibold sp-text-teal" value="11" onkeyup="calculateItemTotal()">
+                            <span style="position: absolute; right: 12px; color: #6b7280; font-weight: 500;">%</span>
+                        </div>
+                        <input type="hidden" id="item_ppn_nominal" value="0">
                     </div>
                 </div>
                 
@@ -609,7 +618,13 @@ function calculateItemTotal() {
     let qty = parseFloat($('#item_qty').val()) || 0;
     let harga = parseFloat($('#item_harga').val()) || 0;
     let disc = parseFloat($('#item_disc').val()) || 0;
-    let total = (qty * harga) - disc;
+    let ppn_persen = parseFloat($('#item_ppn_persen').val()) || 0;
+    
+    let dpp = (qty * harga) - disc;
+    let ppn_nominal = dpp * (ppn_persen / 100);
+    $('#item_ppn_nominal').val(ppn_nominal);
+    
+    let total = dpp + ppn_nominal;
     $('#item_jumlah').val(formatCurrency(total));
 }
 
@@ -617,6 +632,8 @@ function clearItemForm() {
     $('#item_barang, #item_merk, #item_model, #item_spec').val('');
     $('#item_qty').val(1);
     $('#item_harga, #item_disc').val(0);
+    $('#item_ppn_persen').val(11);
+    $('#item_ppn_nominal').val(0);
     $('#item_jumlah').val('0.00');
 }
 
@@ -628,9 +645,10 @@ function addItem() {
         spec: $('#item_spec').val(),
         qty: parseFloat($('#item_qty').val()) || 0,
         harga: parseFloat($('#item_harga').val()) || 0,
-        disc: parseFloat($('#item_disc').val()) || 0
+        disc: parseFloat($('#item_disc').val()) || 0,
+        ppn: parseFloat($('#item_ppn_nominal').val()) || 0
     };
-    item.jumlah = (item.qty * item.harga) - item.disc;
+    item.jumlah = (item.qty * item.harga) - item.disc + item.ppn;
     
     if(!item.barang) {
         alert("Nama barang harus diisi!");
@@ -651,7 +669,7 @@ function removeItem(index) {
 
 function updateInlineItem(index, field, value) {
     orderItems[index][field] = parseFloat(value) || 0;
-    orderItems[index].jumlah = (orderItems[index].qty * orderItems[index].harga) - orderItems[index].disc;
+    orderItems[index].jumlah = (orderItems[index].qty * orderItems[index].harga) - orderItems[index].disc + orderItems[index].ppn;
     renderItemsTable();
     calculateGrandTotal();
 }
@@ -680,6 +698,9 @@ function renderItemsTable() {
                 </td>
                 <td class="sp-text-right">
                     <input type="number" class="sp-input sp-text-right sp-text-red" style="width:90px; padding:4px 8px;" value="${item.disc}" onchange="updateInlineItem(${idx}, 'disc', this.value)">
+                </td>
+                <td class="sp-text-right">
+                    <input type="number" class="sp-input sp-text-right sp-text-teal" style="width:90px; padding:4px 8px;" value="${item.ppn}" onchange="updateInlineItem(${idx}, 'ppn', this.value)" title="Nominal PPN">
                 </td>
                 <td class="sp-text-right sp-font-bold sp-text-teal">
                     ${formatCurrency(item.jumlah)}
