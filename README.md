@@ -2,7 +2,7 @@
 
 Dokumen ini merangkum seluruh kerangka kerja (*framework*), arsitektur, dan rencana implementasi yang digunakan untuk membangun Sistem Askes RKZ dari awal. Dokumen ini sangat berguna sebagai panduan *Developer* (*Developer Handbook*).
 
-![Arsitektur Sistem](./img/database.png)
+![Arsitektur Sistem](./img/material_new.png)
 
 ## 1. Stack Teknologi (Tech Stack)
 *   **Backend:** PHP Native (Minimal PHP 5.6+).
