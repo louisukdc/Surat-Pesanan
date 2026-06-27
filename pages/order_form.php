@@ -463,6 +463,16 @@
                 </tbody>
             </table>
         </div>
+        
+        <!-- Lampiran Section -->
+        <div class="sp-panel-body" style="border-top: 1px solid #e5e7eb; background-color: #f9fafb;">
+            <div class="sp-flex sp-items-center sp-gap-4">
+                <label class="sp-label" style="margin-bottom:0;"><i class="fas fa-paperclip"></i> Lampiran (PDF)</label>
+                <input type="file" id="lampiran_pdf" accept="application/pdf" class="sp-input" style="max-width: 300px; padding: 4px;">
+                <input type="hidden" id="nama_lampiran" value="">
+                <span class="sp-text-xs sp-text-gray" id="lbl_lampiran_status">Opsional (Sebagai Pelengkap)</span>
+            </div>
+        </div>
     </div>
 
 </div>
@@ -757,6 +767,13 @@ function loadOrderData(id) {
         $('#tgl_penawaran').val(h.tgl_penawaran);
         $('#keterangan').val(h.keterangan);
         
+        $('#nama_lampiran').val(h.nama_lampiran || '');
+        if (h.nama_lampiran && h.nama_lampiran !== '0') {
+            $('#lbl_lampiran_status').html(`<a href="uploads/lampiran/${h.nama_lampiran}" target="_blank" class="sp-text-teal sp-font-semibold"><i class="fas fa-external-link-alt"></i> Lihat Lampiran</a> (Pilih file baru untuk mengganti)`);
+        } else {
+            $('#lbl_lampiran_status').text('Opsional (Sebagai Pelengkap)');
+        }
+        
         res.items.forEach(item => {
             item.qty = parseFloat(item.qty) || 0;
             item.harga = parseFloat(item.harga) || 0;
@@ -799,6 +816,36 @@ function saveOrder() {
         return;
     }
     
+    let fileInput = $('#lampiran_pdf')[0];
+    if (fileInput && fileInput.files.length > 0) {
+        let formData = new FormData();
+        formData.append('lampiran', fileInput.files[0]);
+        
+        $('#lbl_lampiran_status').html('<i class="fas fa-spinner fa-spin"></i> Mengunggah lampiran...');
+        
+        $.ajax({
+            url: 'api/upload.php',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(res) {
+                if(res.success) {
+                    $('#nama_lampiran').val(res.filename);
+                    submitOrderPayload();
+                }
+            },
+            error: function(err) {
+                alert("Gagal mengunggah lampiran: " + (err.responseJSON ? err.responseJSON.error : ''));
+                $('#lbl_lampiran_status').text('Gagal mengunggah');
+            }
+        });
+    } else {
+        submitOrderPayload();
+    }
+}
+
+function submitOrderPayload() {
     let payload = {
         header: {
             id: $('#order_id').val(),
@@ -810,7 +857,8 @@ function saveOrder() {
             no_penawaran: $('#no_penawaran').val(),
             no_permintaan: $('#no_permintaan').val(),
             tgl_penawaran: $('#tgl_penawaran').val(),
-            keterangan: $('#keterangan').val()
+            keterangan: $('#keterangan').val(),
+            nama_lampiran: $('#nama_lampiran').val()
         },
         items: orderItems
     };

@@ -81,6 +81,7 @@ function loadOrders() {
                         <td class="text-right">Rp ${parseFloat(o.flag).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
                         <td class="text-center">
                             <a href="dashboard.php?page=detail_kwitansi&id=${encodeURIComponent(o.id)}" target="_blank" class="btn" style="padding: 4px 8px; font-size: 12px; background-color: #f1f5f9; color: var(--text-main); border: 1px solid var(--border); text-decoration: none;" title="Detail Kwitansi"><i class="fas fa-eye"></i> Detail</a>
+                            ${o.nama_lampiran && o.nama_lampiran !== '0' ? `<a href="uploads/lampiran/${o.nama_lampiran}" target="_blank" class="btn" style="padding: 4px 8px; font-size: 12px; background-color: #0d9488; color: white; text-decoration: none;" title="Lihat Lampiran"><i class="fas fa-paperclip"></i></a>` : ''}
                             <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;" onclick="editOrder('${o.id}')" title="Edit"><i class="fas fa-edit"></i></button>
                             <button class="btn btn-danger" style="padding: 4px 8px; font-size: 12px;" onclick="deleteOrder('${o.id}')" title="Hapus"><i class="fas fa-trash"></i></button>
                         </td>
