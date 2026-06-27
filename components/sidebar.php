@@ -15,13 +15,13 @@
             </a>
         </li>
         <li>
-            <a href="dashboard.php?page=approval" class="<?php echo $page == 'approval' ? 'active' : ''; ?>">
-                <i class="fas fa-check-double"></i> Persetujuan SP
+            <a href="dashboard.php?page=order_form" class="<?php echo $page == 'order_form' ? 'active' : ''; ?>">
+                <i class="fas fa-plus-circle"></i> Tambah Pesanan
             </a>
         </li>
         <li>
-            <a href="dashboard.php?page=order_form" class="<?php echo $page == 'order_form' ? 'active' : ''; ?>">
-                <i class="fas fa-plus-circle"></i> Tambah Pesanan
+            <a href="dashboard.php?page=approval" class="<?php echo $page == 'approval' ? 'active' : ''; ?>">
+                <i class="fas fa-check-double"></i> Persetujuan
             </a>
         </li>
         <li>
@@ -30,10 +30,15 @@
             </a>
         </li>
         <li>
+            <a href="dashboard.php?page=penerimaan_barang" class="<?php echo $page == 'penerimaan_barang' ? 'active' : ''; ?>">
+                <i class="fas fa-box-open"></i> Penerimaan Barang
+            </a>
+        </li>
+        <!-- <li>
             <a href="dashboard.php?page=master_supplier" class="<?php echo $page == 'master_supplier' ? 'active' : ''; ?>">
                 <i class="fas fa-truck"></i> Master Supplier
             </a>
-        </li>
+        </li> -->
         <?php if ($_SESSION['role'] === 'admin'): ?>
         <li>
             <a href="dashboard.php?page=users" class="<?php echo $page == 'users' ? 'active' : ''; ?>">

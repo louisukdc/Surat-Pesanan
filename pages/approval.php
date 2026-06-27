@@ -110,12 +110,22 @@ function loadSPs() {
                         badge += `<div style="font-size:10px; color:#ef4444; margin-top:4px;">Alasan: ${sp.alasan_tolak}</div>`;
                     }
 
-                    let actions = `<button class="btn btn-outline" style="padding:4px 8px; font-size:11px; margin-right:4px; margin-bottom:4px;" onclick="openDetailModal(${sp.id}, '${sp.no_sp}')"><i class="fas fa-eye"></i> Detail</button><br>`;
+                    let actions = `
+                        <button class="btn btn-outline" style="padding:4px 8px; font-size:11px; margin-right:4px; margin-bottom:4px;" onclick="openDetailModal(${sp.id}, '${sp.no_sp}')"><i class="fas fa-eye"></i> Detail</button>
+                        <button class="btn btn-primary" style="padding:4px 8px; font-size:11px; margin-right:4px; margin-bottom:4px;" onclick="editOrder('${sp.id}')" title="Edit"><i class="fas fa-edit"></i> Edit</button>
+                        <button class="btn btn-danger" style="padding:4px 8px; font-size:11px; margin-bottom:4px;" onclick="deleteOrder('${sp.id}')" title="Hapus Permanen"><i class="fas fa-trash"></i> Hapus</button>
+                        <br>
+                    `;
 
                     if(sp.status === 'Pending') {
                         actions += `
                             <button class="btn btn-success" style="padding:4px 8px; font-size:11px; margin-right:4px;" onclick="approveSP(${sp.id}, '${sp.no_sp}')"><i class="fas fa-check"></i> Setujui</button>
                             <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="openRejectModal(${sp.id}, '${sp.no_sp}')"><i class="fas fa-times"></i> Tolak</button>
+                        `;
+                    } else {
+                        // If Approved or Rejected, allow resetting back to Pending
+                        actions += `
+                            <button class="btn btn-outline" style="padding:4px 8px; font-size:11px; background:#f59e0b; color:white; border:none;" onclick="resetStatus(${sp.id}, '${sp.no_sp}')"><i class="fas fa-undo"></i> Batal Status</button>
                         `;
                     }
 
@@ -233,6 +243,46 @@ function submitReject() {
         },
         error: function(err) {
             alert('Gagal menolak pesanan. ' + (err.responseJSON ? err.responseJSON.error : ''));
+        }
+    });
+}
+
+function editOrder(id) {
+    window.location.href = 'dashboard.php?page=order_form&load=' + encodeURIComponent(id);
+}
+
+function deleteOrder(id) {
+    if(confirm('Peringatan: Seluruh item pada pesanan ini akan dihapus secara permanen. Lanjutkan?')) {
+        $.ajax({
+            url: 'api/orders.php',
+            method: 'DELETE',
+            contentType: 'application/json',
+            data: JSON.stringify({ id: id }),
+            success: function(res) {
+                if(res.success) {
+                    loadSPs();
+                } else {
+                    alert('Gagal menghapus: ' + res.error);
+                }
+            }
+        });
+    }
+}
+
+function resetStatus(id, no_sp) {
+    if(!confirm(`Anda yakin ingin membatalkan status pesanan ${no_sp} dan mengembalikannya ke "Menunggu Persetujuan"?`)) return;
+    
+    $.ajax({
+        url: 'api/orders.php',
+        method: 'PATCH',
+        contentType: 'application/json',
+        data: JSON.stringify({ id: id, action: 'reset' }),
+        success: function(res) {
+            alert(res.message);
+            loadSPs();
+        },
+        error: function(err) {
+            alert('Gagal me-reset status pesanan. ' + (err.responseJSON ? err.responseJSON.error : ''));
         }
     });
 }

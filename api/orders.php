@@ -39,6 +39,7 @@ try {
             if ($row = $result->fetch_assoc()) {
                 $header = [
                     'id' => $row['id'],
+                    'no_permintaan' => $row['no_permintaan'],
                     'tgl_pesan' => $row['tgl_pesan'],
                     'tgl_kirim' => $row['tgl_kirim'],
                     'id_supplier' => $row['id_supplier'],
@@ -185,6 +186,15 @@ try {
                 http_response_code(500);
                 echo json_encode(['error' => $conn->error]);
             }
+        } else if ($action === 'reset') {
+            $stmt = $conn->prepare("UPDATE spu_h SET status_acc = 'Pending', date_acc = '1900-01-01', alasan_tolak = '' WHERE id = ?");
+            $stmt->bind_param("i", $id);
+            if($stmt->execute()) {
+                echo json_encode(['success' => true, 'message' => 'Status pesanan berhasil di-reset kembali ke Pending']);
+            } else {
+                http_response_code(500);
+                echo json_encode(['error' => $conn->error]);
+            }
         } else {
             http_response_code(400);
             echo json_encode(['error' => 'Unknown action']);
@@ -212,11 +222,13 @@ try {
             $tgl_kirim = !empty($header['tgl_kirim']) ? $header['tgl_kirim'] : '1900-01-01';
             $tgl_penawaran = !empty($header['tgl_penawaran']) ? $header['tgl_penawaran'] : '1900-01-01';
             
+            $no_permintaan = !empty($header['no_permintaan']) ? $header['no_permintaan'] : '0';
+            
             if ($id > 0) {
                 // Update existing
-                $stmt_upd = $conn->prepare("UPDATE spu_h SET tgl_pesan=?, id_supplier=?, no_penawaran=?, tgl_penawaran=?, tgl_kirim=?, gudang=?, jenis_bayar=?, keterangan=? WHERE id=?");
-                $stmt_upd->bind_param("ssssssssi", 
-                    $tgl_pesan, $header['id_supplier'], $header['no_penawaran'], $tgl_penawaran, $tgl_kirim, $header['gudang'], $header['jenis_bayar'], $header['keterangan'], $id
+                $stmt_upd = $conn->prepare("UPDATE spu_h SET no_permintaan=?, tgl_pesan=?, id_supplier=?, no_penawaran=?, tgl_penawaran=?, tgl_kirim=?, gudang=?, jenis_bayar=?, keterangan=? WHERE id=?");
+                $stmt_upd->bind_param("sssssssssi", 
+                    $no_permintaan, $tgl_pesan, $header['id_supplier'], $header['no_penawaran'], $tgl_penawaran, $tgl_kirim, $header['gudang'], $header['jenis_bayar'], $header['keterangan'], $id
                 );
                 if(!$stmt_upd->execute()) throw new Exception("Update header failed: " . $stmt_upd->error);
                 
@@ -225,10 +237,10 @@ try {
                 $sp_id = $id;
             } else {
                 // Insert new
-                $stmt_ins = $conn->prepare("INSERT INTO spu_h (tgl_pesan, id_supplier, no_penawaran, tgl_penawaran, tgl_kirim, gudang, jenis_bayar, keterangan, user_created, dtime_created, user_acc, date_acc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), '', '1900-01-01')");
+                $stmt_ins = $conn->prepare("INSERT INTO spu_h (no_permintaan, tgl_pesan, id_supplier, no_penawaran, tgl_penawaran, tgl_kirim, gudang, jenis_bayar, keterangan, user_created, dtime_created, user_acc, date_acc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), '', '1900-01-01')");
                 $user = $_SESSION['username'];
-                $stmt_ins->bind_param("sssssssss", 
-                    $tgl_pesan, $header['id_supplier'], $header['no_penawaran'], $tgl_penawaran, $tgl_kirim, $header['gudang'], $header['jenis_bayar'], $header['keterangan'], $user
+                $stmt_ins->bind_param("ssssssssss", 
+                    $no_permintaan, $tgl_pesan, $header['id_supplier'], $header['no_penawaran'], $tgl_penawaran, $tgl_kirim, $header['gudang'], $header['jenis_bayar'], $header['keterangan'], $user
                 );
                 if(!$stmt_ins->execute()) throw new Exception("Insert header failed: " . $stmt_ins->error);
                 $sp_id = $conn->insert_id;

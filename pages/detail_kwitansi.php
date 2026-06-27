@@ -10,8 +10,8 @@ if(empty($no_sp)) {
 }
 
 // Fetch header
-$stmt = $conn->prepare("SELECT * FROM sp_pesanan WHERE no_sp = ? LIMIT 1");
-$stmt->bind_param("s", $no_sp);
+$stmt = $conn->prepare("SELECT h.*, s.NamaSupplier as namasup FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier WHERE h.id = ? LIMIT 1");
+$stmt->bind_param("i", $no_sp);
 $stmt->execute();
 $result = $stmt->get_result();
 $header = $result->fetch_assoc();
@@ -20,9 +20,15 @@ if(!$header) {
     die("Pesanan tidak ditemukan.");
 }
 
+$header['no_sp'] = 'PO-' . str_pad($header['id'], 5, '0', STR_PAD_LEFT);
+$header['tgl_sp'] = $header['tgl_pesan'];
+$header['unit'] = $header['gudang'];
+$header['user'] = $header['user_created'];
+$header['pembayaran'] = $header['jenis_bayar'];
+
 // Fetch items
-$stmt_items = $conn->prepare("SELECT * FROM sp_pesanan WHERE no_sp = ?");
-$stmt_items->bind_param("s", $no_sp);
+$stmt_items = $conn->prepare("SELECT * FROM spu_d WHERE id_sp = ?");
+$stmt_items->bind_param("i", $no_sp);
 $stmt_items->execute();
 $res_items = $stmt_items->get_result();
 $items = [];
@@ -214,9 +220,11 @@ while($row = $res_items->fetch_assoc()) {
             <?php 
             $no = 1;
             $grand_total = 0;
+            $total_ppn = 0;
             foreach($items as $item): 
-                $sub = $item['qty'] * $item['harga'];
+                $sub = $item['jumlah'];
                 $grand_total += $sub;
+                $total_ppn += isset($item['ppn']) ? $item['ppn'] : 0;
             ?>
             <tr>
                 <td class="text-center"><?= $no++ ?></td>
@@ -224,7 +232,7 @@ while($row = $res_items->fetch_assoc()) {
                     <?= htmlspecialchars($item['barang']) ?>
                     <?php if(!empty($item['merk'])) echo '<br><small>Merk: '.htmlspecialchars($item['merk']).'</small>'; ?>
                 </td>
-                <td class="text-center"><?= floatval($item['qty']) ?> <?= htmlspecialchars($item['satuan']) ?></td>
+                <td class="text-center"><?= floatval($item['qty']) ?></td>
                 <td class="text-right">Rp <?= number_format($item['harga'], 2, ',', '.') ?></td>
                 <td class="text-right">Rp <?= number_format($sub, 2, ',', '.') ?></td>
             </tr>
@@ -235,11 +243,11 @@ while($row = $res_items->fetch_assoc()) {
             </tr>
             <tr class="total-row">
                 <td colspan="4" class="text-right">PPN</td>
-                <td class="text-right">Rp <?= number_format($header['ppn'], 2, ',', '.') ?></td>
+                <td class="text-right">Rp <?= number_format($total_ppn, 2, ',', '.') ?></td>
             </tr>
             <tr class="total-row">
                 <td colspan="4" class="text-right" style="font-size: 16px;">GRAND TOTAL</td>
-                <td class="text-right" style="font-size: 16px; color: #2e7d32;">Rp <?= number_format($header['flag'], 2, ',', '.') ?></td>
+                <td class="text-right" style="font-size: 16px; color: #2e7d32;">Rp <?= number_format($grand_total + $total_ppn, 2, ',', '.') ?></td>
             </tr>
         </tbody>
     </table>

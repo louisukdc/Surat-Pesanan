@@ -28,7 +28,7 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'order_form';
             <div class="content-wrapper">
                 <?php
                 // Include the requested page
-                $allowed_pages = ['home', 'order_form', 'list_pesanan', 'master_supplier', 'laporan', 'users', 'pr_form', 'approval', 'gr_form', 'retur_form', 'detail_kwitansi'];
+                $allowed_pages = ['home', 'order_form', 'list_pesanan', 'master_supplier', 'laporan', 'users', 'pr_form', 'approval', 'gr_form', 'retur_form', 'detail_kwitansi', 'penerimaan_barang'];
                 if (in_array($page, $allowed_pages)) {
                     include 'pages/' . $page . '.php';
                 } else {

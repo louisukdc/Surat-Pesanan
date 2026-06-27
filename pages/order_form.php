@@ -370,6 +370,11 @@
                             <div id="supplier-suggestions" class="suggestions-box"></div>
                         </div>
 
+                        <div class="xl-col-span-2">
+                            <label class="sp-label">No. Surat Pesanan</label>
+                            <input type="text" id="no_permintaan" class="sp-input" placeholder="Contoh: PO/xxxxx/mm/yy">
+                        </div>
+
                         <div>
                             <label class="sp-label">Tgl. Pesan</label>
                             <input type="date" id="tgl_pesan" class="sp-input" value="<?php echo date('Y-m-d'); ?>">
@@ -395,7 +400,7 @@
 
                         <div class="xl-col-span-2">
                             <label class="sp-label">Surat Penawaran No.</label>
-                            <input type="text" id="no_penawaran" class="sp-input" placeholder="Nomor penawaran...">
+                            <input type="text" id="no_penawaran" class="sp-input" placeholder="Contoh: xxx/PEN/PBU/mm/yyyy atau S0xxxx">
                         </div>
 
                         <div class="xl-col-span-2">
@@ -646,6 +651,7 @@ function addItem() {
         qty: parseFloat($('#item_qty').val()) || 0,
         harga: parseFloat($('#item_harga').val()) || 0,
         disc: parseFloat($('#item_disc').val()) || 0,
+        ppn_persen: parseFloat($('#item_ppn_persen').val()) || 0,
         ppn: parseFloat($('#item_ppn_nominal').val()) || 0
     };
     item.jumlah = (item.qty * item.harga) - item.disc + item.ppn;
@@ -669,7 +675,12 @@ function removeItem(index) {
 
 function updateInlineItem(index, field, value) {
     orderItems[index][field] = parseFloat(value) || 0;
-    orderItems[index].jumlah = (orderItems[index].qty * orderItems[index].harga) - orderItems[index].disc + orderItems[index].ppn;
+    
+    // Recalculate PPN and Jumlah
+    let dpp = (orderItems[index].qty * orderItems[index].harga) - orderItems[index].disc;
+    orderItems[index].ppn = dpp * ((orderItems[index].ppn_persen || 0) / 100);
+    orderItems[index].jumlah = dpp + orderItems[index].ppn;
+    
     renderItemsTable();
     calculateGrandTotal();
 }
@@ -700,7 +711,11 @@ function renderItemsTable() {
                     <input type="number" class="sp-input sp-text-right sp-text-red" style="width:90px; padding:4px 8px;" value="${item.disc}" onchange="updateInlineItem(${idx}, 'disc', this.value)">
                 </td>
                 <td class="sp-text-right">
-                    <input type="number" class="sp-input sp-text-right sp-text-teal" style="width:90px; padding:4px 8px;" value="${item.ppn}" onchange="updateInlineItem(${idx}, 'ppn', this.value)" title="Nominal PPN">
+                    <div style="display:flex; align-items:center; justify-content:flex-end;">
+                        <input type="number" class="sp-input sp-text-right sp-text-teal" style="width:60px; padding:4px 8px;" value="${item.ppn_persen || 0}" onchange="updateInlineItem(${idx}, 'ppn_persen', this.value)" title="PPN Persen">
+                        <span style="margin-left:4px; font-weight:bold;">%</span>
+                    </div>
+                    <div class="sp-text-xs sp-text-gray sp-mt-2">Rp ${formatCurrency(item.ppn)}</div>
                 </td>
                 <td class="sp-text-right sp-font-bold sp-text-teal">
                     ${formatCurrency(item.jumlah)}
@@ -738,9 +753,19 @@ function loadOrderData(id) {
         $('#gudang').val(h.gudang);
         $('#jenis_bayar').val(h.jenis_bayar);
         $('#no_penawaran').val(h.no_penawaran);
+        $('#no_permintaan').val(h.no_permintaan);
         $('#tgl_penawaran').val(h.tgl_penawaran);
         $('#keterangan').val(h.keterangan);
         
+        res.items.forEach(item => {
+            item.qty = parseFloat(item.qty) || 0;
+            item.harga = parseFloat(item.harga) || 0;
+            item.disc = parseFloat(item.disc) || 0;
+            item.ppn = parseFloat(item.ppn) || 0;
+            let dpp = (item.qty * item.harga) - item.disc;
+            item.ppn_persen = (dpp > 0 && item.ppn > 0) ? Math.round((item.ppn / dpp) * 100) : 0;
+            item.jumlah = dpp + item.ppn;
+        });
         orderItems = res.items;
         renderItemsTable();
         calculateGrandTotal();
@@ -749,8 +774,28 @@ function loadOrderData(id) {
 }
 
 function saveOrder() {
-    if(!$('#id_supplier').val() || orderItems.length === 0) {
-        alert("Supplier dan Barang tidak boleh kosong!");
+    let requiredFields = [
+        { id: 'id_supplier', name: 'Supplier' },
+        { id: 'no_permintaan', name: 'No. Surat Pesanan' },
+        { id: 'tgl_pesan', name: 'Tanggal Pesan' },
+        { id: 'tgl_kirim', name: 'Tanggal Kirim' },
+        { id: 'gudang', name: 'Gudang / Unit' },
+        { id: 'no_penawaran', name: 'Surat Penawaran No.' },
+        { id: 'tgl_penawaran', name: 'Tanggal Penawaran' }
+    ];
+    
+    for (let field of requiredFields) {
+        if (!$('#' + field.id).val() || $('#' + field.id).val().trim() === '') {
+            alert("Harap mengisi kolom " + field.name + " yang belum terisi!");
+            // Focus on the field (if it's a hidden id_supplier, focus on namasup)
+            if(field.id === 'id_supplier') $('#namasup').focus();
+            else $('#' + field.id).focus();
+            return;
+        }
+    }
+    
+    if(orderItems.length === 0) {
+        alert("Barang pesanan tidak boleh kosong! Harap tambah minimal 1 item.");
         return;
     }
     
@@ -763,6 +808,7 @@ function saveOrder() {
             gudang: $('#gudang').val(),
             jenis_bayar: $('#jenis_bayar').val(),
             no_penawaran: $('#no_penawaran').val(),
+            no_permintaan: $('#no_permintaan').val(),
             tgl_penawaran: $('#tgl_penawaran').val(),
             keterangan: $('#keterangan').val()
         },
