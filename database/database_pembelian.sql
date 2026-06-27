@@ -1,7 +1,9 @@
 -- ========================================================
 -- DATABASE SKEMA E-PROCUREMENT RKZ (INTEGRATED)
 -- ========================================================
+-- --------------------------------------------------------
 -- 1. MASTER SUPPLIER
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `m_supplier` (
   `IdSupplier` INT(11) NOT NULL AUTO_INCREMENT,
   `KodeSupplier` VARCHAR(6) NOT NULL,
@@ -41,7 +43,22 @@ CREATE TABLE IF NOT EXISTS `m_supplier` (
   PRIMARY KEY (`IdSupplier`, `KodeSupplier`),
   UNIQUE KEY `uq_kodesupplier` (`KodeSupplier`)
 ) ENGINE = InnoDB DEFAULT CHARSET = latin1;
--- 2. HEADER PESANAN (MENGGANTIKAN purchase_orders)
+-- --------------------------------------------------------
+-- 2. MASTER GUDANG
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `m_gudang` (
+  `IdGudang` INT(11) NOT NULL AUTO_INCREMENT,
+  `KodeGudang` VARCHAR(6) NOT NULL,
+  `NamaGudang` VARCHAR(30) DEFAULT NULL,
+  `Alamat1` VARCHAR(100) DEFAULT NULL,
+  `Telp1` VARCHAR(20) DEFAULT NULL,
+  `ContactPerson` VARCHAR(30) DEFAULT NULL,
+  PRIMARY KEY (`IdGudang`, `KodeGudang`),
+  UNIQUE KEY `uq_kodegudang` (`KodeGudang`)
+) ENGINE = InnoDB DEFAULT CHARSET = latin1;
+-- --------------------------------------------------------
+-- 3. HEADER PESANAN (MENGGANTIKAN purchase_orders)
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `spu_h` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `no_permintaan` VARCHAR(15) NOT NULL DEFAULT '0',
@@ -51,7 +68,7 @@ CREATE TABLE IF NOT EXISTS `spu_h` (
   `no_penawaran` VARCHAR(25) NOT NULL DEFAULT '',
   `tgl_penawaran` DATE NOT NULL DEFAULT '1900-01-01',
   `tgl_kirim` DATE NOT NULL,
-  `gudang` VARCHAR(3) NOT NULL DEFAULT '',
+  `id_gudang` VARCHAR(6) NOT NULL COMMENT 'Relasi ke m_gudang',
   `jenis_bayar` VARCHAR(6) NOT NULL,
   `keterangan` TEXT NOT NULL,
   `user_created` VARCHAR(10) DEFAULT NULL,
@@ -61,9 +78,13 @@ CREATE TABLE IF NOT EXISTS `spu_h` (
   `flag` VARCHAR(1) NOT NULL DEFAULT '',
   `status_acc` VARCHAR(20) DEFAULT 'Draft',
   `alasan_tolak` TEXT,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_id_supplier` (`id_supplier`),
+  KEY `idx_id_gudang` (`id_gudang`)
 ) ENGINE = InnoDB DEFAULT CHARSET = latin1;
--- 3. DETAIL PESANAN
+-- --------------------------------------------------------
+-- 4. DETAIL PESANAN
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `spu_d` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `id_sp` INT(11) NOT NULL DEFAULT 0,
@@ -80,43 +101,47 @@ CREATE TABLE IF NOT EXISTS `spu_d` (
   PRIMARY KEY (`id`),
   KEY `id_sp` (`id_sp`)
 ) ENGINE = InnoDB DEFAULT CHARSET = latin1;
--- 4. ALUR E-PROCUREMENT (PENERIMAAN BARANG & BAST)
+-- --------------------------------------------------------
+-- 5. ALUR E-PROCUREMENT (PENERIMAAN BARANG & BAST)
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `surat_jalan` (
-  `id` int PRIMARY KEY AUTO_INCREMENT,
-  `id_spu_h` int COMMENT 'Relasi ke spu_h (Header Pesanan)',
-  `nomor_surat_jalan` varchar(255) UNIQUE,
-  `tanggal_terima` datetime,
-  `teknisi_penerima_id` int COMMENT 'ID Teknisi yang mengecek',
-  `file_scan_url` varchar(255) COMMENT 'Path/URL upload dokumen surat jalan',
-  `kategori` varchar(255) COMMENT 'Barang / Jasa',
-  `status_pengecekan` varchar(255) COMMENT 'Contoh: Sesuai, Ada Kerusakan',
-  `created_at` datetime
+  `id` INT PRIMARY KEY AUTO_INCREMENT,
+  `id_spu_h` INT COMMENT 'Relasi ke spu_h (Header Pesanan)',
+  `nomor_surat_jalan` VARCHAR(255) UNIQUE,
+  `tanggal_terima` DATETIME,
+  `teknisi_penerima_id` INT COMMENT 'ID Teknisi yang mengecek',
+  `file_scan_url` VARCHAR(255) COMMENT 'Path/URL upload dokumen surat jalan',
+  `kategori` VARCHAR(255) COMMENT 'Barang / Jasa',
+  `status_pengecekan` VARCHAR(255) COMMENT 'Contoh: Sesuai, Ada Kerusakan',
+  `created_at` DATETIME,
+  KEY `idx_id_spu_h` (`id_spu_h`)
 ) ENGINE = InnoDB DEFAULT CHARSET = latin1;
 CREATE TABLE IF NOT EXISTS `berita_acara` (
-  `id` int PRIMARY KEY AUTO_INCREMENT,
-  `surat_jalan_id` int UNIQUE,
-  `nomor_ba` varchar(255) UNIQUE,
-  `tanggal_generate` datetime,
-  `keterangan` text,
-  `status_dokumen` varchar(255) COMMENT 'Status untuk Keuangan'
+  `id` INT PRIMARY KEY AUTO_INCREMENT,
+  `surat_jalan_id` INT UNIQUE,
+  `nomor_ba` VARCHAR(255) UNIQUE,
+  `tanggal_generate` DATETIME,
+  `keterangan` TEXT,
+  `status_dokumen` VARCHAR(255) COMMENT 'Status untuk Keuangan'
 ) ENGINE = InnoDB DEFAULT CHARSET = latin1;
 CREATE TABLE IF NOT EXISTS `laporan_kerja` (
-  `id` int PRIMARY KEY AUTO_INCREMENT,
-  `surat_jalan_id` int UNIQUE,
-  `nomor_lk` varchar(255) UNIQUE,
-  `tanggal_generate` datetime,
-  `rincian_pekerjaan` text,
-  `status_dokumen` varchar(255) COMMENT 'Status untuk Keuangan'
+  `id` INT PRIMARY KEY AUTO_INCREMENT,
+  `surat_jalan_id` INT UNIQUE,
+  `nomor_lk` VARCHAR(255) UNIQUE,
+  `tanggal_generate` DATETIME,
+  `rincian_pekerjaan` TEXT,
+  `status_dokumen` VARCHAR(255) COMMENT 'Status untuk Keuangan'
 ) ENGINE = InnoDB DEFAULT CHARSET = latin1;
 CREATE TABLE IF NOT EXISTS `pembayaran` (
-  `id` int PRIMARY KEY AUTO_INCREMENT,
-  `surat_jalan_id` int COMMENT 'Referensi dokumen lengkap',
-  `keuangan_validator_id` int COMMENT 'ID Staf keuangan yang memvalidasi',
-  `nomor_bukti_bayar` varchar(255) UNIQUE,
-  `jumlah_bayar` decimal,
-  `tanggal_validasi` datetime,
-  `tanggal_bayar` datetime,
-  `status_bayar` varchar(255) COMMENT 'Lunas / Tertunda'
+  `id` INT PRIMARY KEY AUTO_INCREMENT,
+  `surat_jalan_id` INT COMMENT 'Referensi dokumen lengkap',
+  `keuangan_validator_id` INT COMMENT 'ID Staf keuangan yang memvalidasi',
+  `nomor_bukti_bayar` VARCHAR(255) UNIQUE,
+  `jumlah_bayar` DECIMAL(15, 2),
+  `tanggal_validasi` DATETIME,
+  `tanggal_bayar` DATETIME,
+  `status_bayar` VARCHAR(255) COMMENT 'Lunas / Tertunda',
+  KEY `idx_surat_jalan_id` (`surat_jalan_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = latin1;
 CREATE TABLE IF NOT EXISTS `users` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
@@ -125,11 +150,14 @@ CREATE TABLE IF NOT EXISTS `users` (
   `role` VARCHAR(20) DEFAULT 'user',
   PRIMARY KEY (`id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = latin1;
--- 5. RELASI (FOREIGN KEYS)
+-- --------------------------------------------------------
+-- 6. HUBUNGAN RELASI (FOREIGN KEYS)
+-- --------------------------------------------------------
 ALTER TABLE `spu_d`
 ADD CONSTRAINT `fk_spu_d_spu_h` FOREIGN KEY (`id_sp`) REFERENCES `spu_h` (`id`) ON DELETE CASCADE;
 ALTER TABLE `spu_h`
-ADD CONSTRAINT `fk_spu_h_supplier` FOREIGN KEY (`id_supplier`) REFERENCES `m_supplier` (`KodeSupplier`) ON UPDATE CASCADE;
+ADD CONSTRAINT `fk_spu_h_supplier` FOREIGN KEY (`id_supplier`) REFERENCES `m_supplier` (`KodeSupplier`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_spu_h_gudang` FOREIGN KEY (`id_gudang`) REFERENCES `m_gudang` (`KodeGudang`) ON UPDATE CASCADE;
 ALTER TABLE `surat_jalan`
 ADD CONSTRAINT `fk_sj_spu_h` FOREIGN KEY (`id_spu_h`) REFERENCES `spu_h` (`id`);
 ALTER TABLE `berita_acara`
@@ -138,8 +166,9 @@ ALTER TABLE `laporan_kerja`
 ADD CONSTRAINT `fk_lk_sj` FOREIGN KEY (`surat_jalan_id`) REFERENCES `surat_jalan` (`id`);
 ALTER TABLE `pembayaran`
 ADD CONSTRAINT `fk_bayar_sj` FOREIGN KEY (`surat_jalan_id`) REFERENCES `surat_jalan` (`id`);
--- Default Users
+-- --------------------------------------------------------
+-- 7. DATA BAWAAN (DEFAULT DATA INSERTS)
+-- --------------------------------------------------------
 INSERT IGNORE INTO `users` (`username`, `password`, `role`)
-VALUES ('admin', MD5('adminrkz'), 'admin');
-INSERT IGNORE INTO `users` (`username`, `password`, `role`)
-VALUES ('louis', MD5('123456'), 'user');
+VALUES ('admin', MD5('adminrkz'), 'admin'),
+  ('louis', MD5('123456'), 'user');

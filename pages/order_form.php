@@ -387,7 +387,9 @@
 
                         <div class="xl-col-span-2">
                             <label class="sp-label">Gudang / Unit</label>
-                            <input type="text" id="gudang" class="sp-input" placeholder="Masukkan nama gudang...">
+                            <input type="hidden" id="id_gudang">
+                            <input type="text" id="namagudang" class="sp-input" placeholder="Ketik nama gudang..." autocomplete="off" onkeyup="searchGudang(this.value)">
+                            <div id="gudang-suggestions" class="suggestions-box"></div>
                         </div>
 
                         <div class="xl-col-span-2">
@@ -578,22 +580,22 @@ function formatCurrency(num) {
     return parseFloat(num).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 }
 
-let searchTimeout;
+let supplierTimeout;
 function searchSupplier(query) {
-    clearTimeout(searchTimeout);
+    clearTimeout(supplierTimeout);
     if(query.length < 2) {
         $('#supplier-suggestions').hide();
         return;
     }
-    searchTimeout = setTimeout(() => {
+    supplierTimeout = setTimeout(() => {
         $.get('api/orders.php?search_supplier=' + encodeURIComponent(query), function(data) {
             let html = '';
+            data.forEach(s => {
+                html += `<div class="suggestion-item" onclick="selectSupplier('${s.KodeSupplier}', '${s.NamaSupplier}')">
+                            <strong>${s.KodeSupplier}</strong> - ${s.NamaSupplier}
+                         </div>`;
+            });
             if(data.length > 0) {
-                data.forEach(sup => {
-                    html += `<div class="suggestion-item" onclick="selectSupplier('${sup.KodeSupplier.trim()}', '${sup.NamaSupplier.trim()}')">
-                                <strong>${sup.KodeSupplier}</strong> - ${sup.NamaSupplier}
-                             </div>`;
-                });
                 $('#supplier-suggestions').html(html).show();
             } else {
                 $('#supplier-suggestions').hide();
@@ -604,7 +606,7 @@ function searchSupplier(query) {
 
 function selectSupplier(kode, nama) {
     $('#id_supplier').val(kode);
-    $('#namasup').val(nama);
+    $('#namasup').val(`${kode} - ${nama}`);
     $('#supplier-suggestions').hide();
     
     // Update Widget Supplier Info
@@ -614,9 +616,42 @@ function selectSupplier(kode, nama) {
     `);
 }
 
+let gudangTimeout;
+function searchGudang(query) {
+    clearTimeout(gudangTimeout);
+    if(query.length < 1) {
+        $('#gudang-suggestions').hide();
+        return;
+    }
+    gudangTimeout = setTimeout(() => {
+        $.get('api/orders.php?search_gudang=' + encodeURIComponent(query), function(data) {
+            let html = '';
+            data.forEach(g => {
+                html += `<div class="suggestion-item" onclick="selectGudang('${g.KodeGudang}', '${g.NamaGudang}')">
+                            <strong>${g.KodeGudang}</strong> - ${g.NamaGudang}
+                         </div>`;
+            });
+            if(data.length > 0) {
+                $('#gudang-suggestions').html(html).show();
+            } else {
+                $('#gudang-suggestions').hide();
+            }
+        });
+    }, 300);
+}
+
+function selectGudang(kode, nama) {
+    $('#id_gudang').val(kode);
+    $('#namagudang').val(`${kode} - ${nama}`);
+    $('#gudang-suggestions').hide();
+}
+
 $(document).click(function(e) {
-    if (!$(e.target).closest('.xl-col-span-2').length) {
+    if (!$(e.target).closest('#namasup').length && !$(e.target).closest('#supplier-suggestions').length) {
         $('#supplier-suggestions').hide();
+    }
+    if (!$(e.target).closest('#namagudang').length && !$(e.target).closest('#gudang-suggestions').length) {
+        $('#gudang-suggestions').hide();
     }
 });
 
@@ -760,7 +795,8 @@ function loadOrderData(id) {
         $('#tgl_kirim').val(h.tgl_kirim);
         $('#id_supplier').val(h.id_supplier);
         selectSupplier(h.id_supplier, h.namasup);
-        $('#gudang').val(h.gudang);
+        $('#id_gudang').val(h.id_gudang);
+        selectGudang(h.id_gudang, h.namagudang);
         $('#jenis_bayar').val(h.jenis_bayar);
         $('#no_penawaran').val(h.no_penawaran);
         $('#no_permintaan').val(h.no_permintaan);
@@ -793,10 +829,10 @@ function loadOrderData(id) {
 function saveOrder() {
     let requiredFields = [
         { id: 'id_supplier', name: 'Supplier' },
+        { id: 'id_gudang', name: 'Gudang / Unit' },
         { id: 'no_permintaan', name: 'No. Surat Pesanan' },
         { id: 'tgl_pesan', name: 'Tanggal Pesan' },
         { id: 'tgl_kirim', name: 'Tanggal Kirim' },
-        { id: 'gudang', name: 'Gudang / Unit' },
         { id: 'no_penawaran', name: 'Surat Penawaran No.' },
         { id: 'tgl_penawaran', name: 'Tanggal Penawaran' }
     ];
@@ -806,6 +842,7 @@ function saveOrder() {
             alert("Harap mengisi kolom " + field.name + " yang belum terisi!");
             // Focus on the field (if it's a hidden id_supplier, focus on namasup)
             if(field.id === 'id_supplier') $('#namasup').focus();
+            else if(field.id === 'id_gudang') $('#namagudang').focus();
             else $('#' + field.id).focus();
             return;
         }
@@ -852,7 +889,7 @@ function submitOrderPayload() {
             tgl_pesan: $('#tgl_pesan').val(),
             tgl_kirim: $('#tgl_kirim').val(),
             id_supplier: $('#id_supplier').val(),
-            gudang: $('#gudang').val(),
+            id_gudang: $('#id_gudang').val(),
             jenis_bayar: $('#jenis_bayar').val(),
             no_penawaran: $('#no_penawaran').val(),
             no_permintaan: $('#no_permintaan').val(),
