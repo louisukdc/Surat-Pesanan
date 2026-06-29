@@ -97,4 +97,4 @@ Proyek ini memisahkan logika backend (*API endpoint*) dari antarmuka visual (UI)
 Sistem E-Procurement ini dibuat dan dikelola sebagai aset *proprietary* / panduan internal. Segala bentuk modifikasi untuk kebutuhan publik diatur melalui kebijakan lisensi repositori Anda (misalnya: MIT License).
 
 ---
-*Dibuat dengan ❤️ oleh Louis*
+*Dibuat dengan ❤️ oleh Louis.*
