@@ -84,7 +84,7 @@ try {
         }
 
         // List all Surat Jalan (Penerimaan)
-        $sql = "SELECT sj.id, sj.nomor_surat_jalan, sj.tanggal_terima, sj.status_pengecekan, sj.kategori, sj.created_at, h.no_permintaan, s.NamaSupplier as namasup, h.id as sp_id
+        $sql = "SELECT sj.id, sj.nomor_surat_jalan, sj.tanggal_terima, sj.status_pengecekan, sj.kategori, sj.catatan, sj.created_at, h.no_permintaan, s.NamaSupplier as namasup, h.id as sp_id
                 FROM surat_jalan sj
                 JOIN spu_h h ON sj.id_spu_h = h.id
                 LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier
@@ -114,6 +114,7 @@ try {
         $tanggal_terima = $conn->real_escape_string($data['tanggal_terima']);
         $kategori = isset($data['kategori']) ? $conn->real_escape_string($data['kategori']) : 'Barang';
         $status_pengecekan = isset($data['status_pengecekan']) ? $conn->real_escape_string($data['status_pengecekan']) : 'Sesuai';
+        $catatan = isset($data['catatan']) ? $conn->real_escape_string($data['catatan']) : '';
         $teknisi_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 1; // fallback if user_id is not set in session, use 1
 
         // Check if SJ already exists for this number
@@ -124,8 +125,8 @@ try {
             exit;
         }
 
-        $stmt = $conn->prepare("INSERT INTO surat_jalan (id_spu_h, nomor_surat_jalan, tanggal_terima, teknisi_penerima_id, kategori, status_pengecekan, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
-        $stmt->bind_param("ississ", $id_spu_h, $nomor_surat_jalan, $tanggal_terima, $teknisi_id, $kategori, $status_pengecekan);
+        $stmt = $conn->prepare("INSERT INTO surat_jalan (id_spu_h, nomor_surat_jalan, tanggal_terima, teknisi_penerima_id, kategori, status_pengecekan, catatan, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
+        $stmt->bind_param("ississs", $id_spu_h, $nomor_surat_jalan, $tanggal_terima, $teknisi_id, $kategori, $status_pengecekan, $catatan);
         
         if ($stmt->execute()) {
             echo json_encode(['success' => true, 'message' => 'Surat Jalan berhasil disimpan', 'id' => $conn->insert_id]);

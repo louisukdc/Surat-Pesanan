@@ -125,6 +125,8 @@ try {
         if ($limit < 1 || $limit > 200) $limit = 50;
         $offset = ($page - 1) * $limit;
 
+        $status_filter = isset($_GET['status_filter']) ? $conn->real_escape_string(trim($_GET['status_filter'])) : 'Approved'; // Default ke Approved
+        
         $where = "1=1";
         if (!empty($search)) {
             $where .= " AND (h.id LIKE '%$search%' OR s.NamaSupplier LIKE '%$search%')";
@@ -135,13 +137,16 @@ try {
         if (!empty($end_date)) {
             $where .= " AND h.tgl_pesan <= '$end_date'";
         }
+        if ($status_filter !== 'All') {
+            $where .= " AND h.status_acc = '$status_filter'";
+        }
 
         $count_sql = "SELECT COUNT(h.id) as total FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier WHERE $where";
         $total_res = $conn->query($count_sql);
         $total_row = $total_res->fetch_assoc();
         $total_records = (int)$total_row['total'];
 
-        $sql = "SELECT h.id, h.tgl_pesan, s.NamaSupplier as namasup, g.NamaGudang as unit, h.jenis_bayar as pembayaran, h.flag, h.status_acc, h.nama_lampiran 
+        $sql = "SELECT h.id, h.tgl_pesan, h.date_acc, s.NamaSupplier as namasup, g.NamaGudang as unit, h.jenis_bayar as pembayaran, h.flag, h.status_acc, h.nama_lampiran 
                 FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.KodeGudang
                 WHERE $where ORDER BY h.id DESC LIMIT $offset, $limit";
         
@@ -153,6 +158,12 @@ try {
                 // Ensure field names match UI expectations if possible
                 $row['no_sp'] = 'PO-' . str_pad($row['id'], 5, '0', STR_PAD_LEFT);
                 $row['tgl_sp'] = $row['tgl_pesan'];
+                
+                // Get real grand total
+                $total_sql = "SELECT SUM(jumlah) as gt FROM spu_d WHERE id_sp = " . (int)$row['id'];
+                $t_res = $conn->query($total_sql);
+                $row['grand_total'] = ($t_res && $t_row = $t_res->fetch_assoc()) ? (float)$t_row['gt'] : 0;
+                
                 $data[] = $row;
             }
         }
@@ -201,6 +212,16 @@ try {
             $stmt->bind_param("i", $id);
             if($stmt->execute()) {
                 echo json_encode(['success' => true, 'message' => 'Status pesanan berhasil di-reset kembali ke Pending']);
+            } else {
+                http_response_code(500);
+                echo json_encode(['error' => $conn->error]);
+            }
+        } else if ($action === 'set_approval_date') {
+            $new_date = isset($data['date_acc']) ? $data['date_acc'] : date('Y-m-d');
+            $stmt = $conn->prepare("UPDATE spu_h SET date_acc = ? WHERE id = ?");
+            $stmt->bind_param("si", $new_date, $id);
+            if($stmt->execute()) {
+                echo json_encode(['success' => true, 'message' => 'Tanggal persetujuan berhasil diubah']);
             } else {
                 http_response_code(500);
                 echo json_encode(['error' => $conn->error]);

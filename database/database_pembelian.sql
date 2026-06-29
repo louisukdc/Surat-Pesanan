@@ -1,9 +1,3 @@
--- ========================================================
--- DATABASE SKEMA E-PROCUREMENT RKZ (INTEGRATED)
--- ========================================================
--- --------------------------------------------------------
--- 1. MASTER SUPPLIER
--- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `m_supplier` (
   `IdSupplier` INT(11) NOT NULL AUTO_INCREMENT,
   `KodeSupplier` VARCHAR(6) NOT NULL,
@@ -43,9 +37,6 @@ CREATE TABLE IF NOT EXISTS `m_supplier` (
   PRIMARY KEY (`IdSupplier`, `KodeSupplier`),
   UNIQUE KEY `uq_kodesupplier` (`KodeSupplier`)
 ) ENGINE = InnoDB DEFAULT CHARSET = latin1;
--- --------------------------------------------------------
--- 2. MASTER GUDANG
--- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `m_gudang` (
   `IdGudang` INT(11) NOT NULL AUTO_INCREMENT,
   `KodeGudang` VARCHAR(6) NOT NULL,
@@ -56,13 +47,10 @@ CREATE TABLE IF NOT EXISTS `m_gudang` (
   PRIMARY KEY (`IdGudang`, `KodeGudang`),
   UNIQUE KEY `uq_kodegudang` (`KodeGudang`)
 ) ENGINE = InnoDB DEFAULT CHARSET = latin1;
--- --------------------------------------------------------
--- 3. HEADER PESANAN (MENGGANTIKAN purchase_orders)
--- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `spu_h` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `no_permintaan` VARCHAR(15) NOT NULL DEFAULT '0',
-  `nama_lampiran` VARCHAR(15) NOT NULL DEFAULT '0',
+  `nama_lampiran` TEXT,
   `tgl_pesan` DATE NOT NULL,
   `id_supplier` VARCHAR(6) NOT NULL COMMENT 'Relasi ke m_supplier',
   `no_penawaran` VARCHAR(25) NOT NULL DEFAULT '',
@@ -82,9 +70,6 @@ CREATE TABLE IF NOT EXISTS `spu_h` (
   KEY `idx_id_supplier` (`id_supplier`),
   KEY `idx_id_gudang` (`id_gudang`)
 ) ENGINE = InnoDB DEFAULT CHARSET = latin1;
--- --------------------------------------------------------
--- 4. DETAIL PESANAN
--- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `spu_d` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `id_sp` INT(11) NOT NULL DEFAULT 0,
@@ -101,9 +86,6 @@ CREATE TABLE IF NOT EXISTS `spu_d` (
   PRIMARY KEY (`id`),
   KEY `id_sp` (`id_sp`)
 ) ENGINE = InnoDB DEFAULT CHARSET = latin1;
--- --------------------------------------------------------
--- 5. ALUR E-PROCUREMENT (PENERIMAAN BARANG & BAST)
--- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `surat_jalan` (
   `id` INT PRIMARY KEY AUTO_INCREMENT,
   `id_spu_h` INT COMMENT 'Relasi ke spu_h (Header Pesanan)',
@@ -113,6 +95,7 @@ CREATE TABLE IF NOT EXISTS `surat_jalan` (
   `file_scan_url` VARCHAR(255) COMMENT 'Path/URL upload dokumen surat jalan',
   `kategori` VARCHAR(255) COMMENT 'Barang / Jasa',
   `status_pengecekan` VARCHAR(255) COMMENT 'Contoh: Sesuai, Ada Kerusakan',
+  `catatan` TEXT COMMENT 'Catatan dari teknisi/penerima',
   `created_at` DATETIME,
   KEY `idx_id_spu_h` (`id_spu_h`)
 ) ENGINE = InnoDB DEFAULT CHARSET = latin1;
@@ -150,9 +133,6 @@ CREATE TABLE IF NOT EXISTS `users` (
   `role` VARCHAR(20) DEFAULT 'user',
   PRIMARY KEY (`id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = latin1;
--- --------------------------------------------------------
--- 6. HUBUNGAN RELASI (FOREIGN KEYS)
--- --------------------------------------------------------
 ALTER TABLE `spu_d`
 ADD CONSTRAINT `fk_spu_d_spu_h` FOREIGN KEY (`id_sp`) REFERENCES `spu_h` (`id`) ON DELETE CASCADE;
 ALTER TABLE `spu_h`
@@ -166,9 +146,6 @@ ALTER TABLE `laporan_kerja`
 ADD CONSTRAINT `fk_lk_sj` FOREIGN KEY (`surat_jalan_id`) REFERENCES `surat_jalan` (`id`);
 ALTER TABLE `pembayaran`
 ADD CONSTRAINT `fk_bayar_sj` FOREIGN KEY (`surat_jalan_id`) REFERENCES `surat_jalan` (`id`);
--- --------------------------------------------------------
--- 7. DATA BAWAAN (DEFAULT DATA INSERTS)
--- --------------------------------------------------------
 INSERT IGNORE INTO `users` (`username`, `password`, `role`)
 VALUES ('admin', MD5('adminrkz'), 'admin'),
   ('louis', MD5('123456'), 'user');

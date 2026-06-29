@@ -1,0 +1,97 @@
+<script>
+let currentPage = 1;
+const limitPerPage = 25;
+let totalPages = 1;
+
+$(document).ready(function() {
+    loadOrders();
+});
+
+function loadOrders() {
+    const search = $('#filterSearch').val();
+    const startDate = $('#filterStartDate').val();
+    const endDate = $('#filterEndDate').val();
+    const statusFilter = $('#filterStatus').val();
+
+    $.ajax({
+        url: `api/orders.php?page=${currentPage}&limit=${limitPerPage}&search=${encodeURIComponent(search)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}&status_filter=${encodeURIComponent(statusFilter)}`,
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+        <div class="section-title" style="margin-bottom: 0; border: none;">Daftar Pesanan</div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn btn-success" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Export Excel</button>
+            <a href="dashboard.php?page=order_form" class="btn btn-primary"><i class="fas fa-plus"></i> Buat Pesanan Baru</a>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+        <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; font-size: 12px; margin-bottom: 5px; color: #666;">Cari (No SP / Supplier)</label>
+            <input type="text" id="filterSearch" class="form-control" placeholder="Ketik kata kunci...">
+        </div>
+        <div>
+            <label style="display: block; font-size: 12px; margin-bottom: 5px; color: #666;">Dari Tanggal</label>
+            <input type="date" id="filterStartDate" class="form-control">
+        </div>
+        <div>
+            <label style="display: block; font-size: 12px; margin-bottom: 5px; color: #666;">Status</label>
+            <select id="filterStatus" class="form-control" style="min-width: 150px;">
+                <option value="Approved">Approved (Disetujui)</option>
+                <option value="All">Semua Status</option>
+                <option value="Pending">Pending / Draft</option>
+                <option value="Rejected">Ditolak</option>
+            </select>
+        </div>
+        <div>
+            <button class="btn btn-primary" onclick="currentPage=1; loadOrders();"><i class="fas fa-search"></i> Filter</button>
+            <button class="btn btn-outline" onclick="resetFilter()"><i class="fas fa-undo"></i> Reset</button>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="data-table" id="ordersTable">
+            <thead>
+                <tr>
+                    <th>No. SP</th>
+                    <th>Tanggal Pesan</th>
+                    <th>Tanggal Setuju</th>
+                    <th>Supplier</th>
+                    <th>Bagian</th>
+                    <th class="text-right">Grand Total</th>
+                    <th class="text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data loaded via AJAX -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+        <div id="pageInfo" style="font-size: 14px; color: #666;">Menampilkan 0 data</div>
+        <div style="display: flex; gap: 5px;">
+            <button class="btn btn-outline" id="btnPrev" onclick="changePage(-1)" style="padding: 5px 15px;">&laquo; Prev</button>
+            <button class="btn btn-outline" id="btnNext" onclick="changePage(1)" style="padding: 5px 15px;">Next &raquo;</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Atur Tanggal Setuju -->
+<div id="dateAccModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+    <div style="background: white; padding: 20px; border-radius: 8px; width: 400px; max-width: 90%;">
+        <h3 style="margin-top:0; margin-bottom: 15px;">Atur Tanggal Persetujuan</h3>
+        <input type="hidden" id="dateAccId">
+        <div style="margin-bottom: 15px;">
+            <label style="display:block; margin-bottom: 5px;">Tanggal Disetujui</label>
+            <input type="date" id="dateAccInput" class="form-control">
+        </div>
+        <div style="text-align: right; margin-top: 20px;">
+            <button class="btn btn-outline" onclick="closeDateAccModal()">Batal</button>
+            <button class="btn btn-primary" onclick="saveDateAcc()">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<script>

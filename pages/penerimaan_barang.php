@@ -141,6 +141,7 @@
                         <th>Terkait PO</th>
                         <th>Supplier</th>
                         <th>Kondisi/Status</th>
+                        <th>Catatan</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -192,6 +193,11 @@
                 <div>
                     <label class="sp-label">Kategori</label>
                     <input type="text" id="kategori" class="sp-input" value="Barang" readonly style="background:#f3f4f6;">
+                </div>
+                
+                <div style="grid-column: span 2;">
+                    <label class="sp-label">Catatan Tambahan (Opsional)</label>
+                    <textarea id="catatan" class="sp-input" rows="2" placeholder="Tuliskan catatan teknisi..."></textarea>
                 </div>
             </div>
 
@@ -245,7 +251,9 @@ function loadSJs() {
                     </td>
                     <td>${sj.namasup}</td>
                     <td><span style="background:${badgeColor}; color:white; padding:2px 6px; border-radius:4px; font-size:11px;">${sj.status_pengecekan}</span></td>
+                    <td><span style="font-size:12px; color:#4b5563;">${sj.catatan || '-'}</span></td>
                     <td>
+                        <button class="sp-btn sp-btn-outline" style="padding:4px 8px; font-size:11px;" onclick="reviewSJ(${sj.id})" title="Review Detail"><i class="fas fa-search"></i></button>
                         <button class="sp-btn sp-btn-danger" style="padding:4px 8px; font-size:11px;" onclick="deleteSJ(${sj.id}, '${sj.nomor_surat_jalan}')"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>`;
@@ -262,6 +270,7 @@ function openSJModal() {
     $('#search_po').val('');
     $('#nomor_surat_jalan').val('');
     $('#status_pengecekan').val('Sesuai');
+    $('#catatan').val('');
     $('#po-preview').hide();
     $('#sjModal').css('display', 'flex');
 }
@@ -328,7 +337,8 @@ function saveSJ() {
         nomor_surat_jalan: $('#nomor_surat_jalan').val().trim(),
         tanggal_terima: $('#tanggal_terima').val(),
         status_pengecekan: $('#status_pengecekan').val(),
-        kategori: $('#kategori').val()
+        kategori: $('#kategori').val(),
+        catatan: $('#catatan').val()
     };
 
     if(!payload.id_spu_h) return alert("Pilih PO (Surat Pesanan) terlebih dahulu!");
@@ -365,6 +375,28 @@ function deleteSJ(id, no_sj) {
         error: function(err) {
             alert('Gagal menghapus: ' + (err.responseJSON ? err.responseJSON.error : ''));
         }
+    });
+}
+
+function reviewSJ(id) {
+    $.get('api/surat_jalan.php?id=' + id, function(res) {
+        if(res.header) {
+            let h = res.header;
+            let msg = `Detail Penerimaan Barang\n========================\n`;
+            msg += `No. Surat Jalan: ${h.nomor_surat_jalan}\n`;
+            msg += `Tgl. Terima: ${h.tanggal_terima}\n`;
+            msg += `No. Pesanan: ${h.no_sp} (${h.no_permintaan})\n`;
+            msg += `Supplier: ${h.namasup}\n`;
+            msg += `Status Barang: ${h.status_pengecekan}\n`;
+            msg += `Catatan: ${h.catatan || '-'}\n\n`;
+            msg += `Item:\n`;
+            res.items.forEach(i => {
+                msg += `- ${i.barang} (Qty: ${parseFloat(i.qty)})\n`;
+            });
+            alert(msg);
+        }
+    }, 'json').fail(function() {
+        alert("Gagal memuat detail.");
     });
 }
 </script>

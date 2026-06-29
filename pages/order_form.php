@@ -468,12 +468,23 @@
         
         <!-- Lampiran Section -->
         <div class="sp-panel-body" style="border-top: 1px solid #e5e7eb; background-color: #f9fafb;">
-            <div class="sp-flex sp-items-center sp-gap-4">
-                <label class="sp-label" style="margin-bottom:0;"><i class="fas fa-paperclip"></i> Lampiran (PDF)</label>
-                <input type="file" id="lampiran_pdf" accept="application/pdf" class="sp-input" style="max-width: 300px; padding: 4px;">
-                <input type="hidden" id="nama_lampiran" value="">
-                <span class="sp-text-xs sp-text-gray" id="lbl_lampiran_status">Opsional (Sebagai Pelengkap)</span>
-            </div>
+            <div class="sp-flex sp-justify-between sp-items-end sp-mb-4 sp-pb-4 sp-border-b">
+                <div>
+                    <h1 class="sp-page-title"><i class="fas fa-file-invoice"></i> Formulir Surat Pesanan</h1>
+                    <p class="sp-text-sm sp-text-gray sp-mt-1">Lengkapi form di bawah ini untuk membuat atau mengubah pesanan.</p>
+                </div>
+                <div class="sp-flex sp-gap-2 sp-items-center">
+                    <!-- Lampiran Section -->
+                    <div class="sp-flex sp-flex-col sp-items-end sp-mr-4">
+                        <label class="sp-label" style="margin-bottom:0;"><i class="fas fa-paperclip"></i> Lampiran (PDF)</label>
+                        <input type="file" id="lampiran_pdf" accept="application/pdf" multiple class="sp-input" style="max-width: 300px; padding: 4px;">
+                        <input type="hidden" id="nama_lampiran" value="">
+                        <span class="sp-text-xs sp-text-gray" id="lbl_lampiran_status">Opsional (Bisa pilih lebih dari 1 file)</span>
+                    </div>
+                    <button class="sp-btn sp-btn-outline" onclick="window.location.href='dashboard.php?page=list_pesanan'"><i class="fas fa-times"></i> Batal</button>
+                    <button class="sp-btn sp-btn-primary" onclick="saveOrder()"><i class="fas fa-save"></i> Simpan Pesanan</button>
+                </div>
+            </div></div>
         </div>
     </div>
 
@@ -801,13 +812,18 @@ function loadOrderData(id) {
         $('#no_penawaran').val(h.no_penawaran);
         $('#no_permintaan').val(h.no_permintaan);
         $('#tgl_penawaran').val(h.tgl_penawaran);
-        $('#keterangan').val(h.keterangan);
-        
+        $('#keterangan').val(h.keterangan);        
+        // Load lampiran
         $('#nama_lampiran').val(h.nama_lampiran || '');
-        if (h.nama_lampiran && h.nama_lampiran !== '0') {
-            $('#lbl_lampiran_status').html(`<a href="uploads/lampiran/${h.nama_lampiran}" target="_blank" class="sp-text-teal sp-font-semibold"><i class="fas fa-external-link-alt"></i> Lihat Lampiran</a> (Pilih file baru untuk mengganti)`);
+        if (h.nama_lampiran && h.nama_lampiran !== '0' && h.nama_lampiran !== '') {
+            const files = h.nama_lampiran.split(',');
+            let linksHtml = '';
+            files.forEach((file, index) => {
+                linksHtml += `<a href="uploads/lampiran/${file.trim()}" target="_blank" class="sp-text-teal sp-font-semibold" style="margin-right: 10px;"><i class="fas fa-external-link-alt"></i> Lampiran ${index+1}</a>`;
+            });
+            $('#lbl_lampiran_status').html(`${linksHtml} <br><span style="color:#666; font-size:11px;">(Pilih file baru untuk menambah/mengganti)</span>`);
         } else {
-            $('#lbl_lampiran_status').text('Opsional (Sebagai Pelengkap)');
+            $('#lbl_lampiran_status').text('Opsional (Bisa pilih lebih dari 1 file)');
         }
         
         res.items.forEach(item => {
@@ -854,22 +870,33 @@ function saveOrder() {
     }
     
     let fileInput = $('#lampiran_pdf')[0];
-    if (fileInput && fileInput.files.length > 0) {
+    if (fileInput.files.length > 0) {
         let formData = new FormData();
-        formData.append('lampiran', fileInput.files[0]);
+        for (let i = 0; i < fileInput.files.length; i++) {
+            formData.append('lampiran[]', fileInput.files[i]);
+        }
         
         $('#lbl_lampiran_status').html('<i class="fas fa-spinner fa-spin"></i> Mengunggah lampiran...');
-        
         $.ajax({
             url: 'api/upload.php',
             type: 'POST',
             data: formData,
-            processData: false,
             contentType: false,
+            processData: false,
             success: function(res) {
-                if(res.success) {
-                    $('#nama_lampiran').val(res.filename);
+                if (res.success) {
+                    // Combine old files if needed or just replace. Let's append to existing if any.
+                    let existing = $('#nama_lampiran').val();
+                    let newVal = res.filename;
+                    if(existing && existing !== '0') {
+                        newVal = existing + ',' + res.filename;
+                    }
+                    $('#nama_lampiran').val(newVal);
+                    $('#lbl_lampiran_status').text('Lampiran berhasil diunggah.');
                     submitOrderPayload();
+                } else {
+                    alert("Gagal mengunggah lampiran: " + res.error);
+                    $('#lbl_lampiran_status').text('Gagal mengunggah');
                 }
             },
             error: function(err) {
