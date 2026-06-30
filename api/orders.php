@@ -96,7 +96,7 @@ try {
                 $where = "h.status_acc = '$status'";
             }
             
-            $sql = "SELECT h.id, h.tgl_pesan, s.NamaSupplier as namasup, g.NamaGudang as unit, h.user_created as user, h.status_acc, h.alasan_tolak, 
+            $sql = "SELECT h.id, h.no_permintaan, h.tgl_pesan, s.NamaSupplier as namasup, g.NamaGudang as unit, h.user_created as user, h.status_acc, h.alasan_tolak, 
                     (SELECT COUNT(id) FROM spu_d WHERE id_sp = h.id) as item_count 
                     FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.KodeGudang 
                     WHERE $where ORDER BY h.id DESC";
@@ -105,7 +105,7 @@ try {
             $data = [];
             if($result) {
                 while($row = $result->fetch_assoc()) {
-                    $row['no_sp'] = 'PO-' . str_pad($row['id'], 5, '0', STR_PAD_LEFT);
+                    $row['no_sp'] = $row['no_permintaan'] ? $row['no_permintaan'] : 'PO-' . str_pad($row['id'], 5, '0', STR_PAD_LEFT);
                     $row['status'] = $row['status_acc'];
                     $data[] = $row;
                 }
@@ -146,7 +146,7 @@ try {
         $total_row = $total_res->fetch_assoc();
         $total_records = (int)$total_row['total'];
 
-        $sql = "SELECT h.id, h.tgl_pesan, h.date_acc, s.NamaSupplier as namasup, g.NamaGudang as unit, h.jenis_bayar as pembayaran, h.flag, h.status_acc, h.nama_lampiran 
+        $sql = "SELECT h.id, h.no_permintaan, h.tgl_pesan, h.date_acc, s.NamaSupplier as namasup, g.NamaGudang as unit, h.jenis_bayar as pembayaran, h.flag, h.status_acc, h.nama_lampiran 
                 FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.KodeGudang
                 WHERE $where ORDER BY h.id DESC LIMIT $offset, $limit";
         
@@ -155,8 +155,8 @@ try {
         $data = [];
         if ($result) {
             while($row = $result->fetch_assoc()) {
-                // Ensure field names match UI expectations if possible
-                $row['no_sp'] = 'PO-' . str_pad($row['id'], 5, '0', STR_PAD_LEFT);
+                // Gunakan nomor inputan manual dari no_permintaan
+                $row['no_sp'] = $row['no_permintaan'] ? $row['no_permintaan'] : 'PO-' . str_pad($row['id'], 5, '0', STR_PAD_LEFT);
                 $row['tgl_sp'] = $row['tgl_pesan'];
                 
                 // Get real grand total
@@ -313,13 +313,18 @@ try {
             echo json_encode(['error' => 'No Order ID provided']);
             exit;
         }
-        $stmt = $conn->prepare("DELETE FROM spu_h WHERE id = ?");
-        $stmt->bind_param("i", $id);
-        if($stmt->execute()) {
+        
+        $conn->begin_transaction();
+        try {
+            $conn->query("DELETE FROM sp_surat_jalan WHERE id_spu_h = $id");
+            $conn->query("DELETE FROM spu_d WHERE id_sp = $id");
+            $conn->query("DELETE FROM spu_h WHERE id = $id");
+            $conn->commit();
             echo json_encode(['success' => true, 'message' => 'Order deleted']);
-        } else {
+        } catch (Exception $e) {
+            $conn->rollback();
             http_response_code(500);
-            echo json_encode(['error' => $conn->error]);
+            echo json_encode(['error' => $e->getMessage()]);
         }
         exit;
     }

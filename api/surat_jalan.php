@@ -27,7 +27,7 @@ try {
             $result = $conn->query($sql);
             $data = [];
             while ($row = $result->fetch_assoc()) {
-                $row['no_sp'] = 'PO-' . str_pad($row['id'], 5, '0', STR_PAD_LEFT);
+                $row['no_sp'] = $row['no_permintaan'] ? $row['no_permintaan'] : 'PO-' . str_pad($row['id'], 5, '0', STR_PAD_LEFT);
                 $data[] = $row;
             }
             echo json_encode($data);
@@ -44,7 +44,7 @@ try {
                     WHERE sj.id = $id";
             $result = $conn->query($sql);
             if ($row = $result->fetch_assoc()) {
-                $row['no_sp'] = 'PO-' . str_pad($row['sp_id'], 5, '0', STR_PAD_LEFT);
+                $row['no_sp'] = $row['no_permintaan'] ? $row['no_permintaan'] : 'PO-' . str_pad($row['sp_id'], 5, '0', STR_PAD_LEFT);
                 
                 // Fetch items from spu_d for this PO just for display
                 $items = [];
@@ -69,7 +69,7 @@ try {
                     WHERE h.id = $po_id AND h.status_acc = 'Approved'";
             $result = $conn->query($sql);
             if ($row = $result->fetch_assoc()) {
-                $row['no_sp'] = 'PO-' . str_pad($row['id'], 5, '0', STR_PAD_LEFT);
+                $row['no_sp'] = $row['no_permintaan'] ? $row['no_permintaan'] : 'PO-' . str_pad($row['id'], 5, '0', STR_PAD_LEFT);
                 $items = [];
                 $stmt_d = $conn->query("SELECT * FROM spu_d WHERE id_sp = $po_id");
                 while ($d = $stmt_d->fetch_assoc()) {
@@ -93,7 +93,7 @@ try {
         $data = [];
         if ($result) {
             while ($row = $result->fetch_assoc()) {
-                $row['no_sp'] = 'PO-' . str_pad($row['sp_id'], 5, '0', STR_PAD_LEFT);
+                $row['no_sp'] = $row['no_permintaan'] ? $row['no_permintaan'] : 'PO-' . str_pad($row['sp_id'], 5, '0', STR_PAD_LEFT);
                 $data[] = $row;
             }
         }

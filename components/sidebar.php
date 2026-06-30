@@ -42,7 +42,7 @@
         <?php if ($_SESSION['role'] === 'admin'): ?>
         <li>
             <a href="dashboard.php?page=users" class="<?php echo $page == 'users' ? 'active' : ''; ?>">
-                <i class="fas fa-users"></i> Users
+                <i class="fas fa-users"></i> Manajemen User
             </a>
         </li>
         <?php endif; ?>
