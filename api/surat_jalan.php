@@ -38,7 +38,7 @@ try {
         if (isset($_GET['id'])) {
             $id = (int)$_GET['id'];
             $sql = "SELECT sj.*, h.no_permintaan, s.NamaSupplier as namasup, h.id as sp_id
-                    FROM surat_jalan sj
+                    FROM sp_surat_jalan sj
                     JOIN spu_h h ON sj.id_spu_h = h.id
                     LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier
                     WHERE sj.id = $id";
@@ -85,7 +85,7 @@ try {
 
         // List all Surat Jalan (Penerimaan)
         $sql = "SELECT sj.id, sj.nomor_surat_jalan, sj.tanggal_terima, sj.status_pengecekan, sj.kategori, sj.catatan, sj.created_at, h.no_permintaan, s.NamaSupplier as namasup, h.id as sp_id
-                FROM surat_jalan sj
+                FROM sp_surat_jalan sj
                 JOIN spu_h h ON sj.id_spu_h = h.id
                 LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier
                 ORDER BY sj.id DESC LIMIT 100";
@@ -118,14 +118,14 @@ try {
         $teknisi_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 1; // fallback if user_id is not set in session, use 1
 
         // Check if SJ already exists for this number
-        $cek = $conn->query("SELECT id FROM surat_jalan WHERE nomor_surat_jalan = '$nomor_surat_jalan'");
+        $cek = $conn->query("SELECT id FROM sp_surat_jalan WHERE nomor_surat_jalan = '$nomor_surat_jalan'");
         if ($cek->num_rows > 0) {
             http_response_code(400);
             echo json_encode(['error' => 'Nomor Surat Jalan ini sudah pernah diinput!']);
             exit;
         }
 
-        $stmt = $conn->prepare("INSERT INTO surat_jalan (id_spu_h, nomor_surat_jalan, tanggal_terima, teknisi_penerima_id, kategori, status_pengecekan, catatan, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
+        $stmt = $conn->prepare("INSERT INTO sp_surat_jalan (id_spu_h, nomor_surat_jalan, tanggal_terima, teknisi_penerima_id, kategori, status_pengecekan, catatan, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
         $stmt->bind_param("ississs", $id_spu_h, $nomor_surat_jalan, $tanggal_terima, $teknisi_id, $kategori, $status_pengecekan, $catatan);
         
         if ($stmt->execute()) {
@@ -146,7 +146,7 @@ try {
         }
         
         $id = (int)$data['id'];
-        $stmt = $conn->prepare("DELETE FROM surat_jalan WHERE id = ?");
+        $stmt = $conn->prepare("DELETE FROM sp_surat_jalan WHERE id = ?");
         $stmt->bind_param("i", $id);
         
         if ($stmt->execute()) {

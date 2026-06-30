@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $username = $_POST['username'];
         $password = md5($_POST['password']); // Simple MD5 as per legacy request
 
-        $stmt = $conn->prepare("SELECT id, username, role FROM users WHERE username = ? AND password = ?");
+        $stmt = $conn->prepare("SELECT id, username, role FROM sp_users WHERE username = ? AND password = ?");
         if ($stmt === false) {
             die("Prepare failed: " . $conn->error);
         }

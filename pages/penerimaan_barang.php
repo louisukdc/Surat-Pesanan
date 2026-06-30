@@ -240,11 +240,12 @@ function loadSJs() {
         if (res.data && res.data.length > 0) {
             res.data.forEach((sj, idx) => {
                 let badgeColor = sj.status_pengecekan === 'Sesuai' ? '#10b981' : '#f59e0b';
+                let tglTerima = sj.tanggal_terima ? sj.tanggal_terima.split(' ')[0] : '-';
                 
                 html += `<tr>
                     <td>${idx+1}</td>
                     <td><span style="font-weight:600;">${sj.nomor_surat_jalan}</span></td>
-                    <td>${sj.tanggal_terima}</td>
+                    <td>${tglTerima}</td>
                     <td>
                         <div style="font-weight:600; color:#1e40af;">${sj.no_sp}</div>
                         <div style="font-size:11px; color:#6b7280;">${sj.no_permintaan}</div>
@@ -383,8 +384,9 @@ function reviewSJ(id) {
         if(res.header) {
             let h = res.header;
             let msg = `Detail Penerimaan Barang\n========================\n`;
+            let tglTerima = h.tanggal_terima ? h.tanggal_terima.split(' ')[0] : '-';
             msg += `No. Surat Jalan: ${h.nomor_surat_jalan}\n`;
-            msg += `Tgl. Terima: ${h.tanggal_terima}\n`;
+            msg += `Tgl. Terima: ${tglTerima}\n`;
             msg += `No. Pesanan: ${h.no_sp} (${h.no_permintaan})\n`;
             msg += `Supplier: ${h.namasup}\n`;
             msg += `Status Barang: ${h.status_pengecekan}\n`;
