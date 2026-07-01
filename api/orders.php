@@ -36,7 +36,7 @@ try {
                 exit;
             }
             $q = "%{$q}%";
-            $stmt = $conn->prepare("SELECT KodeGudang, NamaGudang FROM m_gudang WHERE NamaGudang LIKE ? OR KodeGudang LIKE ? LIMIT 10");
+            $stmt = $conn->prepare("SELECT FGUDANG as KodeGudang, FNAMA as NamaGudang FROM m_gudang WHERE FNAMA LIKE ? OR FGUDANG LIKE ? LIMIT 10");
             $stmt->bind_param("ss", $q, $q);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -50,7 +50,7 @@ try {
 
         if (isset($_GET['id'])) {
             $id = (int)$_GET['id'];
-            $stmt = $conn->prepare("SELECT h.*, s.NamaSupplier, g.NamaGudang FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.KodeGudang WHERE h.id = ?");
+            $stmt = $conn->prepare("SELECT h.*, h.tgl_pesan, h.tglkirim as tgl_kirim, h.kodesup as id_supplier, h.no_tawar as no_penawaran, h.tgl_tawar as tgl_penawaran, h.unit as id_gudang, h.pembayaran as jenis_bayar, h.notein as keterangan, s.NamaSupplier, g.FNAMA as NamaGudang FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.FGUDANG WHERE h.id = ?");
             $stmt->bind_param("i", $id);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -96,16 +96,16 @@ try {
                 $where = "h.status_acc = '$status'";
             }
             
-            $sql = "SELECT h.id, h.no_permintaan, h.tgl_pesan, s.NamaSupplier as namasup, g.NamaGudang as unit, h.user_created as user, h.status_acc, h.alasan_tolak, 
+            $sql = "SELECT h.id, h.no_sp, h.no_permintaan, h.tgl_pesan, s.NamaSupplier as namasup, g.FNAMA as unit, h.user, h.status_acc, h.alasan_tolak, 
                     (SELECT COUNT(id) FROM spu_d WHERE id_sp = h.id) as item_count 
-                    FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.KodeGudang 
+                    FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.FGUDANG 
                     WHERE $where ORDER BY h.id DESC";
             
             $result = $conn->query($sql);
             $data = [];
             if($result) {
                 while($row = $result->fetch_assoc()) {
-                    $row['no_sp'] = $row['no_permintaan'] ? $row['no_permintaan'] : 'PO-' . str_pad($row['id'], 5, '0', STR_PAD_LEFT);
+                    if (empty($row['no_sp'])) $row['no_sp'] = $row['no_permintaan'];
                     $row['status'] = $row['status_acc'];
                     $data[] = $row;
                 }
@@ -146,8 +146,8 @@ try {
         $total_row = $total_res->fetch_assoc();
         $total_records = (int)$total_row['total'];
 
-        $sql = "SELECT h.id, h.no_permintaan, h.tgl_pesan, h.date_acc, s.NamaSupplier as namasup, g.NamaGudang as unit, h.jenis_bayar as pembayaran, h.flag, h.status_acc, h.nama_lampiran 
-                FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.KodeGudang
+        $sql = "SELECT h.id, h.no_sp, h.no_permintaan, h.tgl_pesan, h.date_acc, s.NamaSupplier as namasup, g.FNAMA as unit, h.pembayaran, h.flag, h.status_acc, h.nama_lampiran, h.user 
+                FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.FGUDANG
                 WHERE $where ORDER BY h.id DESC LIMIT $offset, $limit";
         
         $result = $conn->query($sql);
@@ -155,12 +155,11 @@ try {
         $data = [];
         if ($result) {
             while($row = $result->fetch_assoc()) {
-                // Gunakan nomor inputan manual dari no_permintaan
-                $row['no_sp'] = $row['no_permintaan'] ? $row['no_permintaan'] : 'PO-' . str_pad($row['id'], 5, '0', STR_PAD_LEFT);
+                if (empty($row['no_sp'])) $row['no_sp'] = $row['no_permintaan'] ? $row['no_permintaan'] : 'PO-' . str_pad($row['id'], 5, '0', STR_PAD_LEFT);
                 $row['tgl_sp'] = $row['tgl_pesan'];
                 
                 // Get real grand total
-                $total_sql = "SELECT SUM(jumlah) as gt FROM spu_d WHERE id_sp = " . (int)$row['id'];
+                $total_sql = "SELECT SUM(total) as gt FROM spu_d WHERE id_sp = " . (int)$row['id'];
                 $t_res = $conn->query($total_sql);
                 $row['grand_total'] = ($t_res && $t_row = $t_res->fetch_assoc()) ? (float)$t_row['gt'] : 0;
                 
@@ -258,9 +257,9 @@ try {
             
             if ($id > 0) {
                 // Update existing
-                $stmt_upd = $conn->prepare("UPDATE spu_h SET no_permintaan=?, tgl_pesan=?, id_supplier=?, no_penawaran=?, tgl_penawaran=?, tgl_kirim=?, id_gudang=?, jenis_bayar=?, keterangan=?, nama_lampiran=? WHERE id=?");
-                $stmt_upd->bind_param("ssssssssssi", 
-                    $no_permintaan, $tgl_pesan, $header['id_supplier'], $header['no_penawaran'], $tgl_penawaran, $tgl_kirim, $header['id_gudang'], $header['jenis_bayar'], $header['keterangan'], $nama_lampiran, $id
+                $stmt_upd = $conn->prepare("UPDATE spu_h SET no_permintaan=?, tgl_pesan=?, kodesup=?, id_supplier=?, no_tawar=?, no_penawaran=?, tgl_tawar=?, tgl_penawaran=?, tglkirim=?, tgl_kirim=?, unit=?, id_gudang=?, pembayaran=?, jenis_bayar=?, notein=?, keterangan=?, nama_lampiran=? WHERE id=?");
+                $stmt_upd->bind_param("sssssssssssssssssi", 
+                    $no_permintaan, $tgl_pesan, $header['id_supplier'], $header['id_supplier'], $header['no_penawaran'], $header['no_penawaran'], $tgl_penawaran, $tgl_penawaran, $tgl_kirim, $tgl_kirim, $header['id_gudang'], $header['id_gudang'], $header['jenis_bayar'], $header['jenis_bayar'], $header['keterangan'], $header['keterangan'], $nama_lampiran, $id
                 );
                 if(!$stmt_upd->execute()) throw new Exception("Update header failed: " . $stmt_upd->error);
                 
@@ -269,17 +268,23 @@ try {
                 $sp_id = $id;
             } else {
                 // Insert new
-                $stmt_ins = $conn->prepare("INSERT INTO spu_h (no_permintaan, tgl_pesan, id_supplier, no_penawaran, tgl_penawaran, tgl_kirim, id_gudang, jenis_bayar, keterangan, nama_lampiran, user_created, dtime_created, user_acc, date_acc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), '', '1900-01-01')");
+                $tmp_no_sp = 'PO/TMP/' . time();
+                $stmt_ins = $conn->prepare("INSERT INTO spu_h (no_sp, no_permintaan, tgl_pesan, kodesup, id_supplier, no_tawar, no_penawaran, tgl_tawar, tgl_penawaran, tglkirim, tgl_kirim, unit, id_gudang, pembayaran, jenis_bayar, notein, keterangan, nama_lampiran, user, user_created, created_at, dtime_created, user_acc, date_acc, status_acc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), '', '1900-01-01', 'Pending')");
                 $user = $_SESSION['username'];
-                $stmt_ins->bind_param("sssssssssss", 
-                    $no_permintaan, $tgl_pesan, $header['id_supplier'], $header['no_penawaran'], $tgl_penawaran, $tgl_kirim, $header['id_gudang'], $header['jenis_bayar'], $header['keterangan'], $nama_lampiran, $user
+                $stmt_ins->bind_param("ssssssssssssssssssss", 
+                    $tmp_no_sp, $no_permintaan, $tgl_pesan, $header['id_supplier'], $header['id_supplier'], $header['no_penawaran'], $header['no_penawaran'], $tgl_penawaran, $tgl_penawaran, $tgl_kirim, $tgl_kirim, $header['id_gudang'], $header['id_gudang'], $header['jenis_bayar'], $header['jenis_bayar'], $header['keterangan'], $header['keterangan'], $nama_lampiran, $user, $user
                 );
                 if(!$stmt_ins->execute()) throw new Exception("Insert header failed: " . $stmt_ins->error);
                 $sp_id = $conn->insert_id;
+                
+                // Optionally update no_sp to PO/XXXX/MM/YY if needed, but keeping TMP is fine for now
+                $real_no_sp = 'PO/' . str_pad($sp_id, 5, '0', STR_PAD_LEFT) . '/' . date('m/y');
+                $conn->query("UPDATE spu_h SET no_sp = '$real_no_sp' WHERE id = $sp_id");
             }
             
             // Insert Items
-            $stmt_det = $conn->prepare("INSERT INTO spu_d (id_sp, barang, model, merk, spec, qty, harga, disc, ppn, jumlah, date_created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+            $real_no_sp = isset($real_no_sp) ? $real_no_sp : (isset($header['no_sp']) ? $header['no_sp'] : 'PO-'.$sp_id);
+            $stmt_det = $conn->prepare("INSERT INTO spu_d (id_sp, no_sp, barang, model, merk, spec, qty, satuan, harga, disc, total, jumlah, ppn, created_at, date_created) VALUES (?, ?, ?, ?, ?, ?, ?, 'PCS', ?, ?, ?, ?, ?, NOW(), NOW())");
             foreach ($items as $item) {
                 $qty = (float)(isset($item['qty']) ? $item['qty'] : 0);
                 $harga = (float)(isset($item['harga']) ? $item['harga'] : 0);
@@ -290,7 +295,7 @@ try {
                 $merk = isset($item['merk']) ? $item['merk'] : '';
                 $spec = isset($item['spec']) ? $item['spec'] : '';
                 
-                $stmt_det->bind_param("issssddddd", $sp_id, $item['barang'], $model, $merk, $spec, $qty, $harga, $disc, $ppn, $jumlah);
+                $stmt_det->bind_param("isssssdddddd", $sp_id, $real_no_sp, $item['barang'], $model, $merk, $spec, $qty, $harga, $disc, $jumlah, $jumlah, $ppn);
                 if(!$stmt_det->execute()) throw new Exception("Insert detail failed: " . $stmt_det->error);
             }
             

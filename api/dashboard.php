@@ -17,11 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $current_month = date('Y-m');
         
         // 1. Total Pesanan Bulan Ini
-        $stmt1 = $conn->query("SELECT COUNT(DISTINCT no_sp) as total FROM sp_pesanan WHERE tgl_sp LIKE '$current_month%'");
+        $stmt1 = $conn->query("SELECT COUNT(DISTINCT no_sp) as total FROM spu_h WHERE tgl_pesan LIKE '$current_month%'");
         $data['widgets']['total_orders'] = $stmt1->fetch_assoc()['total'] ?? 0;
 
         // 2. Total Pengeluaran Bulan Ini
-        $stmt2 = $conn->query("SELECT SUM(flag) as total_spend FROM (SELECT DISTINCT no_sp, flag FROM sp_pesanan WHERE tgl_sp LIKE '$current_month%') as sub");
+        $stmt2 = $conn->query("SELECT SUM(flag) as total_spend FROM (SELECT DISTINCT no_sp, flag FROM spu_h WHERE tgl_pesan LIKE '$current_month%') as sub");
         $data['widgets']['total_spend'] = $stmt2->fetch_assoc()['total_spend'] ?? 0;
 
         // 3. Total Supplier Aktif
@@ -30,18 +30,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         // 4. Chart Data (Last 30 Days)
         $chart_sql = "
-            SELECT tgl_sp, SUM(flag) as daily_spend, COUNT(DISTINCT no_sp) as order_count 
-            FROM (SELECT DISTINCT no_sp, tgl_sp, flag FROM sp_pesanan) as sub
-            WHERE tgl_sp >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-            GROUP BY tgl_sp 
-            ORDER BY tgl_sp ASC
+            SELECT tgl_pesan, SUM(flag) as daily_spend, COUNT(DISTINCT no_sp) as order_count 
+            FROM (SELECT DISTINCT no_sp, tgl_pesan, flag FROM spu_h) as sub
+            WHERE tgl_pesan >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+            GROUP BY tgl_pesan 
+            ORDER BY tgl_pesan ASC
         ";
         $stmt4 = $conn->query($chart_sql);
         $labels = [];
         $spending = [];
         $orders = [];
         while($row = $stmt4->fetch_assoc()) {
-            $labels[] = date('d M', strtotime($row['tgl_sp']));
+            $labels[] = date('d M', strtotime($row['tgl_pesan']));
             $spending[] = (float)$row['daily_spend'];
             $orders[] = (int)$row['order_count'];
         }
@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         // 5. Top 5 Suppliers by Spend All Time
         $top_sql = "
             SELECT namasup, SUM(flag) as total_spend, COUNT(DISTINCT no_sp) as total_orders
-            FROM (SELECT DISTINCT no_sp, namasup, flag FROM sp_pesanan) as sub
+            FROM (SELECT DISTINCT no_sp, namasup, flag FROM spu_h) as sub
             GROUP BY namasup
             ORDER BY total_spend DESC
             LIMIT 5

@@ -477,9 +477,10 @@
                     <!-- Lampiran Section -->
                     <div class="sp-flex sp-flex-col sp-items-end sp-mr-4">
                         <label class="sp-label" style="margin-bottom:0;"><i class="fas fa-paperclip"></i> Lampiran (PDF)</label>
-                        <input type="file" id="lampiran_pdf" accept="application/pdf" multiple class="sp-input" style="max-width: 300px; padding: 4px;">
+                        <input type="file" id="lampiran_pdf" accept="application/pdf" multiple class="sp-input" style="max-width: 300px; padding: 4px;" onchange="handleFileSelect(event)">
                         <input type="hidden" id="nama_lampiran" value="">
-                        <span class="sp-text-xs sp-text-gray" id="lbl_lampiran_status">Opsional (Bisa pilih lebih dari 1 file)</span>
+                        <span class="sp-text-xs sp-text-gray" id="lbl_lampiran_status">Pilih beberapa file satu per satu atau sekaligus.</span>
+                        <div id="file_list" style="margin-top: 8px; width: 100%; max-width: 300px; font-size: 11px; text-align: left;"></div>
                     </div>
                     <button class="sp-btn sp-btn-outline" onclick="window.location.href='dashboard.php?page=list_pesanan'"><i class="fas fa-times"></i> Batal</button>
                     <button class="sp-btn sp-btn-primary" onclick="saveOrder()"><i class="fas fa-save"></i> Simpan Pesanan</button>
@@ -586,6 +587,47 @@
 
 <script>
 let orderItems = [];
+let selectedFiles = [];
+
+function handleFileSelect(event) {
+    const files = event.target.files;
+    for(let i=0; i<files.length; i++) {
+        selectedFiles.push(files[i]);
+    }
+    renderFileList();
+    // Reset input so the same file can be selected again if needed
+    event.target.value = '';
+}
+
+function removeFile(index) {
+    selectedFiles.splice(index, 1);
+    renderFileList();
+}
+
+function renderFileList() {
+    let html = '';
+    selectedFiles.forEach((f, i) => {
+        html += `<div style="display:flex; justify-content:space-between; align-items:center; background:#f3f4f6; padding:4px 8px; margin-bottom:4px; border-radius:4px;">
+            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:200px;" title="${f.name}">${f.name}</span>
+            <i class="fas fa-times" style="color:#ef4444; cursor:pointer;" onclick="removeFile(${i})"></i>
+        </div>`;
+    });
+    
+    // Also show existing files if editing
+    let existing = $('#nama_lampiran').val();
+    if(existing && existing !== '0') {
+        let exFiles = existing.split(',');
+        html += `<div style="margin-top:8px; margin-bottom:4px; font-weight:bold; color:#0f766e;">File Tersimpan:</div>`;
+        exFiles.forEach(f => {
+            html += `<div style="display:flex; align-items:center; background:#ccfbf1; padding:4px 8px; margin-bottom:4px; border-radius:4px;">
+                <i class="fas fa-file-pdf" style="margin-right:6px; color:#0f766e;"></i> 
+                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:200px;" title="${f}">${f}</span>
+            </div>`;
+        });
+    }
+    
+    $('#file_list').html(html);
+}
 
 function formatCurrency(num) {
     return parseFloat(num).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
@@ -843,15 +885,13 @@ function loadOrderData(id) {
 }
 
 function saveOrder() {
-    let requiredFields = [
-        { id: 'id_supplier', name: 'Supplier' },
-        { id: 'id_gudang', name: 'Gudang / Unit' },
-        { id: 'no_permintaan', name: 'No. Surat Pesanan' },
-        { id: 'tgl_pesan', name: 'Tanggal Pesan' },
-        { id: 'tgl_kirim', name: 'Tanggal Kirim' },
-        { id: 'no_penawaran', name: 'Surat Penawaran No.' },
-        { id: 'tgl_penawaran', name: 'Tanggal Penawaran' }
-    ];
+    try {
+        let requiredFields = [
+            { id: 'id_supplier', name: 'Supplier' },
+            { id: 'id_gudang', name: 'Gudang / Unit' },
+            { id: 'tgl_pesan', name: 'Tanggal Pesan' },
+            { id: 'tgl_kirim', name: 'Tanggal Kirim' }
+        ];
     
     for (let field of requiredFields) {
         if (!$('#' + field.id).val() || $('#' + field.id).val().trim() === '') {
@@ -869,11 +909,10 @@ function saveOrder() {
         return;
     }
     
-    let fileInput = $('#lampiran_pdf')[0];
-    if (fileInput.files.length > 0) {
+    if (selectedFiles.length > 0) {
         let formData = new FormData();
-        for (let i = 0; i < fileInput.files.length; i++) {
-            formData.append('lampiran[]', fileInput.files[i]);
+        for (let i = 0; i < selectedFiles.length; i++) {
+            formData.append('lampiran[]', selectedFiles[i]);
         }
         
         $('#lbl_lampiran_status').html('<i class="fas fa-spinner fa-spin"></i> Mengunggah lampiran...');
@@ -888,30 +927,36 @@ function saveOrder() {
                     // Combine old files if needed or just replace. Let's append to existing if any.
                     let existing = $('#nama_lampiran').val();
                     let newVal = res.filename;
-                    if(existing && existing !== '0') {
+                    if(existing && existing !== '0' && existing !== '') {
                         newVal = existing + ',' + res.filename;
                     }
                     $('#nama_lampiran').val(newVal);
+                    selectedFiles = [];
+                    renderFileList();
                     $('#lbl_lampiran_status').text('Lampiran berhasil diunggah.');
                     submitOrderPayload();
                 } else {
                     alert("Gagal mengunggah lampiran: " + res.error);
-                    $('#lbl_lampiran_status').text('Gagal mengunggah');
+                    $('#lbl_lampiran_status').html('Gagal upload. Silakan coba lagi.');
                 }
             },
-            error: function(err) {
-                alert("Gagal mengunggah lampiran: " + (err.responseJSON ? err.responseJSON.error : ''));
-                $('#lbl_lampiran_status').text('Gagal mengunggah');
+            error: function() {
+                alert("Terjadi kesalahan sistem saat mengunggah lampiran.");
+                $('#lbl_lampiran_status').html('Error server.');
             }
         });
     } else {
         submitOrderPayload();
     }
+    } catch (err) {
+        alert("Terjadi kesalahan pada aplikasi (saveOrder): " + err.message + "\nStack: " + err.stack);
+    }
 }
 
 function submitOrderPayload() {
-    let payload = {
-        header: {
+    try {
+        let payload = {
+            header: {
             id: $('#order_id').val(),
             tgl_pesan: $('#tgl_pesan').val(),
             tgl_kirim: $('#tgl_kirim').val(),
@@ -941,9 +986,12 @@ function submitOrderPayload() {
             }
         },
         error: function(err) {
-            alert("Error: " + (err.responseJSON ? err.responseJSON.error : 'Unknown error'));
+            alert("Error: " + (err.responseJSON ? err.responseJSON.error : (err.responseText ? err.responseText : 'Unknown error')));
         }
     });
+    } catch (err) {
+        alert("Terjadi kesalahan pada aplikasi (submitOrderPayload): " + err.message + "\nStack: " + err.stack);
+    }
 }
 
 $(document).ready(function() {

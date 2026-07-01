@@ -10,7 +10,7 @@ if(empty($no_sp)) {
 }
 
 // Fetch header
-$stmt = $conn->prepare("SELECT h.*, s.NamaSupplier as namasup FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier WHERE h.id = ? LIMIT 1");
+$stmt = $conn->prepare("SELECT h.*, s.NamaSupplier as namasup, g.FNAMA as nama_unit FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.FGUDANG WHERE h.id = ? LIMIT 1");
 $stmt->bind_param("i", $no_sp);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -22,7 +22,7 @@ if(!$header) {
 
 $header['no_sp'] = 'PO-' . str_pad($header['id'], 5, '0', STR_PAD_LEFT);
 $header['tgl_sp'] = $header['tgl_pesan'];
-$header['unit'] = $header['gudang'];
+$header['unit'] = $header['nama_unit'] ? $header['nama_unit'] : $header['unit'];
 $header['user'] = $header['user_created'];
 $header['pembayaran'] = $header['jenis_bayar'];
 
@@ -157,9 +157,21 @@ while($row = $res_items->fetch_assoc()) {
             background: #1b5e20;
         }
         @media print {
-            body { background: #fff; padding: 0; }
-            .print-container { box-shadow: none; border-radius: 0; padding: 0; max-width: 100%; }
-            .btn-print { display: none; }
+            body { background: #fff; }
+            body * { visibility: hidden; }
+            .print-container, .print-container * { visibility: visible; }
+            .print-container { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                margin: 0; 
+                padding: 0; 
+                box-shadow: none; 
+                border-radius: 0; 
+                max-width: 100%; 
+            }
+            .btn-print { display: none !important; }
         }
     </style>
 </head>
@@ -230,7 +242,7 @@ while($row = $res_items->fetch_assoc()) {
                 <td class="text-center"><?= $no++ ?></td>
                 <td>
                     <?= htmlspecialchars($item['barang']) ?>
-                    <?php if(!empty($item['merk'])) echo '<br><small>Merk: '.htmlspecialchars($item['merk']).'</small>'; ?>
+                    <?php if(!empty(trim($item['merk']))) echo '<br><small>Merk: '.htmlspecialchars(trim($item['merk'])).'</small>'; ?>
                 </td>
                 <td class="text-center"><?= floatval($item['qty']) ?></td>
                 <td class="text-right">Rp <?= number_format($item['harga'], 2, ',', '.') ?></td>
