@@ -2,6 +2,10 @@
 // home.php - Dashboard stats
 require_once 'config.php';
 
+if (isset($_GET['error']) && $_GET['error'] == 'access_denied') {
+    echo '<div class="alert alert-error" style="background:#fee2e2;color:#ef4444;padding:15px;border-radius:8px;margin-bottom:20px;display:flex;align-items:center;gap:10px;"><i class="fas fa-ban"></i> <strong>Akses Ditolak:</strong> Anda tidak memiliki hak akses untuk membuka menu tersebut.</div>';
+}
+
 $filter_month = isset($_GET['month']) ? $conn->real_escape_string($_GET['month']) : date('Y-m');
 
 // Get Total Suppliers

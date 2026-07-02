@@ -24,21 +24,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
         require_once 'config.php';
         
         $username = $data['username'];
-        $password = md5($data['password']);
+        $password = $data['password'];
         
-        $stmt = $conn->prepare("SELECT id, username, role FROM users WHERE username = ? AND password = ?");
-        $stmt->bind_param("ss", $username, $password);
+        $stmt = $conn->prepare("
+            SELECT u.id, u.NIK, u.password, d.Nama 
+            FROM m_user u 
+            LEFT JOIN datadasar d ON u.NIK = d.NIP 
+            WHERE u.NIK = ? LIMIT 1
+        ");
+        $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
         
         if ($row = $result->fetch_assoc()) {
-            $_SESSION['user_id'] = $row['id'];
-            $_SESSION['username'] = $row['username'];
-            $_SESSION['role'] = $row['role'];
-            echo json_encode(["success" => true, "message" => "Login successful", "data" => $row]);
+            if (password_verify($password, $row['password'])) {
+                $_SESSION['user_id'] = $row['id'];
+                $_SESSION['nik'] = $row['NIK'];
+                $_SESSION['nama'] = $row['Nama'] ? $row['Nama'] : 'User ' . $row['NIK'];
+                
+                $menus = [];
+                $menu_stmt = $conn->prepare("SELECT NoMenu FROM m_user WHERE NIK = ?");
+                $menu_stmt->bind_param("s", $row['NIK']);
+                $menu_stmt->execute();
+                $menu_res = $menu_stmt->get_result();
+                while ($m = $menu_res->fetch_assoc()) {
+                    $menus[] = $m['NoMenu'];
+                }
+                $_SESSION['allowed_menus'] = $menus;
+
+                echo json_encode(["success" => true, "message" => "Login successful"]);
+            } else {
+                http_response_code(401);
+                echo json_encode(["success" => false, "message" => "Invalid password"]);
+            }
         } else {
             http_response_code(401);
-            echo json_encode(["success" => false, "message" => "Invalid username or password"]);
+            echo json_encode(["success" => false, "message" => "Invalid NIK"]);
         }
         exit;
     } else {

@@ -3,7 +3,22 @@
 require_once 'auth.php';
 checkAuth();
 
-$page = isset($_GET['page']) ? $_GET['page'] : 'order_form';
+$page = isset($_GET['page']) ? $_GET['page'] : 'home';
+
+// RBAC Page Protection
+$page_access_map = [
+    'order_form' => 1, // Permohonan
+    'approval' => 2, // Persetujuan
+    'list_pesanan' => 3, // Monitoring
+    'penerimaan_barang' => 4 // Penerimaan
+];
+
+if (array_key_exists($page, $page_access_map)) {
+    if (!checkMenuAccess($page_access_map[$page])) {
+        header("Location: dashboard.php?page=home&error=access_denied");
+        exit;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

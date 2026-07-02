@@ -10,7 +10,7 @@ if(empty($no_sp)) {
 }
 
 // Fetch header
-$stmt = $conn->prepare("SELECT h.*, s.NamaSupplier as namasup, g.FNAMA as nama_unit FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.FGUDANG WHERE h.id = ? LIMIT 1");
+$stmt = $conn->prepare("SELECT h.*, s.NamaSupplier as namasup, g.NamaGudang as nama_unit FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.KodeGudang WHERE h.id = ? LIMIT 1");
 $stmt->bind_param("i", $no_sp);
 $stmt->execute();
 $result = $stmt->get_result();
