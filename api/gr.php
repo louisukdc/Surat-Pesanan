@@ -1,3 +1,5 @@
+<!-- FILE PENERIMAAN BARANG/good receipt-->
+
 <?php
 // api/gr.php
 require_once '../auth.php';

@@ -1,3 +1,5 @@
+<!-- FILE UNTUK API KWITANSI -->
+
 <?php
 require_once '../auth.php';
 checkAuth();
