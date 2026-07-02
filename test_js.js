@@ -1,1 +1,0 @@
-let selectedFiles = []; function handleFileSelect(files) { for(let i=0; i<files.length; i++) { selectedFiles.push(files[i]); } renderFileList(); } function renderFileList() { let html = ""; selectedFiles.forEach((f, i) => { html += f.name; }); console.log(html); } handleFileSelect([{name:"a"},{name:"b"}]);

@@ -36,7 +36,7 @@ try {
                 exit;
             }
             $q = "%{$q}%";
-            $stmt = $conn->prepare("SELECT FGUDANG as KodeGudang, FNAMA as NamaGudang FROM m_gudang WHERE FNAMA LIKE ? OR FGUDANG LIKE ? LIMIT 10");
+            $stmt = $conn->prepare("SELECT KodeGudang as KodeGudang, NamaGudang as NamaGudang FROM m_gudang WHERE NamaGudang LIKE ? OR KodeGudang LIKE ? LIMIT 10");
             $stmt->bind_param("ss", $q, $q);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -50,7 +50,7 @@ try {
 
         if (isset($_GET['id'])) {
             $id = (int)$_GET['id'];
-            $stmt = $conn->prepare("SELECT h.*, h.tgl_pesan, h.tglkirim as tgl_kirim, h.kodesup as id_supplier, h.no_tawar as no_penawaran, h.tgl_tawar as tgl_penawaran, h.unit as id_gudang, h.pembayaran as jenis_bayar, h.notein as keterangan, s.NamaSupplier, g.FNAMA as NamaGudang FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.FGUDANG WHERE h.id = ?");
+            $stmt = $conn->prepare("SELECT h.*, h.tgl_pesan, h.tglkirim as tgl_kirim, h.kodesup as id_supplier, h.no_tawar as no_penawaran, h.tgl_tawar as tgl_penawaran, h.unit as id_gudang, h.pembayaran as jenis_bayar, h.notein as keterangan, s.NamaSupplier, g.NamaGudang as NamaGudang FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.KodeGudang WHERE h.id = ?");
             $stmt->bind_param("i", $id);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -96,9 +96,9 @@ try {
                 $where = "h.status_acc = '$status'";
             }
             
-            $sql = "SELECT h.id, h.no_sp, h.no_permintaan, h.tgl_pesan, s.NamaSupplier as namasup, g.FNAMA as unit, h.user, h.status_acc, h.alasan_tolak, 
+            $sql = "SELECT h.id, h.no_sp, h.no_permintaan, h.tgl_pesan, s.NamaSupplier as namasup, g.NamaGudang as unit, h.user, h.status_acc, h.alasan_tolak, 
                     (SELECT COUNT(id) FROM spu_d WHERE id_sp = h.id) as item_count 
-                    FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.FGUDANG 
+                    FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.KodeGudang 
                     WHERE $where ORDER BY h.id DESC";
             
             $result = $conn->query($sql);
@@ -146,8 +146,8 @@ try {
         $total_row = $total_res->fetch_assoc();
         $total_records = (int)$total_row['total'];
 
-        $sql = "SELECT h.id, h.no_sp, h.no_permintaan, h.tgl_pesan, h.date_acc, s.NamaSupplier as namasup, g.FNAMA as unit, h.pembayaran, h.flag, h.status_acc, h.nama_lampiran, h.user 
-                FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.FGUDANG
+        $sql = "SELECT h.id, h.no_sp, h.no_permintaan, h.tgl_pesan, h.date_acc, s.NamaSupplier as namasup, g.NamaGudang as unit, h.pembayaran, h.flag, h.status_acc, h.nama_lampiran, h.user 
+                FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.KodeGudang
                 WHERE $where ORDER BY h.id DESC LIMIT $offset, $limit";
         
         $result = $conn->query($sql);
