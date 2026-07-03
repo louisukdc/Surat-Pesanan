@@ -1,0 +1,7 @@
+{
+    "context": "Surat Pesanan Manage health insurance system: Undefined index: username in on line Notice C:\\Users\\louis\\Documents\\sp_umum\\components\\topbar.php 22 25: Undefined index: role in on line 26",
+    "task": "fix the undefined index error in the topbar.php file by add the code to prevent the error.",
+    "code": "",
+    "file": "C:\\Users\\louis\\Documents\\sp_umum\\components\\topbar.php",
+    "line": "22-26"
+}

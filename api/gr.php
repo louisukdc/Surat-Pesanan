@@ -62,7 +62,7 @@ try {
         $no_gr = $data['no_gr'];
         $tgl_gr = $data['tgl_gr'];
         $no_sp = $data['no_sp'];
-        $user = $_SESSION['username'];
+        $user = $_SESSION['nik'];
 
         $conn->begin_transaction();
         try {

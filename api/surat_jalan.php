@@ -18,16 +18,16 @@ try {
             }
             
             // Search POs that are Approved. We also optionally check if it's already fully received, but for simplicity we list all Approved.
-            $sql = "SELECT h.id, h.no_permintaan, h.tgl_pesan, s.NamaSupplier as namasup 
+            $sql = "SELECT h.id, h.no_sp, h.no_permintaan, h.tgl_pesan, s.NamaSupplier as namasup 
                     FROM spu_h h 
                     LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier 
                     WHERE h.status_acc = 'Approved' 
-                    AND (h.no_permintaan LIKE '%$q%' OR s.NamaSupplier LIKE '%$q%' OR h.id LIKE '%$q%') 
+                    AND (h.no_permintaan LIKE '%$q%' OR h.no_sp LIKE '%$q%' OR s.NamaSupplier LIKE '%$q%' OR h.id LIKE '%$q%') 
                     ORDER BY h.id DESC LIMIT 20";
             $result = $conn->query($sql);
             $data = [];
             while ($row = $result->fetch_assoc()) {
-                $row['no_sp'] = $row['no_permintaan'] ? $row['no_permintaan'] : 'PO-' . str_pad($row['id'], 5, '0', STR_PAD_LEFT);
+                $row['no_sp'] = $row['no_sp'] ? $row['no_sp'] : ($row['no_permintaan'] ? $row['no_permintaan'] : 'PO-' . str_pad($row['id'], 5, '0', STR_PAD_LEFT));
                 $data[] = $row;
             }
             echo json_encode($data);
@@ -63,13 +63,13 @@ try {
         // Get PO detail by ID for when user selects a PO to create new SJ
         if (isset($_GET['po_id'])) {
             $po_id = (int)$_GET['po_id'];
-            $sql = "SELECT h.id, h.no_permintaan, h.tgl_pesan, s.NamaSupplier as namasup 
+            $sql = "SELECT h.id, h.no_sp, h.no_permintaan, h.tgl_pesan, s.NamaSupplier as namasup 
                     FROM spu_h h 
                     LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier 
                     WHERE h.id = $po_id AND h.status_acc = 'Approved'";
             $result = $conn->query($sql);
             if ($row = $result->fetch_assoc()) {
-                $row['no_sp'] = $row['no_permintaan'] ? $row['no_permintaan'] : 'PO-' . str_pad($row['id'], 5, '0', STR_PAD_LEFT);
+                $row['no_sp'] = $row['no_sp'] ? $row['no_sp'] : ($row['no_permintaan'] ? $row['no_permintaan'] : 'PO-' . str_pad($row['id'], 5, '0', STR_PAD_LEFT));
                 $items = [];
                 $stmt_d = $conn->query("SELECT * FROM spu_d WHERE id_sp = $po_id");
                 while ($d = $stmt_d->fetch_assoc()) {

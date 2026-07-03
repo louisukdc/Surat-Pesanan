@@ -61,7 +61,7 @@ try {
         $no_retur = $data['no_retur'];
         $tgl_retur = $data['tgl_retur'];
         $no_sp = $data['no_sp'];
-        $user = $_SESSION['username'];
+        $user = $_SESSION['nik'];
 
         $conn->begin_transaction();
         try {

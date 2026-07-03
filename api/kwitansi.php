@@ -61,7 +61,7 @@ try {
         $ket2 = isset($input['keterangan2']) ? $input['keterangan2'] : '';
         $tgl = isset($input['tgl_kwitansi']) ? $input['tgl_kwitansi'] : date('Y-m-d');
         $jam = date('H:i:s');
-        $user = $_SESSION['username'];
+        $user = $_SESSION['nik'];
         $st = 'LNS';
         
         $stmtH->bind_param("sssdssssss", $next_kwt, $next_fkt, $terima_dari, $jumlah, $ket1, $ket2, $user, $tgl, $jam, $st);

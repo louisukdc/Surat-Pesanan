@@ -19,11 +19,11 @@ $page_title = isset($titles[$page]) ? $titles[$page] : 'RKZ System';
     </div>
     <div class="user-profile">
         <div class="avatar">
-            <?php echo strtoupper(substr($_SESSION['username'], 0, 1)); ?>
+            <?php echo strtoupper(substr($_SESSION['nama'], 0, 1)); ?>
         </div>
         <div>
-            <div style="font-size: 14px;"><?php echo htmlspecialchars($_SESSION['username']); ?></div>
-            <div style="font-size: 12px; color: var(--text-secondary); text-transform: capitalize;"><?php echo htmlspecialchars($_SESSION['role']); ?></div>
+            <div style="font-size: 14px;"><?php echo htmlspecialchars($_SESSION['nama']); ?></div>
+            <div style="font-size: 12px; color: var(--text-secondary); text-transform: capitalize;">NIK: <?php echo htmlspecialchars($_SESSION['nik']); ?></div>
         </div>
     </div>
 </header>

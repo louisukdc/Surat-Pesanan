@@ -915,6 +915,10 @@ function saveOrder() {
             formData.append('lampiran[]', selectedFiles[i]);
         }
         
+        let $btns = $('button[onclick="saveOrder()"]');
+        let oldText = $btns.first().html();
+        $btns.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+
         $('#lbl_lampiran_status').html('<i class="fas fa-spinner fa-spin"></i> Mengunggah lampiran...');
         $.ajax({
             url: 'api/upload.php',
@@ -938,14 +942,18 @@ function saveOrder() {
                 } else {
                     alert("Gagal mengunggah lampiran: " + res.error);
                     $('#lbl_lampiran_status').html('Gagal upload. Silakan coba lagi.');
+                    $btns.prop('disabled', false).html(oldText);
                 }
             },
             error: function() {
                 alert("Terjadi kesalahan sistem saat mengunggah lampiran.");
                 $('#lbl_lampiran_status').html('Error server.');
+                $btns.prop('disabled', false).html(oldText);
             }
         });
     } else {
+        let $btns = $('button[onclick="saveOrder()"]');
+        $btns.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
         submitOrderPayload();
     }
     } catch (err) {
@@ -987,6 +995,7 @@ function submitOrderPayload() {
         },
         error: function(err) {
             alert("Error: " + (err.responseJSON ? err.responseJSON.error : (err.responseText ? err.responseText : 'Unknown error')));
+            $('button[onclick="saveOrder()"]').prop('disabled', false).html('<i class="fas fa-save"></i> Simpan Pesanan');
         }
     });
     } catch (err) {

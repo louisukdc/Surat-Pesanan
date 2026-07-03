@@ -129,7 +129,7 @@ try {
         
         $where = "1=1";
         if (!empty($search)) {
-            $where .= " AND (h.id LIKE '%$search%' OR s.NamaSupplier LIKE '%$search%')";
+            $where .= " AND (h.id LIKE '%$search%' OR s.NamaSupplier LIKE '%$search%' OR h.no_sp LIKE '%$search%')";
         }
         if (!empty($start_date)) {
             $where .= " AND h.tgl_pesan >= '$start_date'";
@@ -270,7 +270,7 @@ try {
                 // Insert new
                 $tmp_no_sp = 'PO/TMP/' . time();
                 $stmt_ins = $conn->prepare("INSERT INTO spu_h (no_sp, no_permintaan, tgl_pesan, kodesup, id_supplier, no_tawar, no_penawaran, tgl_tawar, tgl_penawaran, tglkirim, tgl_kirim, unit, id_gudang, pembayaran, jenis_bayar, notein, keterangan, nama_lampiran, user, user_created, created_at, dtime_created, user_acc, date_acc, status_acc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), '', '1900-01-01', 'Pending')");
-                $user = $_SESSION['username'];
+                $user = $_SESSION['nik'];
                 $stmt_ins->bind_param("ssssssssssssssssssss", 
                     $tmp_no_sp, $no_permintaan, $tgl_pesan, $header['id_supplier'], $header['id_supplier'], $header['no_penawaran'], $header['no_penawaran'], $tgl_penawaran, $tgl_penawaran, $tgl_kirim, $tgl_kirim, $header['id_gudang'], $header['id_gudang'], $header['jenis_bayar'], $header['jenis_bayar'], $header['keterangan'], $header['keterangan'], $nama_lampiran, $user, $user
                 );

@@ -74,7 +74,7 @@ try {
         $no_pr = $data['no_pr'];
         $tgl_pr = $data['tgl_pr'];
         $unit = $data['unit'];
-        $user = $_SESSION['username'];
+        $user = $_SESSION['nik'];
         $keterangan = isset($data['keterangan']) ? $data['keterangan'] : '';
 
         $conn->begin_transaction();
