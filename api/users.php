@@ -4,7 +4,7 @@ require_once '../auth.php';
 checkAuth();
 
 // Only admin can access user API
-if ($_SESSION['role'] !== 'admin') {
+if (!checkMenuAccess(99)) {
     http_response_code(403);
     echo json_encode(['error' => 'Forbidden: Admins only']);
     exit;
@@ -15,10 +15,30 @@ header('Content-Type: application/json');
 $method = $_SERVER['REQUEST_METHOD'];
 
 try {
+    // Cari karyawan dari datadasar (untuk Select2)
+    if ($method === 'GET' && isset($_GET['search_nik'])) {
+        $q = $conn->real_escape_string($_GET['search_nik']);
+        $sql = "SELECT NIP as nik, Nama as nama FROM datadasar 
+                WHERE NIP LIKE '%$q%' OR Nama LIKE '%$q%' LIMIT 20";
+        $res = $conn->query($sql);
+        $data = [];
+        while($r = $res->fetch_assoc()){
+            $data[] = $r;
+        }
+        echo json_encode($data);
+        exit;
+    }
+
     if ($method === 'GET') {
-        $result = $conn->query("SELECT id, username, role FROM users ORDER BY id ASC");
+        // List all users from m_user, grouped by NIK
+        $sql = "SELECT u.NIK, d.Nama, GROUP_CONCAT(u.NoMenu) as menus 
+                FROM m_user u 
+                LEFT JOIN datadasar d ON u.NIK = d.NIP 
+                GROUP BY u.NIK";
+        $result = $conn->query($sql);
         $data = [];
         while($row = $result->fetch_assoc()) {
+            $row['menus'] = $row['menus'] ? explode(',', $row['menus']) : [];
             $data[] = $row;
         }
         echo json_encode($data);
@@ -27,92 +47,105 @@ try {
 
     if ($method === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true);
-        $username = trim(isset($input['username']) ? $input['username'] : '');
+        $nik = isset($input['nik']) ? trim($input['nik']) : '';
         $password = isset($input['password']) ? $input['password'] : '';
-        $role = isset($input['role']) ? $input['role'] : 'umum';
+        $menus = isset($input['menus']) && is_array($input['menus']) ? $input['menus'] : [];
 
-        if(empty($username) || empty($password)) {
+        if(empty($nik)) {
             http_response_code(400);
-            echo json_encode(['error' => 'Username and Password are required']);
+            echo json_encode(['error' => 'NIK is required']);
             exit;
         }
 
-        $hashed_password = md5($password);
+        // Dapatkan nama user dari datadasar
+        $stmt_nm = $conn->prepare("SELECT Nama FROM datadasar WHERE NIP = ?");
+        $stmt_nm->bind_param("s", $nik);
+        $stmt_nm->execute();
+        $res_nm = $stmt_nm->get_result();
+        $namaUser = 'Unknown';
+        if($r = $res_nm->fetch_assoc()) {
+            $namaUser = $r['Nama'];
+        }
 
-        $stmt = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $username, $hashed_password, $role);
-        
-        if($stmt->execute()) {
-            http_response_code(201);
-            echo json_encode(['success' => true, 'message' => 'User created']);
-        } else {
-            if ($conn->errno == 1062) {
-                http_response_code(409);
-                throw new Exception("Username already exists");
+        // Dapatkan password lama jika tidak diisi password baru
+        $hashed_password = '';
+        if(empty($password)) {
+            $stmt_pw = $conn->prepare("SELECT password FROM m_user WHERE NIK = ? LIMIT 1");
+            $stmt_pw->bind_param("s", $nik);
+            $stmt_pw->execute();
+            $res_pw = $stmt_pw->get_result();
+            if($r = $res_pw->fetch_assoc()) {
+                $hashed_password = $r['password'];
             }
-            throw new Exception($conn->error);
+        } else {
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
         }
-        exit;
-    }
 
-    if ($method === 'PUT') {
-        $input = json_decode(file_get_contents('php://input'), true);
-        $id = isset($input['id']) ? $input['id'] : '';
-        $role = isset($input['role']) ? $input['role'] : '';
-        $password = isset($input['password']) ? $input['password'] : ''; // optional
-
-        if(empty($id) || empty($role)) {
+        if(empty($hashed_password) && empty($menus)) {
+            // Nothing to do
             http_response_code(400);
-            echo json_encode(['error' => 'ID and Role are required for update']);
+            echo json_encode(['error' => 'Password required for new user']);
             exit;
         }
 
-        if (!empty($password)) {
-            $hashed_password = md5($password);
-            $stmt = $conn->prepare("UPDATE users SET role=?, password=? WHERE id=?");
-            $stmt->bind_param("ssi", $role, $hashed_password, $id);
-        } else {
-            $stmt = $conn->prepare("UPDATE users SET role=? WHERE id=?");
-            $stmt->bind_param("si", $role, $id);
-        }
-        
-        if($stmt->execute()) {
-            echo json_encode(['success' => true, 'message' => 'User updated']);
-        } else {
-            throw new Exception($conn->error);
+        $conn->begin_transaction();
+        try {
+            // Hapus akses lama
+            $stmt_del = $conn->prepare("DELETE FROM m_user WHERE NIK = ?");
+            $stmt_del->bind_param("s", $nik);
+            $stmt_del->execute();
+
+            // Insert akses baru
+            if(count($menus) > 0) {
+                $stmt_ins = $conn->prepare("INSERT INTO m_user (NIK, NoMenu, NamaUser, password, fidfile, fidcode, Tanda, Status, userdeleted) VALUES (?, ?, ?, ?, '', '', '', '', '')");
+                if (!$stmt_ins) {
+                    throw new Exception("Prepare insert failed: " . $conn->error);
+                }
+                foreach($menus as $m) {
+                    $m_int = (int)$m;
+                    $stmt_ins->bind_param("siss", $nik, $m_int, $namaUser, $hashed_password);
+                    if (!$stmt_ins->execute()) {
+                        throw new Exception("Insert failed: " . $stmt_ins->error);
+                    }
+                }
+            }
+
+            $conn->commit();
+            echo json_encode(['success' => true, 'message' => 'User saved successfully']);
+        } catch(Exception $e) {
+            $conn->rollback();
+            throw $e;
         }
         exit;
     }
 
     if ($method === 'DELETE') {
         $input = json_decode(file_get_contents('php://input'), true);
-        $id = isset($input['id']) ? $input['id'] : '';
-        if(empty($id)) {
+        $nik = isset($input['nik']) ? $input['nik'] : '';
+        if(empty($nik)) {
             http_response_code(400);
-            echo json_encode(['error' => 'ID is required for deletion']);
+            echo json_encode(['error' => 'NIK is required for deletion']);
             exit;
         }
         
-        if ($id == $_SESSION['user_id']) {
+        if ($nik == $_SESSION['nik']) {
             http_response_code(400);
             echo json_encode(['error' => 'Cannot delete your own account']);
             exit;
         }
 
-        $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
-        $stmt->bind_param("i", $id);
+        $stmt = $conn->prepare("DELETE FROM m_user WHERE NIK = ?");
+        $stmt->bind_param("s", $nik);
+        
         if($stmt->execute()) {
-            echo json_encode(['success' => true, 'message' => 'User deleted']);
+            echo json_encode(['success' => true, 'message' => 'User deleted successfully']);
         } else {
             throw new Exception($conn->error);
         }
         exit;
     }
 
-    http_response_code(405);
-    echo json_encode(['error' => 'Method not allowed']);
-
 } catch (Exception $e) {
+    http_response_code(500);
     echo json_encode(['error' => $e->getMessage()]);
 }
-?>

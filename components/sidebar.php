@@ -21,28 +21,28 @@
             </a>
         </li>
         <?php endif; ?>
-        <?php if (checkMenuAccess(1)): // Sesuaikan ID 1 dengan ID Permohonan di m_menu ?>
+        <?php if (checkMenuAccess(3444)): // Sesuaikan ID dengan ID Permohonan di m_menu ?>
         <li>
             <a href="dashboard.php?page=order_form" class="<?php echo $page == 'order_form' ? 'active' : ''; ?>">
                 <i class="fas fa-plus-circle"></i> Permohonan Pesanan
             </a>
         </li>
         <?php endif; ?>
-        <?php if (checkMenuAccess(2)): // Sesuaikan ID 2 dengan ID Persetujuan di m_menu ?>
+        <?php if (checkMenuAccess(3445)): // Sesuaikan ID dengan ID Persetujuan di m_menu ?>
         <li>
             <a href="dashboard.php?page=approval" class="<?php echo $page == 'approval' ? 'active' : ''; ?>">
                 <i class="fas fa-check-double"></i> Persetujuan Pesanan
             </a>
         </li>
         <?php endif; ?>
-        <?php if (checkMenuAccess(3)): // Sesuaikan ID 3 dengan ID Monitoring di m_menu ?>
+        <?php if (checkMenuAccess(3443)): // Sesuaikan ID dengan ID Monitoring di m_menu ?>
         <li>
             <a href="dashboard.php?page=list_pesanan" class="<?php echo $page == 'list_pesanan' ? 'active' : ''; ?>">
                 <i class="fas fa-list"></i> Monitoring Pesanan
             </a>
         </li>
         <?php endif; ?>
-        <?php if (checkMenuAccess(4)): // Sesuaikan ID 4 dengan ID Penerimaan di m_menu ?>
+        <?php if (checkMenuAccess(3446)): // Sesuaikan ID dengan ID Penerimaan di m_menu ?>
         <li>
             <a href="dashboard.php?page=penerimaan_barang" class="<?php echo $page == 'penerimaan_barang' ? 'active' : ''; ?>">
                 <i class="fas fa-box-open"></i> Penerimaan Pesanan

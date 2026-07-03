@@ -7,10 +7,10 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'home';
 
 // RBAC Page Protection
 $page_access_map = [
-    'order_form' => 1, // Permohonan
-    'approval' => 2, // Persetujuan
-    'list_pesanan' => 3, // Monitoring
-    'penerimaan_barang' => 4 // Penerimaan
+    'order_form' => 3444, // Permohonan
+    'approval' => 3445, // Persetujuan
+    'list_pesanan' => 3443, // Monitoring
+    'penerimaan_barang' => 3446 // Penerimaan
 ];
 
 if (array_key_exists($page, $page_access_map)) {
