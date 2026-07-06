@@ -8,36 +8,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $username = $_POST['username'];
         $password = $_POST['password'];
 
-        // Get user by NIK
-        $stmt = $conn->prepare("
-            SELECT u.id, u.NIK, u.password, d.Nama 
-            FROM m_user u 
-            LEFT JOIN datadasar d ON u.NIK = d.NIP 
-            WHERE u.NIK = ? LIMIT 1
-        ");
+        // Get user by NIK from hrd.datadasar
+        $stmt_hrd = $hrd_conn->prepare("SELECT NIP, Nama, password, encrypt_pass FROM datadasar WHERE NIP = ? LIMIT 1");
         
-        if ($stmt === false) {
-            die("Prepare failed: " . $conn->error);
+        if ($stmt_hrd === false) {
+            die("Prepare failed: " . $hrd_conn->error);
         }
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $stmt_hrd->bind_param("s", $username);
+        $stmt_hrd->execute();
+        $result = $stmt_hrd->get_result();
 
         if ($row = $result->fetch_assoc()) {
-            if (password_verify($password, $row['password'])) {
-                $_SESSION['user_id'] = $row['id'];
-                $_SESSION['nik'] = $row['NIK'];
-                $_SESSION['nama'] = $row['Nama'] ? $row['Nama'] : 'User ' . $row['NIK'];
+            $password_md5 = md5($password);
+            if ($password === $row['password'] || $password_md5 === $row['encrypt_pass']) {
+                // If authenticated, check if they have sp_user access
+                $stmt_sp = $conn->prepare("SELECT id FROM sp_user WHERE NIK = ? LIMIT 1");
+                $stmt_sp->bind_param("s", $row['NIP']);
+                $stmt_sp->execute();
+                $res_sp = $stmt_sp->get_result();
+                
+                if ($sp_row = $res_sp->fetch_assoc()) {
+                    $_SESSION['user_id'] = $sp_row['id'];
+                } else {
+                    $_SESSION['user_id'] = time(); // Temporary ID if they don't have menus yet
+                }
+
+                $_SESSION['nik'] = $row['NIP'];
+                $_SESSION['nama'] = $row['Nama'] ? $row['Nama'] : 'User ' . $row['NIP'];
                 
                 // Load allowed menus
                 $menus = [];
-                $menu_stmt = $conn->prepare("SELECT NoMenu FROM m_user WHERE NIK = ?");
-                $menu_stmt->bind_param("s", $row['NIK']);
+                $menu_stmt = $conn->prepare("SELECT NoMenu FROM sp_user WHERE NIK = ?");
+                $menu_stmt->bind_param("s", $row['NIP']);
                 $menu_stmt->execute();
                 $menu_res = $menu_stmt->get_result();
                 while ($m = $menu_res->fetch_assoc()) {
                     $menus[] = $m['NoMenu'];
                 }
+                
+                // Jika user memiliki akses '0' (legacy admin), berikan akses penuh ke semua menu baru
+                if (in_array(0, $menus)) {
+                    $menus = array_unique(array_merge($menus, [99, 3443, 3444, 3445, 3446]));
+                }
+                
                 $_SESSION['allowed_menus'] = $menus;
 
                 header("Location: dashboard.php");

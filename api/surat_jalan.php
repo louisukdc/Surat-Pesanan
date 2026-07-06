@@ -20,7 +20,7 @@ try {
             // Search POs that are Approved. We also optionally check if it's already fully received, but for simplicity we list all Approved.
             $sql = "SELECT h.id, h.no_sp, h.no_permintaan, h.tgl_pesan, s.NamaSupplier as namasup 
                     FROM spu_h h 
-                    LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier 
+                    LEFT JOIN askes.m_supplier s ON h.id_supplier = s.KodeSupplier 
                     WHERE h.status_acc = 'Approved' 
                     AND (h.no_permintaan LIKE '%$q%' OR h.no_sp LIKE '%$q%' OR s.NamaSupplier LIKE '%$q%' OR h.id LIKE '%$q%') 
                     ORDER BY h.id DESC LIMIT 20";
@@ -40,7 +40,7 @@ try {
             $sql = "SELECT sj.*, h.no_permintaan, s.NamaSupplier as namasup, h.id as sp_id
                     FROM sp_surat_jalan sj
                     JOIN spu_h h ON sj.id_spu_h = h.id
-                    LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier
+                    LEFT JOIN askes.m_supplier s ON h.id_supplier = s.KodeSupplier
                     WHERE sj.id = $id";
             $result = $conn->query($sql);
             if ($row = $result->fetch_assoc()) {
@@ -65,7 +65,7 @@ try {
             $po_id = (int)$_GET['po_id'];
             $sql = "SELECT h.id, h.no_sp, h.no_permintaan, h.tgl_pesan, s.NamaSupplier as namasup 
                     FROM spu_h h 
-                    LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier 
+                    LEFT JOIN askes.m_supplier s ON h.id_supplier = s.KodeSupplier 
                     WHERE h.id = $po_id AND h.status_acc = 'Approved'";
             $result = $conn->query($sql);
             if ($row = $result->fetch_assoc()) {
@@ -87,7 +87,7 @@ try {
         $sql = "SELECT sj.id, sj.nomor_surat_jalan, sj.tanggal_terima, sj.status_pengecekan, sj.kategori, sj.catatan, sj.created_at, h.no_permintaan, s.NamaSupplier as namasup, h.id as sp_id
                 FROM sp_surat_jalan sj
                 JOIN spu_h h ON sj.id_spu_h = h.id
-                LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier
+                LEFT JOIN askes.m_supplier s ON h.id_supplier = s.KodeSupplier
                 ORDER BY sj.id DESC LIMIT 100";
         $result = $conn->query($sql);
         $data = [];

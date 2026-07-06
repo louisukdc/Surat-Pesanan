@@ -17,7 +17,7 @@ try {
                 exit;
             }
             $q = "%{$q}%";
-            $stmt = $conn->prepare("SELECT KodeSupplier, NamaSupplier FROM m_supplier WHERE NamaSupplier LIKE ? OR KodeSupplier LIKE ? LIMIT 10");
+            $stmt = $conn->prepare("SELECT KodeSupplier, NamaSupplier FROM askes.m_supplier WHERE NamaSupplier LIKE ? OR KodeSupplier LIKE ? LIMIT 10");
             $stmt->bind_param("ss", $q, $q);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -50,7 +50,7 @@ try {
 
         if (isset($_GET['id'])) {
             $id = (int)$_GET['id'];
-            $stmt = $conn->prepare("SELECT h.*, h.tgl_pesan, h.tglkirim as tgl_kirim, h.kodesup as id_supplier, h.no_tawar as no_penawaran, h.tgl_tawar as tgl_penawaran, h.unit as id_gudang, h.pembayaran as jenis_bayar, h.notein as keterangan, s.NamaSupplier, g.NamaGudang as NamaGudang FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.KodeGudang WHERE h.id = ?");
+            $stmt = $conn->prepare("SELECT h.*, h.tgl_pesan, h.tglkirim as tgl_kirim, h.kodesup as id_supplier, h.no_tawar as no_penawaran, h.tgl_tawar as tgl_penawaran, h.unit as id_gudang, h.pembayaran as jenis_bayar, h.notein as keterangan, s.NamaSupplier, g.NamaGudang as NamaGudang FROM spu_h h LEFT JOIN askes.m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.KodeGudang WHERE h.id = ?");
             $stmt->bind_param("i", $id);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -98,8 +98,10 @@ try {
             
             $sql = "SELECT h.id, h.no_sp, h.no_permintaan, h.tgl_pesan, s.NamaSupplier as namasup, g.NamaGudang as unit, h.user, h.status_acc, h.alasan_tolak, 
                     (SELECT COUNT(id) FROM spu_d WHERE id_sp = h.id) as item_count 
-                    FROM spu_h h LEFT JOIN m_supplier s ON h.id_supplier = s.KodeSupplier LEFT JOIN m_gudang g ON h.id_gudang = g.KodeGudang 
-                    WHERE $where ORDER BY h.id DESC";
+                    FROM spu_h h 
+                    LEFT JOIN askes.m_supplier s ON h.id_supplier = s.KodeSupplier
+                    LEFT JOIN m_gudang g ON h.id_gudang = g.KodeGudang
+                    WHERE $where ORDER BY h.id DESC LIMIT 100";
             
             $result = $conn->query($sql);
             $data = [];
