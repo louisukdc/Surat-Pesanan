@@ -16,9 +16,9 @@
     /* Status Colors are defined in variables.css */
 }
 
-/* Base Sizing Scaling System — Compact for no-scroll layout */
+/* Base Sizing Scaling System — Scaled up per user request */
 html {
-    font-size: 12px; /* base fallback */
+    font-size: 15px; /* base fallback, significantly larger */
     box-sizing: border-box;
     -webkit-text-size-adjust: 100%;
 }
@@ -26,21 +26,21 @@ html {
 /* 1366×768 — office laptop (most common) */
 @media screen and (max-width: 1366px) {
     html {
-        font-size: 11px;
+        font-size: 14px;
     }
 }
 
 /* 1367–1920: standard desktop/FHD */
 @media screen and (min-width: 1367px) and (max-width: 1920px) {
     html {
-        font-size: 12px;
+        font-size: 15px;
     }
 }
 
 /* 4K / ultra-wide */
 @media screen and (min-width: 1921px) {
     html {
-        font-size: 14px;
+        font-size: 18px;
     }
 }
 
@@ -51,7 +51,7 @@ body {
     background-size: 20px 20px;
     color: var(--text-main);
     font-size: 0.85rem;
-    overflow: hidden; /* prevent page-level scroll */
+    overflow: auto; /* prevent page-level scroll when not zoomed, but allow when zoomed */
     height: 100vh;
 }
 
@@ -76,7 +76,7 @@ body {
     display: flex;
     width: 100vw;
     height: 100vh;
-    overflow: hidden;
+    overflow: auto;
 }
 
 /* Sidebar Styling - Sleek dark panel mimicking login panel */
@@ -198,7 +198,7 @@ body {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: auto;
     min-width: 0;
 }
 

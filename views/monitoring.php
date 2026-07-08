@@ -44,6 +44,14 @@ $f_tgl_selesai = isset($_GET['tgl_selesai']) ? $_GET['tgl_selesai'] : '';
 // Fetch POs
 $orders = db_get_purchase_orders($f_status, $f_vendor, $f_tgl_mulai, $f_tgl_selesai);
 
+// Prioritaskan yang status DIAJUKAN dan batasi maksimal 10 data
+usort($orders, function($a, $b) {
+    if ($a['status'] === 'diajukan' && $b['status'] !== 'diajukan') return -1;
+    if ($a['status'] !== 'diajukan' && $b['status'] === 'diajukan') return 1;
+    return $b['id'] < $a['id'] ? -1 : ($b['id'] > $a['id'] ? 1 : 0);
+});
+$orders = array_slice($orders, 0, 10);
+
 // Detail view if po_id parameter is set
 $selected_po = null;
 $selected_po_items = array();
@@ -220,7 +228,7 @@ require_once dirname(__FILE__) . '/../includes/header.php';
             </div>
 
             <!-- Items Table detail -->
-            <div class="bp-panel bp-panel-amber mb-2" style="flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0;">
+            <div class="bp-panel bp-panel-amber mb-2" style="flex: 1 1 auto; display: flex; flex-direction: column; min-height: 250px;">
                 <div class="bp-panel-header"><i class="fas fa-boxes mr-2"></i> Rincian Barang Pesanan</div>
                 <div class="bp-panel-body p-0" style="flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0;">
                     <div class="table-responsive-sticky" style="flex: 1 1 auto; overflow-y: auto;">
@@ -338,6 +346,7 @@ require_once dirname(__FILE__) . '/../includes/header.php';
     </div>
 <?php endif; ?>
 
+<?php if (!$selected_po): ?>
 <!-- PO LIST & FILTER BOARD SECTION -->
 <div class="bp-hero no-print" style="padding:0.5rem 1rem; margin-bottom:0.5rem;">
     <div class="bp-hero-badge"><i class="fas fa-desktop"></i> Monitoring SP</div>
@@ -431,6 +440,7 @@ require_once dirname(__FILE__) . '/../includes/header.php';
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 <?php
 require_once dirname(__FILE__) . '/../includes/footer.php';

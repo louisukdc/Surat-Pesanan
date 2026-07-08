@@ -23,6 +23,7 @@ function clean_rupiah($str) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    file_put_contents(dirname(__FILE__) . '/../debug_post.log', date('Y-m-d H:i:s') . " - POST Data:\n" . print_r($_POST, true) . "\n\n", FILE_APPEND);
     $no_pesanan    = isset($_POST['no_pesanan'])    ? trim($_POST['no_pesanan'])    : '';
     $tgl_pesanan   = isset($_POST['tgl_pesanan'])   ? trim($_POST['tgl_pesanan'])   : '';
     $nama_vendor   = isset($_POST['nama_vendor'])   ? trim($_POST['nama_vendor'])   : '';
@@ -139,6 +140,9 @@ $today = date('Y-m-d');
 $suppliers = db_get_suppliers();
 $suppliers_json = json_encode($suppliers);
 
+$gudang_list = db_get_gudang();
+$gudang_json = json_encode($gudang_list);
+
 require_once dirname(__FILE__) . '/../includes/header.php';
 
 $satuans = array('pcs','unit','lusin','kodi','rim','roll','box','set','kg','ltr','m','cm');
@@ -169,14 +173,14 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
     border: 1px solid #d1d5db;
     border-radius: 0 0 6px 6px;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    z-index: 50;
+    z-index: 9999;
     max-height: 240px;
     overflow-y: auto;
     display: none;
 }
 .suggestion-item {
-    padding: 8px 16px;
-    font-size: 14px;
+    padding: 6px 12px;
+    font-size: 11px;
     border-bottom: 1px solid #f3f4f6;
     cursor: pointer;
 }
@@ -205,6 +209,9 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
 .btn-close-modal { background: none; border: none; font-size: 1.2rem; cursor: pointer; }
 </style>
 
+<!-- STYLED BOX WRAPPER -->
+<div style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); padding: 20px; margin: 20px; display: flex; flex-direction: column; flex-grow: 1; overflow: visible; border: 1px solid #e5e7eb;">
+
 <!-- HERO BANNER -->
 <div class="bp-hero">
     <div class="bp-hero-badge"><i class="fas fa-star"></i> Form Buat Surat Pesanan</div>
@@ -220,7 +227,7 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
 
         <!-- ===== PANEL KIRI: IDENTITAS SP ===== -->
         <div class="col-lg-4 mb-2">
-            <div class="bp-panel bp-panel-blue">
+            <div class="bp-panel bp-panel-blue" style="height: 100%; margin-bottom: 0;">
                 <div class="bp-panel-header">
                     <div class="bp-panel-icon"><i class="fas fa-id-card"></i></div>
                     Identitas Surat Pesanan
@@ -263,12 +270,13 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                             </div>
                         </div>
                         <div class="col-sm-6">
-                            <div class="form-group mb-3">
+                            <div class="form-group mb-3" style="position:relative;">
                                 <label class="bp-field-label">Unit / Bagian</label>
                                 <input type="text" name="unit" id="unit"
                                     class="form-control form-control-sm bp-input"
-                                    placeholder="Unit yang memesan..."
+                                    placeholder="Cari unit..." autocomplete="off" oninput="searchGudang(this.value)"
                                     value="<?php echo isset($_POST['unit']) ? htmlspecialchars($_POST['unit']) : ''; ?>">
+                                <div id="gudang-suggestions" class="suggestions-box" style="display:none; position:absolute; top:100%; left:0;"></div>
                             </div>
                         </div>
                         <div class="col-sm-6">
@@ -286,7 +294,7 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
 
         <!-- ===== PANEL TENGAH: VENDOR & PENAWARAN ===== -->
         <div class="col-lg-4 mb-2">
-            <div class="bp-panel bp-panel-violet">
+            <div class="bp-panel bp-panel-violet" style="height: 100%; margin-bottom: 0;">
                 <div class="bp-panel-header">
                     <div class="bp-panel-icon"><i class="fas fa-store"></i></div>
                     Vendor &amp; Penawaran
@@ -467,6 +475,8 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
 
 </form>
 
+</div> <!-- /STYLED BOX WRAPPER -->
+
 <!-- Modal Add Item -->
 <div id="itemModal" class="sp-modal-overlay">
     <div class="sp-modal-content">
@@ -528,14 +538,26 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
 </div>
 
 <script>
+window.onerror = function(msg, url, line, col, error) {
+    alert("GLOBAL JS ERROR:\n" + msg + "\nLine: " + line);
+};
+</script>
+
+<script>
+// ============================================
+// LOCAL SEARCH LOGIC (NO EXTERNAL API NEEDED)
+// ============================================
+
 const masterSuppliers = <?php echo $suppliers_json; ?>;
+const masterGudang = <?php echo $gudang_json; ?>;
+
 let orderItems = [];
 
 function formatCurrency(num) {
     return parseFloat(num).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2});
 }
 
-// Vendor Autocomplete
+// Vendor Autocomplete via Local Array
 let supplierTimeout;
 function searchSupplier(query) {
     clearTimeout(supplierTimeout);
@@ -570,13 +592,55 @@ function searchSupplier(query) {
 
 function selectSupplier(nama, kode) {
     $('#namasup_input').val(nama);
-    $('#nama_vendor').val(nama);
+    $('#nama_vendor').val(nama); // This goes to the hidden or final input
     $('#supplier-suggestions').hide();
+}
+
+// Unit / Gudang Autocomplete via Local Array
+let gudangTimeout;
+function searchGudang(query) {
+    clearTimeout(gudangTimeout);
+    let $suggestions = $('#gudang-suggestions');
+    if(query.length < 1) {
+        $suggestions.hide();
+        return;
+    }
+    
+    gudangTimeout = setTimeout(() => {
+        let q = query.toLowerCase();
+        let matches = masterGudang.filter(g => 
+            (g.NamaGudang && g.NamaGudang.toLowerCase().includes(q)) || 
+            (g.KodeGudang && g.KodeGudang.toLowerCase().includes(q)) ||
+            (g.FNAMA && g.FNAMA.toLowerCase().includes(q))
+        ).slice(0, 10);
+        
+        if(matches.length > 0) {
+            let html = '';
+            matches.forEach(g => {
+                let kode = g.KodeGudang || g.FGUDANG;
+                let nama = g.NamaGudang || g.FNAMA;
+                html += `<div class="suggestion-item" onclick="selectGudang('${kode}', '${nama}')">
+                            <strong>${kode}</strong> - ${nama}
+                         </div>`;
+            });
+            $suggestions.html(html).show();
+        } else {
+            $suggestions.hide();
+        }
+    }, 200);
+}
+
+function selectGudang(kode, nama) {
+    $('#unit').val(`${kode} - ${nama}`);
+    $('#gudang-suggestions').hide();
 }
 
 $(document).click(function(e) {
     if (!$(e.target).closest('#namasup_input').length && !$(e.target).closest('#supplier-suggestions').length) {
         $('#supplier-suggestions').hide();
+    }
+    if (!$(e.target).closest('#unit').length && !$(e.target).closest('#gudang-suggestions').length) {
+        $('#gudang-suggestions').hide();
     }
 });
 
@@ -799,10 +863,24 @@ $(document).ready(function() {
                 );
             }
         }
-        $post_items_json = json_encode($p_items);
+        $post_items_json = json_encode($p_items, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
+        if ($post_items_json === false) {
+            $post_items_json = '[]';
+        }
     }
     ?>
-    let initItems = <?php echo $post_items_json; ?>;
+    let initItemsRaw = '<?php echo addslashes($post_items_json); ?>';
+    
+    // --- DEBUG ALERT ---
+    alert("ISI MENTAH JSON DARI PHP:\n" + initItemsRaw);
+    // -------------------
+
+    let initItems = [];
+    try {
+        initItems = JSON.parse(initItemsRaw);
+    } catch(e) {
+        console.error("Gagal parse JSON items:", e);
+    }
     if(initItems.length > 0) {
         orderItems = initItems;
         renderItemsTable();

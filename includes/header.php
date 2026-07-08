@@ -15,6 +15,10 @@ $user_nama     = $_SESSION['user_nama'];
 $user_username = $_SESSION['user_username'];
 $user_role     = $_SESSION['user_role'];
 
+// Detect base URL automatically to fix CSS/JS paths regardless of folder structure
+$base_url = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+if ($base_url === '/' || $base_url === '\\') $base_url = '';
+
 // === HAK AKSES BERBASIS GRUP (pola m_tarif) ===
 // Ambil multigrup dan grup aktif dari session
 $sp_multigrup = isset($_SESSION['sp_multigrup']) ? $_SESSION['sp_multigrup'] : array();
@@ -96,8 +100,11 @@ if (count($sp_multigrup) > 1) {
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
+    <!-- jQuery MUST be loaded before inline scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="/sp_umum/assets/css/style.css?v=5">
+    <link rel="stylesheet" href="<?php echo $base_url; ?>/assets/css/style.css?v=6">
 </head>
 <body>
 
@@ -105,7 +112,7 @@ if (count($sp_multigrup) > 1) {
         <!-- Sidebar -->
         <div id="sidebar">
             <div class="sidebar-header">
-                <img src="/sp_umum/assets/img/logo_rkz.png" alt="Logo RKZ" class="sidebar-logo-img" style="width: 2.5rem; height: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
+                <img src="<?php echo $base_url; ?>/assets/img/logo_rkz.png" alt="Logo RKZ" class="sidebar-logo-img" style="width: 2.5rem; height: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
                 <div class="sidebar-brand">
                     Surat Pesanan
                     <span>Sistem Administrasi</span>
@@ -115,7 +122,7 @@ if (count($sp_multigrup) > 1) {
             <ul class="nav-menu">
                 <!-- Dashboard — semua grup -->
                 <li class="nav-item">
-                    <a href="/sp_umum/home.php?page=dashboard" class="nav-link <?php echo $active_menu == 'dashboard' ? 'active' : ''; ?>">
+                    <a href="<?php echo $base_url; ?>/home.php?page=dashboard" class="nav-link <?php echo $active_menu == 'dashboard' ? 'active' : ''; ?>">
                         <i class="fas fa-chart-line"></i>
                         <span>Dashboard</span>
                     </a>
@@ -123,17 +130,17 @@ if (count($sp_multigrup) > 1) {
                 
                 <!-- Buat Pesanan — Admin (1) & Pembelian (3) -->
                 <?php if ($boleh_buat_pesanan): ?>
-                    <li class="nav-item">
-                        <a href="/sp_umum/home.php?page=buat_pesanan" class="nav-link <?php echo $active_menu == 'buat_pesanan' ? 'active' : ''; ?>">
-                            <i class="fas fa-plus-circle"></i>
-                            <span>Buat Pesanan (SP)</span>
-                        </a>
-                    </li>
+                <li class="nav-item">
+                    <a href="<?php echo $base_url; ?>/home.php?page=buat_pesanan" class="nav-link <?php echo $active_menu == 'buat_pesanan' ? 'active' : ''; ?>">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Buat Pesanan (SP)</span>
+                    </a>
+                </li>
                 <?php endif; ?>
                 
                 <!-- Monitoring — semua grup, badge untuk grup 1 & 2 -->
                 <li class="nav-item">
-                    <a href="/sp_umum/home.php?page=monitoring" class="nav-link <?php echo $active_menu == 'monitoring' ? 'active' : ''; ?>">
+                    <a href="<?php echo $base_url; ?>/home.php?page=monitoring" class="nav-link <?php echo $active_menu == 'monitoring' ? 'active' : ''; ?>">
                         <i class="fas fa-list-alt"></i>
                         <span>Monitoring SP</span>
                         <?php if ($pending_po_count > 0): ?>
@@ -144,25 +151,25 @@ if (count($sp_multigrup) > 1) {
                 
                 <!-- Penerimaan Barang — Admin (1) & Pembelian (3) -->
                 <?php if ($boleh_penerimaan): ?>
-                    <li class="nav-item">
-                        <a href="/sp_umum/home.php?page=penerimaan" class="nav-link <?php echo $active_menu == 'penerimaan' ? 'active' : ''; ?>">
-                            <i class="fas fa-boxes"></i>
-                            <span>Penerimaan Barang</span>
-                        </a>
-                    </li>
+                <li class="nav-item">
+                    <a href="<?php echo $base_url; ?>/home.php?page=penerimaan" class="nav-link <?php echo $active_menu == 'penerimaan' ? 'active' : ''; ?>">
+                        <i class="fas fa-boxes"></i>
+                        <span>Penerimaan Barang</span>
+                    </a>
+                </li>
                 <?php endif; ?>
                 
                 <!-- Menu Bayar — semua grup, badge untuk grup 1 & 2 -->
                 <?php if ($boleh_pembayaran): ?>
-                    <li class="nav-item">
-                        <a href="/sp_umum/home.php?page=pembayaran" class="nav-link <?php echo $active_menu == 'pembayaran' ? 'active' : ''; ?>">
-                            <i class="fas fa-credit-card"></i>
-                            <span>Menu Bayar</span>
-                            <?php if ($pending_pay_count > 0): ?>
-                                <span class="badge badge-danger ml-auto"><?php echo $pending_pay_count; ?></span>
-                            <?php endif; ?>
-                        </a>
-                    </li>
+                <li class="nav-item">
+                    <a href="<?php echo $base_url; ?>/home.php?page=pembayaran" class="nav-link <?php echo $active_menu == 'pembayaran' ? 'active' : ''; ?>">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Menu Bayar</span>
+                        <?php if ($pending_pay_count > 0): ?>
+                            <span class="badge badge-danger ml-auto"><?php echo $pending_pay_count; ?></span>
+                        <?php endif; ?>
+                    </a>
+                </li>
                 <?php endif; ?>
                 
                 <?php if (count($sp_multigrup) > 1): ?>
@@ -174,9 +181,9 @@ if (count($sp_multigrup) > 1) {
                 </li>
                 <?php endif; ?>
                 
-                <li class="nav-item <?php echo count($sp_multigrup) > 1 ? '' : 'mt-4'; ?>" style="<?php echo count($sp_multigrup) > 1 ? '' : 'border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;'; ?>">
-                    <a href="/sp_umum/admin/logout.php" class="nav-link text-danger">
-                        <i class="fas fa-sign-out-alt text-danger"></i>
+                <li class="nav-item" style="margin-top: 1rem;">
+                    <a href="<?php echo $base_url; ?>/logout.php" class="nav-link text-danger">
+                        <i class="fas fa-sign-out-alt"></i>
                         <span>Logout</span>
                     </a>
                 </li>

@@ -9,6 +9,9 @@ $host     = "192.168.2.12";
 $username = "anugrah";
 $password = "anugrah";
 
+// Set default timezone untuk menghilangkan warning date() di PHP lokal
+date_default_timezone_set('Asia/Jakarta');
+
 // Matikan Exception Mode (memaksa PHP 8+ berperilaku persis seperti PHP 5.4)
 mysqli_report(MYSQLI_REPORT_OFF);
 

@@ -46,6 +46,26 @@ function db_get_suppliers() {
     return $suppliers;
 }
 
+/**
+ * Mengembalikan array gudang / unit
+ */
+function db_get_gudang() {
+    $conn = isset($GLOBALS['db_conn']) ? $GLOBALS['db_conn'] : null;
+    if (!$conn) return array();
+
+    $query = "SELECT FGUDANG as KodeGudang, FNAMA as NamaGudang, FGUDANG, FNAMA 
+              FROM godggudang 
+              ORDER BY FNAMA ASC";
+    $result = mysqli_query($conn, $query);
+    if (!$result) return array();
+
+    $gudang = array();
+    while ($row = mysqli_fetch_assoc($result)) {
+        $gudang[] = $row;
+    }
+    return $gudang;
+}
+
 // ============================================================
 // USER / AUTENTIKASI
 // ============================================================
@@ -471,8 +491,8 @@ function db_create_purchase_order($no_pesanan, $tgl_pesanan, $nama_vendor, $harg
             }
         }
 
-        $tgl_tawar_val  = ($tgl_tawar  !== '') ? "'$tgl_tawar'"  : 'NULL';
-        $tglkirim_val   = ($tglkirim   !== '') ? "'$tglkirim'"   : 'NULL';
+        $tgl_tawar_val  = ($tgl_tawar  !== '') ? "'$tgl_tawar'"  : "'1900-01-01'";
+        $tglkirim_val   = ($tglkirim   !== '') ? "'$tglkirim'"   : "'1900-01-01'";
 
         $q = "INSERT INTO spu_h (no_sp, no_permintaan, nama_lampiran, tgl_sp, namasup, kodesup,
                                   no_tawar, tgl_tawar, pembayaran, pembayaran1, notein,
