@@ -870,10 +870,6 @@ $(document).ready(function() {
     }
     ?>
     let initItemsRaw = '<?php echo addslashes($post_items_json); ?>';
-    
-    // --- DEBUG ALERT ---
-    alert("ISI MENTAH JSON DARI PHP:\n" + initItemsRaw);
-    // -------------------
 
     let initItems = [];
     try {
