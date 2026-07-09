@@ -3,7 +3,7 @@
 // Main dashboard display
 
 if (!defined('FRONT_CONTROLLER')) {
-    header("Location: /sp_umum/home.php?page=dashboard" . ($_SERVER['QUERY_STRING'] !== '' ? '&' . $_SERVER['QUERY_STRING'] : ''));
+    header("Location: /home.php?page=dashboard" . ($_SERVER['QUERY_STRING'] !== '' ? '&' . $_SERVER['QUERY_STRING'] : ''));
     exit;
 }
 
@@ -154,7 +154,7 @@ $latest_pos = array_slice(db_get_purchase_orders(), 0, 5); // Latest 5 orders
                                         <td class="text-right font-weight-bold"><?php echo format_rupiah($po['total_setelah_diskon']); ?></td>
                                         <td class="text-center"><?php echo get_status_badge($po['status']); ?></td>
                                         <td class="text-center">
-                                            <a href="/sp_umum/home.php?page=monitoring&po_id=<?php echo $po['id']; ?>" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;">
+                                            <a href="/home.php?page=monitoring&po_id=<?php echo $po['id']; ?>" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 0.75rem;">
                                                 <i class="fas fa-eye"></i> Detail
                                             </a>
                                         </td>

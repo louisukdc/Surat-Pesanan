@@ -3,7 +3,7 @@
 // Monitoring Purchase Orders list and detail view with Director approvals
 
 if (!defined('FRONT_CONTROLLER')) {
-    header("Location: /sp_umum/home.php?page=monitoring" . ($_SERVER['QUERY_STRING'] !== '' ? '&' . $_SERVER['QUERY_STRING'] : ''));
+    header("Location: ../home.php?page=monitoring" . ($_SERVER['QUERY_STRING'] !== '' ? '&' . $_SERVER['QUERY_STRING'] : ''));
     exit;
 }
 
@@ -90,10 +90,10 @@ require_once dirname(__FILE__) . '/../includes/header.php';
             <h4 class="bp-hero-title" style="font-size:1rem; margin-bottom:0;"><?php echo htmlspecialchars($selected_po['no_sp']); ?></h4>
         </div>
         <div>
-            <button type="button" class="btn btn-sm btn-premium-secondary mr-2" style="padding:0.2rem 0.6rem; font-size:0.75rem;" onclick="window.print();">
-                <i class="fas fa-print"></i> Cetak / PDF
+            <button type="button" class="btn btn-sm btn-premium-secondary mr-2" style="padding:0.2rem 0.6rem; font-size:0.75rem;" data-toggle="modal" data-target="#printPreviewModal">
+                <i class="fas fa-print"></i> Preview & Cetak
             </button>
-            <a href="/sp_umum/home.php?page=monitoring" class="btn btn-sm btn-premium-secondary" style="padding:0.2rem 0.6rem; font-size:0.75rem;">
+            <a href="home.php?page=monitoring" class="btn btn-sm btn-premium-secondary" style="padding:0.2rem 0.6rem; font-size:0.75rem;">
                 <i class="fas fa-arrow-left"></i> Kembali ke Daftar
             </a>
         </div>
@@ -101,11 +101,92 @@ require_once dirname(__FILE__) . '/../includes/header.php';
     
     <div style="flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; padding: 0 0.25rem;">
         <div style="flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; overflow-y: auto;">
-            <!-- Printable Invoice Header -->
-            <div class="d-none d-print-block text-center mb-4">
-                <h3 class="font-weight-bold mb-1">SURAT PESANAN (PURCHASE ORDER)</h3>
-                <p class="mb-0">No Pesanan: <strong><?php echo htmlspecialchars($selected_po['no_sp']); ?></strong></p>
-                <hr style="border-top: 2px solid #000000; margin-top: 0.625rem;">
+            <!-- Printable Invoice -->
+            <div id="print-layout-source" class="d-none d-print-block" style="font-family: 'Times New Roman', Times, serif; color: #000; width: 100%;">
+                <h3 class="text-center font-weight-bold" style="font-size: 16pt; text-decoration: underline; margin-bottom: 0.2rem;">SURAT PESANAN</h3>
+                <p class="text-center" style="font-size: 12pt; margin-bottom: 2rem;">No. <?php echo htmlspecialchars($selected_po['no_sp']); ?></p>
+
+                <div style="font-size: 12pt; margin-bottom: 2rem;">
+                    <p class="mb-0">Kepada Yth :</p>
+                    <p class="mb-0"><strong><?php echo htmlspecialchars($selected_po['nama_vendor']); ?></strong></p>
+                    <?php if (!empty($selected_po['supplier_alamat'])): ?>
+                        <p class="mb-0"><?php echo htmlspecialchars($selected_po['supplier_alamat']); ?></p>
+                    <?php endif; ?>
+                    <?php if (!empty($selected_po['supplier_kota'])): ?>
+                        <p class="mb-0"><?php echo htmlspecialchars($selected_po['supplier_kota']); ?></p>
+                    <?php endif; ?>
+                </div>
+
+                <div style="font-size: 12pt; margin-bottom: 1rem;">
+                    <p>Berdasarkan Surat Pesanan Saudara No : <?php echo htmlspecialchars($selected_po['no_tawar']); ?><br>
+                    tertanggal <?php echo format_date($selected_po['tgl_tawar']); ?> dengan ini kami memesan :</p>
+                </div>
+
+                <?php
+                // Logic to check which columns have data
+                $has_model = false;
+                $has_merk  = false;
+                $has_spec  = false;
+                $has_disc  = false;
+
+                foreach ($selected_po_items as $itm) {
+                    if (trim((string)$itm['model']) !== '') $has_model = true;
+                    if (trim((string)$itm['merk']) !== '') $has_merk = true;
+                    if (trim((string)$itm['spec']) !== '') $has_spec = true;
+                    if ((float)$itm['diskon_item'] > 0) $has_disc = true;
+                }
+                ?>
+
+                <table class="table table-sm table-bordered" style="border-color: #000; font-size: 11pt; margin-bottom: 0.5rem;">
+                    <thead style="border-bottom: 2px solid #000;">
+                        <tr>
+                            <th class="text-center align-middle" style="border-color:#000;">Barang</th>
+                            <th class="text-center align-middle" style="border-color:#000; width: 40px;">Qty</th>
+                            <th class="text-center align-middle" style="border-color:#000;">Satuan</th>
+                            <?php if ($has_model): ?><th class="text-center align-middle" style="border-color:#000;">Tipe</th><?php endif; ?>
+                            <?php if ($has_merk): ?><th class="text-center align-middle" style="border-color:#000;">Merk</th><?php endif; ?>
+                            <?php if ($has_spec): ?><th class="text-center align-middle" style="border-color:#000;">Spec</th><?php endif; ?>
+                            <th class="text-center align-middle" style="border-color:#000;">Harga</th>
+                            <?php if ($has_disc): ?><th class="text-center align-middle" style="border-color:#000;">Disc</th><?php endif; ?>
+                            <th class="text-center align-middle" style="border-color:#000;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($selected_po_items as $itm): ?>
+                        <tr>
+                            <td style="border-color:#000;"><?php echo htmlspecialchars($itm['nama_barang']); ?></td>
+                            <td class="text-center align-middle" style="border-color:#000;"><?php echo htmlspecialchars($itm['jumlah']); ?></td>
+                            <td class="text-center align-middle" style="border-color:#000;"><?php echo htmlspecialchars($itm['satuan']); ?></td>
+                            <?php if ($has_model): ?><td class="align-middle" style="border-color:#000;"><?php echo htmlspecialchars($itm['model']); ?></td><?php endif; ?>
+                            <?php if ($has_merk): ?><td class="align-middle" style="border-color:#000;"><?php echo htmlspecialchars($itm['merk']); ?></td><?php endif; ?>
+                            <?php if ($has_spec): ?><td class="align-middle" style="border-color:#000;"><?php echo htmlspecialchars($itm['spec']); ?></td><?php endif; ?>
+                            <td class="text-right align-middle" style="border-color:#000;"><?php echo number_format($itm['harga_satuan'], 0, ',', '.'); ?></td>
+                            <?php if ($has_disc): ?><td class="text-right align-middle" style="border-color:#000;"><?php echo number_format($itm['diskon_item'], 0, ',', '.'); ?></td><?php endif; ?>
+                            <td class="text-right align-middle" style="border-color:#000;"><?php echo number_format($itm['subtotal'], 0, ',', '.'); ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                
+                <div class="text-right mt-2 mb-4" style="font-size: 11pt;">
+                    <div style="display:inline-block; text-align:right;">
+                        <div>Sub Total <span style="display:inline-block; width:30px; text-align:left; margin-left:10px;">Rp</span> <?php echo number_format($selected_po['subtotal'], 0, ',', '.'); ?></div>
+                        <div>PPN <span style="display:inline-block; width:30px; text-align:left; margin-left:10px;">Rp</span> <?php echo number_format($selected_po['ppn'], 0, ',', '.'); ?></div>
+                        <div class="font-weight-bold mt-1 pt-1" style="border-top:1px solid #000;">
+                            Grand Total <span style="display:inline-block; width:30px; text-align:left; margin-left:10px;">Rp</span> <?php echo number_format($selected_po['subtotal'] + $selected_po['ppn'], 0, ',', '.'); ?>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="font-size: 12pt;">
+                    <p class="mb-1">Dengan :</p>
+                    <p class="mb-1">Cara Pembayaran : <?php echo htmlspecialchars($selected_po['pembayaran']); ?></p>
+                    <p class="mb-1">Catatan :<br><?php echo nl2br(htmlspecialchars($selected_po['notein'])); ?></p>
+                </div>
+                
+                <div class="mt-4" style="font-size: 12pt;">
+                    <p>Terima Kasih atas perhatian dan kerjasamanya.</p>
+                </div>
             </div>
 
             <!-- Visual Progress Tracker Tracker (No Print) -->
@@ -228,7 +309,7 @@ require_once dirname(__FILE__) . '/../includes/header.php';
             </div>
 
             <!-- Items Table detail -->
-            <div class="bp-panel bp-panel-amber mb-2" style="flex: 1 1 auto; display: flex; flex-direction: column; min-height: 250px;">
+            <div class="bp-panel bp-panel-amber mb-2 no-print" style="flex: 1 1 auto; display: flex; flex-direction: column; min-height: 250px;">
                 <div class="bp-panel-header"><i class="fas fa-boxes mr-2"></i> Rincian Barang Pesanan</div>
                 <div class="bp-panel-body p-0" style="flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0;">
                     <div class="table-responsive-sticky" style="flex: 1 1 auto; overflow-y: auto;">
@@ -238,7 +319,7 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                                 <th class="text-center" style="width: 2.5rem;">No</th>
                                 <th>Nama Barang</th>
                                 <th>Merk</th>
-                                <th>Model</th>
+                                <th>Tipe</th>
                                 <th>Spec</th>
                                 <th class="text-center">Qty</th>
                                 <th class="text-center">Satuan</th>
@@ -323,17 +404,17 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                             <strong>Tindakan Dibutuhkan:</strong> Tinjau rincian SP ini. Anda dapat menyetujui (ACC) atau menolak permintaan ini.
                         </div>
                         <div style="flex: 1; margin-left: 1rem;">
-                            <form action="home.php?page=monitoring&po_id=<?php echo $selected_po['id']; ?>" method="POST" id="form-approval" class="d-flex align-items-center justify-content-end gap-2" style="gap:0.5rem;">
+                            <form action="/home.php?page=monitoring&po_id=<?php echo $selected_po['id']; ?>" method="POST" id="form-approval" class="d-flex align-items-center justify-content-end gap-2" style="gap:0.5rem;">
                                 <input type="hidden" name="po_approval_action" value="1">
                                 <input type="hidden" name="po_id" value="<?php echo $selected_po['id']; ?>">
                                 <input type="hidden" name="status" id="approval-status-input" value="">
                                 
-                                <input type="text" name="catatan" class="form-control form-control-sm bp-input mr-2" placeholder="Catatan opsional..." style="max-width: 15rem; font-size:0.75rem;">
+                                <input type="text" name="catatan" class="form-control bp-input mr-2" placeholder="Catatan opsional..." style="max-width: 20rem; font-size:0.85rem; padding: 0.45rem 0.8rem;">
                                 
                                 <button type="submit" class="bp-btn-draft flex-shrink-0" style="color:#ef4444; border-color:#ef4444;" onclick="document.getElementById('approval-status-input').value='ditolak';">
                                     <i class="fas fa-times mr-1"></i> Tolak Permintaan
                                 </button>
-                                <button type="submit" class="btn btn-sm btn-premium flex-shrink-0 font-weight-bold" onclick="document.getElementById('approval-status-input').value='acc';">
+                                <button type="submit" class="btn btn-premium flex-shrink-0 font-weight-bold" style="padding: 0.45rem 1.1rem; font-size: 0.85rem;" onclick="document.getElementById('approval-status-input').value='acc';">
                                     <i class="fas fa-check mr-1"></i> ACC Permintaan
                                 </button>
                             </form>
@@ -390,7 +471,7 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                     <button type="submit" class="btn btn-sm btn-premium btn-block m-0" style="padding:0.2rem 0.5rem; font-size:0.75rem;">
                         <i class="fas fa-search"></i> Cari
                     </button>
-                    <a href="/sp_umum/home.php?page=monitoring" class="btn btn-sm btn-premium-secondary ml-1" style="padding:0.2rem 0.5rem; font-size:0.75rem;">
+                    <a href="home.php?page=monitoring" class="btn btn-sm btn-premium-secondary ml-1" style="padding:0.2rem 0.5rem; font-size:0.75rem;">
                         <i class="fas fa-sync"></i>
                     </a>
                 </div>
@@ -428,7 +509,7 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                                 <td class="text-center"><?php echo get_status_badge($po['status']); ?></td>
                                 <td class="text-center"><?php echo get_payment_badge($po['status_bayar']); ?></td>
                                 <td class="text-center">
-                                    <a href="/sp_umum/home.php?page=monitoring&po_id=<?php echo $po['id']; ?>" class="btn btn-sm btn-premium py-1 px-3">
+                                    <a href="/home.php?page=monitoring&po_id=<?php echo $po['id']; ?>" class="btn btn-sm btn-premium py-1 px-3">
                                         <i class="fas fa-eye mr-1"></i> Detail
                                     </a>
                                 </td>
@@ -441,6 +522,45 @@ require_once dirname(__FILE__) . '/../includes/header.php';
     </div>
 </div>
 <?php endif; ?>
+
+<!-- Print Preview Modal -->
+<div class="modal fade no-print" id="printPreviewModal" tabindex="-1" role="dialog" aria-labelledby="printPreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="printPreviewModalLabel"><i class="fas fa-file-invoice mr-2"></i> Print Preview Surat Pesanan</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="background: #e5e7eb; padding: 2rem; max-height: 70vh; overflow-y: auto;">
+                <div id="printPreviewContent" style="background: #fff; padding: 3rem; max-width: 21cm; margin: 0 auto; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); min-height: 29.7cm;">
+                    <!-- Content will be injected here via JS -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-primary font-weight-bold" onclick="window.print();">
+                    <i class="fas fa-print mr-2"></i> Lanjutkan Print
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    $('#printPreviewModal').on('show.bs.modal', function () {
+        var printSource = document.getElementById('print-layout-source');
+        if (printSource) {
+            var clone = printSource.cloneNode(true);
+            clone.classList.remove('d-none', 'd-print-block');
+            document.getElementById('printPreviewContent').innerHTML = '';
+            document.getElementById('printPreviewContent').appendChild(clone);
+        }
+    });
+});
+</script>
 
 <?php
 require_once dirname(__FILE__) . '/../includes/footer.php';

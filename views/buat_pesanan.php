@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $item_qtys   = isset($_POST['jumlah'])        ? $_POST['jumlah']        : array();
     $item_prices = isset($_POST['harga_satuan']) ? $_POST['harga_satuan'] : array();
     $item_merks  = isset($_POST['merk'])         ? $_POST['merk']         : array();
-    $item_models = isset($_POST['model'])        ? $_POST['model']        : array();
+    $item_Tipes = isset($_POST['Tipe'])        ? $_POST['Tipe']        : array();
     $item_specs  = isset($_POST['spec'])         ? $_POST['spec']         : array();
     $item_satuans= isset($_POST['satuan'])       ? $_POST['satuan']       : array();
     $item_discs  = isset($_POST['disc_item'])    ? $_POST['disc_item']    : array();
@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $items[] = array(
                     'nama_barang'  => $name,
                     'merk'         => isset($item_merks[$i])  ? trim($item_merks[$i])  : '',
-                    'model'        => isset($item_models[$i]) ? trim($item_models[$i]) : '',
+                    'Tipe'        => isset($item_Tipes[$i]) ? trim($item_Tipes[$i]) : '',
                     'spec'         => isset($item_specs[$i])  ? trim($item_specs[$i])  : '',
                     'satuan'       => isset($item_satuans[$i])? trim($item_satuans[$i]): 'pcs',
                     'jumlah'       => $qty,
@@ -129,7 +129,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $success = 'Surat Pesanan ' . htmlspecialchars($no_pesanan) . ' berhasil disimpan sebagai ' . ($action_status === 'diajukan' ? 'Diajukan ke Direktur' : 'Draft') . '.';
                 $_POST = array(); // Clear post data after success
             } else {
-                $error = 'Gagal menyimpan Surat Pesanan. Kemungkinan nomor pesanan sudah terpakai.';
+                global $last_db_error;
+                $error = 'Gagal menyimpan Surat Pesanan. Error DB: ' . (isset($last_db_error) ? htmlspecialchars($last_db_error) : 'Unknown error');
             }
         }
     }
@@ -240,8 +241,9 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                                 <input type="text" name="no_pesanan" id="no_pesanan"
                                     class="form-control form-control-sm bp-input font-weight-bold"
                                     placeholder="Contoh: PO/xxxxx/mm/yy"
-                                    value="<?php echo isset($_POST['no_pesanan']) ? htmlspecialchars($_POST['no_pesanan']) : $next_po_num; ?>" required>
-                                <small class="text-muted" style="font-size:0.7rem;">Auto-generate, bisa diedit</small>
+                                    maxlength="25"
+                                    value="<?php echo isset($_POST['no_pesanan']) ? htmlspecialchars($_POST['no_pesanan']) : $next_po_num; ?>" required readonly style="background-color: #f8f9fa;">
+                                <small class="text-muted" style="font-size:0.7rem;">Otomatis oleh sistem</small>
                             </div>
                         </div>
                         <div class="col-sm-6">
@@ -250,6 +252,7 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                                 <input type="text" name="no_permintaan" id="no_permintaan"
                                     class="form-control form-control-sm bp-input"
                                     placeholder="No surat permintaan..."
+                                    maxlength="15"
                                     value="<?php echo isset($_POST['no_permintaan']) ? htmlspecialchars($_POST['no_permintaan']) : ''; ?>">
                             </div>
                         </div>
@@ -275,6 +278,7 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                                 <input type="text" name="unit" id="unit"
                                     class="form-control form-control-sm bp-input"
                                     placeholder="Cari unit..." autocomplete="off" oninput="searchGudang(this.value)"
+                                    maxlength="35"
                                     value="<?php echo isset($_POST['unit']) ? htmlspecialchars($_POST['unit']) : ''; ?>">
                                 <div id="gudang-suggestions" class="suggestions-box" style="display:none; position:absolute; top:100%; left:0;"></div>
                             </div>
@@ -313,6 +317,7 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                                 <input type="text" name="no_tawar" id="no_tawar"
                                     class="form-control form-control-sm bp-input"
                                     placeholder="No surat penawaran..."
+                                    maxlength="25"
                                     value="<?php echo isset($_POST['no_tawar']) ? htmlspecialchars($_POST['no_tawar']) : ''; ?>">
                             </div>
                         </div>
@@ -441,7 +446,7 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                         <tr>
                             <th class="text-center" style="width:2.8rem;">#</th>
                             <th style="min-width:9rem;">Nama Barang <span style="color:#fbbf24;">*</span></th>
-                            <th style="min-width:6rem;">Merk/Model</th>
+                            <th style="min-width:6rem;">Merk/Tipe</th>
                             <th class="text-center" style="width:5rem;">Qty</th>
                             <th class="text-right" style="width:9rem;">Harga Satuan</th>
                             <th class="text-right" style="width:7.5rem;">Diskon Item</th>
@@ -500,8 +505,8 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                     <input type="text" id="item_merk" class="form-control form-control-sm">
                 </div>
                 <div class="col-md-6 mb-2">
-                    <label>Model</label>
-                    <input type="text" id="item_model" class="form-control form-control-sm">
+                    <label>Tipe</label>
+                    <input type="text" id="item_Tipe" class="form-control form-control-sm">
                 </div>
                 <div class="col-md-4 mb-2">
                     <label>Kuantitas (Qty)</label>
@@ -651,7 +656,7 @@ function openItemModal(index = -1) {
         $('#item_barang').val(itm.nama_barang);
         $('#item_spec').val(itm.spec);
         $('#item_merk').val(itm.merk);
-        $('#item_model').val(itm.model);
+        $('#item_Tipe').val(itm.Tipe);
         $('#item_qty').val(itm.jumlah);
         $('#item_satuan').val(itm.satuan);
         $('#item_harga').val(itm.harga_satuan);
@@ -679,7 +684,7 @@ function calculateItemTotal() {
 }
 
 function clearItemForm() {
-    $('#item_barang, #item_merk, #item_model, #item_spec').val('');
+    $('#item_barang, #item_merk, #item_Tipe, #item_spec').val('');
     $('#item_qty').val(1);
     $('#item_satuan').val('pcs');
     $('#item_harga, #item_disc').val(0);
@@ -690,7 +695,7 @@ function addItem() {
     let item = {
         nama_barang: $('#item_barang').val().trim(),
         merk: $('#item_merk').val().trim(),
-        model: $('#item_model').val().trim(),
+        Tipe: $('#item_Tipe').val().trim(),
         spec: $('#item_spec').val().trim(),
         jumlah: parseFloat($('#item_qty').val()) || 0,
         satuan: $('#item_satuan').val(),
@@ -743,7 +748,7 @@ function renderItemsTable() {
                     <input type="hidden" name="nama_barang[]" value="${escapeHtml(item.nama_barang)}">
                     <input type="hidden" name="spec[]" value="${escapeHtml(item.spec)}">
                     <input type="hidden" name="merk[]" value="${escapeHtml(item.merk)}">
-                    <input type="hidden" name="model[]" value="${escapeHtml(item.model)}">
+                    <input type="hidden" name="Tipe[]" value="${escapeHtml(item.Tipe)}">
                     <input type="hidden" name="jumlah[]" value="${item.jumlah}">
                     <input type="hidden" name="satuan[]" value="${escapeHtml(item.satuan)}">
                     <input type="hidden" name="harga_satuan[]" value="${item.harga_satuan}">
@@ -751,7 +756,7 @@ function renderItemsTable() {
                 </td>
                 <td>
                     <div class="small">${item.merk || '-'}</div>
-                    <div class="small text-muted">${item.model || '-'}</div>
+                    <div class="small text-muted">${item.Tipe || '-'}</div>
                 </td>
                 <td class="text-center align-middle">
                     <span class="font-weight-bold">${item.jumlah}</span><br>
@@ -853,7 +858,7 @@ $(document).ready(function() {
                 $p_items[] = array(
                     'nama_barang' => $_POST['nama_barang'][$i],
                     'merk' => $_POST['merk'][$i],
-                    'model' => $_POST['model'][$i],
+                    'Tipe' => $_POST['Tipe'][$i],
                     'spec' => $_POST['spec'][$i],
                     'satuan' => $_POST['satuan'][$i],
                     'jumlah' => $qty,
