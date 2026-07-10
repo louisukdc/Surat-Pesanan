@@ -8544,3 +8544,74 @@ Array
 )
 
 
+2026-07-10 13:35:24 - POST Data:
+Array
+(
+    [action_status] => diajukan
+    [ppn_nilai] => 11810401.02
+    [no_pesanan] => PO/0003/2026/07
+    [no_permintaan] => SP/03/07/26
+    [tgl_pesanan] => 2026-07-01
+    [tglkirim] => 2026-07-02
+    [unit] => FK - FARMASI KLINIS
+    [nama_lampiran_existing] => 
+    [nama_vendor] => ACCU, TOKO
+    [no_tawar] => 12/SPH/23/MFR/IX/2025/R
+    [tgl_tawar] => 2026-07-03
+    [pembayaran] => Transfer Bank
+    [pembayaran1] => -
+    [notein] => oke
+    [harga_vendor] => 119296980
+    [diskon_type] => percent
+    [diskon_vendor] => 10
+    [nama_barang] => Array
+        (
+            [0] => AC
+            [1] => Alkohol 70%
+        )
+
+    [spec] => Array
+        (
+            [0] => A1
+            [1] => Medis
+        )
+
+    [merk] => Array
+        (
+            [0] => Mitshubishi
+            [1] => OneMedis
+        )
+
+    [Tipe] => Array
+        (
+            [0] => 2pk
+            [1] => Liquid
+        )
+
+    [jumlah] => Array
+        (
+            [0] => 20
+            [1] => 30
+        )
+
+    [satuan] => Array
+        (
+            [0] => unit
+            [1] => pcs
+        )
+
+    [harga_satuan] => Array
+        (
+            [0] => 5690000
+            [1] => 200000
+        )
+
+    [disc_item] => Array
+        (
+            [0] => 500000
+            [1] => 3020
+        )
+
+)
+
+

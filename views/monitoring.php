@@ -90,6 +90,11 @@ require_once dirname(__FILE__) . '/../includes/header.php';
             <h4 class="bp-hero-title" style="font-size:1rem; margin-bottom:0;"><?php echo htmlspecialchars($selected_po['no_sp']); ?></h4>
         </div>
         <div>
+            <?php if (in_array($selected_po['status'], array('draft', 'ditolak', 'diajukan'))): ?>
+                <a href="home.php?page=buat_pesanan&edit_id=<?php echo $selected_po['id']; ?>" class="btn btn-sm btn-warning mr-2" style="padding:0.2rem 0.6rem; font-size:0.75rem;">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+            <?php endif; ?>
             <button type="button" class="btn btn-sm btn-premium-secondary mr-2" style="padding:0.2rem 0.6rem; font-size:0.75rem;" data-toggle="modal" data-target="#printPreviewModal">
                 <i class="fas fa-print"></i> Preview & Cetak
             </button>
@@ -509,9 +514,16 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                                 <td class="text-center"><?php echo get_status_badge($po['status']); ?></td>
                                 <td class="text-center"><?php echo get_payment_badge($po['status_bayar']); ?></td>
                                 <td class="text-center">
-                                    <a href="/home.php?page=monitoring&po_id=<?php echo $po['id']; ?>" class="btn btn-sm btn-premium py-1 px-3">
-                                        <i class="fas fa-eye mr-1"></i> Detail
-                                    </a>
+                                    <div class="btn-group" role="group">
+                                        <a href="home.php?page=monitoring&po_id=<?php echo $po['id']; ?>" class="btn btn-sm btn-premium py-1 px-2" title="Detail">
+                                            <i class="fas fa-eye"></i> Detail
+                                        </a>
+                                        <?php if (in_array($po['status'], array('draft', 'ditolak', 'diajukan'))): ?>
+                                            <a href="home.php?page=buat_pesanan&edit_id=<?php echo $po['id']; ?>" class="btn btn-sm btn-warning py-1 px-2" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

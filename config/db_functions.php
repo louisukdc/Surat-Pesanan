@@ -437,7 +437,6 @@ function db_get_purchase_order_items($po_id) {
  */
 function db_generate_po_number() {
     $tahun = (int)date('Y');
-    $prefix = "PO/" . $tahun . "/" . date('m') . "/";
     $res = mysqli_query($GLOBALS['db_conn'], "SELECT nomor FROM sp_counter WHERE tahun = $tahun LIMIT 1");
     if ($res && mysqli_num_rows($res) > 0) {
         $row = mysqli_fetch_assoc($res);
@@ -445,7 +444,7 @@ function db_generate_po_number() {
     } else {
         $next_num = 1;
     }
-    return $prefix . sprintf('%04d', $next_num);
+    return "PO/" . sprintf('%04d', $next_num) . "/" . $tahun . "/" . date('m');
 }
 
 /**
@@ -468,6 +467,7 @@ function db_create_purchase_order($no_pesanan, $tgl_pesanan, $nama_vendor, $harg
     $pembayaran     = substr(db_escape(isset($extra['pembayaran'])     ? $extra['pembayaran']     : ''), 0, 60);
     $pembayaran1    = substr(db_escape(isset($extra['pembayaran1'])    ? $extra['pembayaran1']    : ''), 0, 60);
     $notein         = db_escape(isset($extra['notein'])         ? $extra['notein']         : '');
+    $noteout        = db_escape(isset($extra['noteout'])        ? $extra['noteout']        : '');
     $unit           = substr(db_escape(isset($extra['unit'])           ? $extra['unit']           : ''), 0, 35);
     $tglkirim       = db_escape(isset($extra['tglkirim'])       ? $extra['tglkirim']       : '');
     $ppn_val        = (float)(isset($extra['ppn'])              ? $extra['ppn']            : 0);
@@ -509,7 +509,8 @@ function db_create_purchase_order($no_pesanan, $tgl_pesanan, $nama_vendor, $harg
         mysqli_query($GLOBALS['db_conn'], "UPDATE sp_counter SET nomor = $new_nomor WHERE tahun = $tahun");
         
         // Buat nomor SP mutlak
-        $no_pesanan = "PO/" . $tahun . "/" . date('m') . "/" . sprintf('%04d', $new_nomor);
+        // $no_pesanan = "PO/" . $tahun . "/" . date('m') . "/" . sprintf('%04d', $new_nomor);
+        $no_pesanan = "PO/" .sprintf('%04d', $new_nomor). "/" . $tahun . "/" . date('m');
         
         $user_nik = '';
         $user_res = mysqli_query($GLOBALS['db_conn'], "SELECT NIK FROM sp_user WHERE id = $dibuat_oleh LIMIT 1");
@@ -533,11 +534,11 @@ function db_create_purchase_order($no_pesanan, $tgl_pesanan, $nama_vendor, $harg
         $tglkirim_val   = ($tglkirim   !== '') ? "'$tglkirim'"   : "'1900-01-01'";
 
         $q = "INSERT INTO spu_h (no_sp, no_permintaan, nama_lampiran, tgl_sp, namasup, kodesup,
-                                  no_tawar, tgl_tawar, pembayaran, pembayaran1, notein,
+                                  no_tawar, tgl_tawar, pembayaran, pembayaran1, notein, noteout,
                                   unit, tglkirim, ppn, flag, potongan,
                                   status, dibuat_oleh, dibuat_pada, user, created_at)
               VALUES ('$no_pesanan','$no_permintaan','$nama_lampiran','$tgl_pesanan','$nama_vendor','$kodesup',
-                      '$no_tawar',$tgl_tawar_val,'$pembayaran','$pembayaran1','$notein',
+                      '$no_tawar',$tgl_tawar_val,'$pembayaran','$pembayaran1','$notein','$noteout',
                       '$unit',$tglkirim_val,$ppn_val,$total_setelah_diskon,$diskon_vendor,
                       '$status',$dibuat_oleh,NOW(),'$user_nik',NOW())";
         if (!mysqli_query($GLOBALS['db_conn'], $q)) throw new Exception(mysqli_error($GLOBALS['db_conn']));
@@ -560,6 +561,133 @@ function db_create_purchase_order($no_pesanan, $tgl_pesanan, $nama_vendor, $harg
 
         $note = $status === 'diajukan' ? 'Permintaan diajukan ke Direktur.' : 'Draft disimpan.';
         mysqli_query($GLOBALS['db_conn'], "INSERT INTO sp_log_persetujuan (surat_pesanan_id, jenis, status, catatan, oleh, tanggal) VALUES ($po_id,'permintaan','$status','$note',$dibuat_oleh,NOW())");
+
+        mysqli_commit($GLOBALS['db_conn']);
+        return $po_id;
+    } catch (Exception $e) {
+        mysqli_rollback($GLOBALS['db_conn']);
+        $GLOBALS['last_db_error'] = $e->getMessage();
+        return false;
+    }
+}
+
+/**
+ * Update surat pesanan yang sudah ada beserta item-itemnya
+ */
+function db_update_purchase_order($po_id, $tgl_pesanan, $nama_vendor, $harga_vendor, $diskon_vendor, $total_setelah_diskon, $status, $diedit_oleh, $items, $extra = array()) {
+    $po_id               = (int)$po_id;
+    $tgl_pesanan         = db_escape($tgl_pesanan);
+    $nama_vendor         = substr(db_escape($nama_vendor), 0, 50);
+    $harga_vendor        = (float)$harga_vendor;
+    $diskon_vendor       = (float)$diskon_vendor;
+    $total_setelah_diskon= (float)$total_setelah_diskon;
+    $status              = db_escape($status);
+    $diedit_oleh         = (int)$diedit_oleh;
+
+    // Pastikan PO ada dan no_pesanan (no_sp) bisa didapat
+    $cek_po = mysqli_query($GLOBALS['db_conn'], "SELECT no_sp FROM spu_h WHERE id = $po_id LIMIT 1");
+    if (!$cek_po || mysqli_num_rows($cek_po) === 0) {
+        $GLOBALS['last_db_error'] = "Data Surat Pesanan tidak ditemukan.";
+        return false;
+    }
+    $row_po = mysqli_fetch_assoc($cek_po);
+    $no_pesanan = $row_po['no_sp'];
+
+    $no_permintaan  = substr(db_escape(isset($extra['no_permintaan'])  ? $extra['no_permintaan']  : ''), 0, 15);
+    // nama_lampiran di-update jika dikirim
+    $nama_lampiran  = substr(db_escape(isset($extra['nama_lampiran'])  ? $extra['nama_lampiran']  : ''), 0, 100);
+    $no_tawar       = substr(db_escape(isset($extra['no_tawar'])       ? $extra['no_tawar']       : ''), 0, 25);
+    $tgl_tawar      = db_escape(isset($extra['tgl_tawar'])      ? $extra['tgl_tawar']      : '');
+    $pembayaran     = substr(db_escape(isset($extra['pembayaran'])     ? $extra['pembayaran']     : ''), 0, 60);
+    $pembayaran1    = substr(db_escape(isset($extra['pembayaran1'])    ? $extra['pembayaran1']    : ''), 0, 60);
+    $notein         = db_escape(isset($extra['notein'])         ? $extra['notein']         : '');
+    $unit           = substr(db_escape(isset($extra['unit'])           ? $extra['unit']           : ''), 0, 35);
+    $tglkirim       = db_escape(isset($extra['tglkirim'])       ? $extra['tglkirim']       : '');
+    $ppn_val        = (float)(isset($extra['ppn'])              ? $extra['ppn']            : 0);
+
+    // Cek duplikasi no_permintaan dengan ID berbeda
+    if ($no_permintaan !== '') {
+        $cek_minta = mysqli_query($GLOBALS['db_conn'], "SELECT no_sp FROM spu_h WHERE no_permintaan = '$no_permintaan' AND id != $po_id LIMIT 1");
+        if ($cek_minta && mysqli_num_rows($cek_minta) > 0) {
+            $row = mysqli_fetch_assoc($cek_minta);
+            $GLOBALS['last_db_error'] = "Nomor Permintaan '$no_permintaan' sudah terpakai pada SP: " . $row['no_sp'] . ". Nomor Permintaan tidak boleh ganda!";
+            return false;
+        }
+    }
+
+    mysqli_begin_transaction($GLOBALS['db_conn']);
+    try {
+        $user_nik = '';
+        $user_res = mysqli_query($GLOBALS['db_conn'], "SELECT NIK FROM sp_user WHERE id = $diedit_oleh LIMIT 1");
+        if ($user_res && mysqli_num_rows($user_res) > 0) {
+            $r = mysqli_fetch_assoc($user_res);
+            $user_nik = $r['NIK'];
+        }
+
+        $kodesup = '';
+        $askes_conn = isset($GLOBALS['askes_conn']) ? $GLOBALS['askes_conn'] : null;
+        if ($askes_conn) {
+            $esc_nama = db_escape($nama_vendor);
+            $sup_res = mysqli_query($askes_conn, "SELECT KodeSupplier FROM m_supplier WHERE TRIM(NamaSupplier) = '$esc_nama' LIMIT 1");
+            if ($sup_res && mysqli_num_rows($sup_res) > 0) {
+                $sup_row = mysqli_fetch_assoc($sup_res);
+                $kodesup = trim($sup_row['KodeSupplier']);
+            }
+        }
+
+        $tgl_tawar_val  = ($tgl_tawar  !== '') ? "'$tgl_tawar'"  : "'1900-01-01'";
+        $tglkirim_val   = ($tglkirim   !== '') ? "'$tglkirim'"   : "'1900-01-01'";
+        
+        $lampiran_sql = "";
+        if ($nama_lampiran !== '') {
+            $lampiran_sql = ", nama_lampiran = '$nama_lampiran'";
+        }
+
+        $q = "UPDATE spu_h SET 
+                no_permintaan = '$no_permintaan'
+                $lampiran_sql
+                , tgl_sp = '$tgl_pesanan'
+                , namasup = '$nama_vendor'
+                , kodesup = '$kodesup'
+                , no_tawar = '$no_tawar'
+                , tgl_tawar = $tgl_tawar_val
+                , pembayaran = '$pembayaran'
+                , pembayaran1 = '$pembayaran1'
+                , notein = '$notein'
+                , noteout = '$noteout'
+                , unit = '$unit'
+                , tglkirim = $tglkirim_val
+                , ppn = $ppn_val
+                , flag = $total_setelah_diskon
+                , potongan = $diskon_vendor
+                , status = '$status'
+              WHERE id = $po_id";
+              
+        if (!mysqli_query($GLOBALS['db_conn'], $q)) throw new Exception(mysqli_error($GLOBALS['db_conn']));
+
+        // Hapus item detail lama
+        $q_del = "DELETE FROM spu_d WHERE id_header = $po_id";
+        if (!mysqli_query($GLOBALS['db_conn'], $q_del)) throw new Exception(mysqli_error($GLOBALS['db_conn']));
+
+        // Insert ulang item detail
+        foreach ($items as $item) {
+            $nama_b   = substr(db_escape($item['nama_barang']), 0, 150);
+            $merk     = substr(db_escape(isset($item['merk'])   ? $item['merk']   : ''), 0, 50);
+            $model    = substr(db_escape(isset($item['Tipe']) ? $item['Tipe'] : (isset($item['model']) ? $item['model'] : '')), 0, 50);
+            $spec     = substr(db_escape(isset($item['spec'])   ? $item['spec']   : ''), 0, 50);
+            $satuan   = substr(db_escape(isset($item['satuan']) ? $item['satuan'] : 'pcs'), 0, 10);
+            $qty      = (float)$item['jumlah'];
+            $harga_satuan = (float)$item['harga_satuan'];
+            $disc_item    = (float)(isset($item['disc']) ? $item['disc'] : 0);
+            $subtotal     = (float)$item['subtotal'];
+            $iq = "INSERT INTO spu_d (id_header, no_sp, barang, merk, model, spec, harga, qty, satuan, disc, total, status_terima, created_at)
+                   VALUES ($po_id,'$no_pesanan','$nama_b','$merk','$model','$spec',$harga_satuan,$qty,'$satuan',$disc_item,$subtotal,'belum_datang',NOW())";
+            if (!mysqli_query($GLOBALS['db_conn'], $iq)) throw new Exception(mysqli_error($GLOBALS['db_conn']));
+        }
+
+        $note = 'Pesanan diubah/diedit.';
+        if ($status === 'diajukan') $note .= ' Permintaan diajukan kembali ke Direktur.';
+        mysqli_query($GLOBALS['db_conn'], "INSERT INTO sp_log_persetujuan (surat_pesanan_id, jenis, status, catatan, oleh, tanggal) VALUES ($po_id,'permintaan','$status','$note',$diedit_oleh,NOW())");
 
         mysqli_commit($GLOBALS['db_conn']);
         return $po_id;

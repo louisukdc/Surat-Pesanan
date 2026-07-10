@@ -75,6 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'pembayaran'    => isset($_POST['pembayaran'])    ? trim($_POST['pembayaran'])    : '',
         'pembayaran1'   => isset($_POST['pembayaran1'])   ? trim($_POST['pembayaran1'])   : '',
         'notein'        => isset($_POST['notein'])        ? trim($_POST['notein'])        : '',
+        'noteout'       => isset($_POST['noteout'])       ? trim($_POST['noteout'])       : '',
         'unit'          => isset($_POST['unit'])          ? trim($_POST['unit'])          : '',
         'tglkirim'      => isset($_POST['tglkirim'])      ? trim($_POST['tglkirim'])      : '',
         'ppn'           => isset($_POST['ppn_nilai'])     ? (float)$_POST['ppn_nilai']   : 0.0,
@@ -120,19 +121,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($items)) {
             $error = 'Semua baris barang kosong atau jumlah tidak valid.';
         } else {
-            $po_id = db_create_purchase_order(
-                $no_pesanan, $tgl_pesanan, $nama_vendor,
-                $harga_vendor, $diskon_vendor, $total_setelah_diskon,
-                $action_status, $_SESSION['user_id'], $items, $extra
-            );
+            $is_edit = isset($_POST['edit_id']) && (int)$_POST['edit_id'] > 0;
+            if ($is_edit) {
+                $po_id = db_update_purchase_order(
+                    (int)$_POST['edit_id'], $tgl_pesanan, $nama_vendor,
+                    $harga_vendor, $diskon_vendor, $total_setelah_diskon,
+                    $action_status, $_SESSION['user_id'], $items, $extra
+                );
+                $success_msg = 'Surat Pesanan ' . htmlspecialchars($no_pesanan) . ' berhasil diedit dan disimpan sebagai ' . ($action_status === 'diajukan' ? 'Diajukan ke Direktur' : 'Draft') . '.';
+            } else {
+                $po_id = db_create_purchase_order(
+                    $no_pesanan, $tgl_pesanan, $nama_vendor,
+                    $harga_vendor, $diskon_vendor, $total_setelah_diskon,
+                    $action_status, $_SESSION['user_id'], $items, $extra
+                );
+                $success_msg = 'Surat Pesanan ' . htmlspecialchars($no_pesanan) . ' berhasil dibuat dan disimpan sebagai ' . ($action_status === 'diajukan' ? 'Diajukan ke Direktur' : 'Draft') . '.';
+            }
+
             if ($po_id !== false) {
-                $success = 'Surat Pesanan ' . htmlspecialchars($no_pesanan) . ' berhasil disimpan sebagai ' . ($action_status === 'diajukan' ? 'Diajukan ke Direktur' : 'Draft') . '.';
+                $success = $success_msg;
                 $_POST = array(); // Clear post data after success
+                if ($is_edit) {
+                    // Redirect to monitoring after successful edit
+                    header("Location: home.php?page=monitoring");
+                    exit;
+                }
             } else {
                 global $last_db_error;
                 $error = 'Gagal menyimpan Surat Pesanan. Error DB: ' . (isset($last_db_error) ? htmlspecialchars($last_db_error) : 'Unknown error');
             }
         }
+    }
+}
+
+// Logic to load existing PO for editing
+$is_editing = false;
+$edit_po = null;
+$edit_items = array();
+
+if (isset($_GET['edit_id']) && (int)$_GET['edit_id'] > 0 && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $edit_id = (int)$_GET['edit_id'];
+    // Ambil data PO
+    $res = mysqli_query($GLOBALS['db_conn'], "SELECT * FROM spu_h WHERE id = $edit_id LIMIT 1");
+    if ($res && mysqli_num_rows($res) > 0) {
+        $edit_po = mysqli_fetch_assoc($res);
+        if (in_array($edit_po['status'], array('draft', 'ditolak', 'diajukan'))) {
+            $is_editing = true;
+            // Ambil items
+            $res_items = mysqli_query($GLOBALS['db_conn'], "SELECT * FROM spu_d WHERE id_header = $edit_id ORDER BY id ASC");
+            if ($res_items) {
+                while($ritem = mysqli_fetch_assoc($res_items)) {
+                    $edit_items[] = $ritem;
+                }
+            }
+            
+            // Populate $_POST so the form fields show these values
+            $_POST['edit_id'] = $edit_id;
+            $_POST['no_pesanan'] = $edit_po['no_sp'];
+            $_POST['tgl_pesanan'] = $edit_po['tgl_sp'];
+            $_POST['nama_vendor'] = $edit_po['namasup'];
+            $_POST['no_permintaan'] = $edit_po['no_permintaan'];
+            $_POST['nama_lampiran_existing'] = $edit_po['nama_lampiran'];
+            $_POST['no_tawar'] = $edit_po['no_tawar'];
+            $_POST['tgl_tawar'] = ($edit_po['tgl_tawar'] === '1900-01-01' || $edit_po['tgl_tawar'] === '0000-00-00') ? '' : $edit_po['tgl_tawar'];
+            $_POST['pembayaran'] = $edit_po['pembayaran'];
+            $_POST['pembayaran1'] = $edit_po['pembayaran1'];
+            $_POST['notein'] = $edit_po['notein'];
+            $_POST['noteout'] = $edit_po['noteout'];
+            $_POST['unit'] = $edit_po['unit'];
+            $_POST['tglkirim'] = ($edit_po['tglkirim'] === '1900-01-01' || $edit_po['tglkirim'] === '0000-00-00') ? '' : $edit_po['tglkirim'];
+            $_POST['ppn_nilai'] = $edit_po['ppn'];
+            
+            // Calculate base harga vendor and diskon
+            $flag_total = (float)$edit_po['flag']; // Harga setelah diskon
+            $potongan = (float)$edit_po['potongan'];
+            $_POST['harga_vendor'] = $flag_total + $potongan;
+            $_POST['diskon_vendor'] = $potongan;
+            $_POST['diskon_type'] = 'rp';
+            
+            // Populate items array
+            $_POST['nama_barang'] = array_column($edit_items, 'barang');
+            $_POST['merk'] = array_column($edit_items, 'merk');
+            $_POST['Tipe'] = array_column($edit_items, 'model');
+            $_POST['spec'] = array_column($edit_items, 'spec');
+            $_POST['satuan'] = array_column($edit_items, 'satuan');
+            $_POST['jumlah'] = array_column($edit_items, 'qty');
+            $_POST['harga_satuan'] = array_column($edit_items, 'harga');
+            $_POST['disc_item'] = array_column($edit_items, 'disc');
+        } else {
+            $error = 'Pesanan tidak bisa diedit karena sudah berstatus: ' . $edit_po['status'];
+        }
+    } else {
+        $error = 'Surat pesanan tidak ditemukan.';
     }
 }
 
@@ -187,6 +267,37 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
 }
 .suggestion-item:hover { background-color: #f0fdfa; }
 
+.excel-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 6px;
+    font-size: 0.85rem;
+    outline: none;
+    box-shadow: none;
+}
+.excel-input:focus {
+    background-color: #f0fdfa;
+    border: 1px solid #14b8a6;
+    border-radius: 4px;
+}
+.excel-select {
+    padding: 4px;
+    border: none;
+    background: transparent;
+    font-size: 0.85rem;
+    outline: none;
+}
+.excel-select:focus {
+    background-color: #f0fdfa;
+    border: 1px solid #14b8a6;
+    border-radius: 4px;
+}
+.excel-cell {
+    padding: 0 !important;
+    vertical-align: middle !important;
+}
+
 .sp-modal-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -201,11 +312,14 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
     background-color: #ffffff;
     border-radius: 8px;
     width: 100%;
-    max-width: 600px;
+    max-width: 900px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
 }
 .sp-modal-header { padding: 16px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
-.sp-modal-body { padding: 16px; }
+.sp-modal-body { padding: 16px; flex: 1 1 auto; overflow-y: auto; }
 .sp-modal-footer { padding: 16px; border-top: 1px solid #e5e7eb; text-align: right; }
 .btn-close-modal { background: none; border: none; font-size: 1.2rem; cursor: pointer; }
 </style>
@@ -215,14 +329,17 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
 
 <!-- HERO BANNER -->
 <div class="bp-hero">
-    <div class="bp-hero-badge"><i class="fas fa-star"></i> Form Buat Surat Pesanan</div>
-    <h4 class="bp-hero-title">Surat Pesanan Baru</h4>
+    <div class="bp-hero-badge"><i class="fas fa-star"></i> <?php echo $is_editing ? 'Edit Surat Pesanan' : 'Form Buat Surat Pesanan'; ?></div>
+    <h4 class="bp-hero-title"><?php echo $is_editing ? 'Edit SP: ' . htmlspecialchars($edit_po['no_sp']) : 'Surat Pesanan Baru'; ?></h4>
     <p class="bp-hero-sub">Lengkapi seluruh informasi pesanan, rincian barang, dan metode pembayaran sebelum diajukan.</p>
 </div>
 
 <form action="home.php?page=buat_pesanan" method="POST" id="form-po" style="flex-grow: 1; display: flex; flex-direction: column; min-height: 0;" enctype="multipart/form-data">
+    <?php if (isset($_POST['edit_id'])): ?>
+        <input type="hidden" name="edit_id" value="<?php echo htmlspecialchars($_POST['edit_id']); ?>">
+    <?php endif; ?>
     <input type="hidden" name="action_status" id="action_status" value="draft">
-    <input type="hidden" name="ppn_nilai" id="ppn_nilai" value="<?php echo isset($_POST['ppn_nilai']) ? $_POST['ppn_nilai'] : 0; ?>">
+    <input type="hidden" name="ppn_nilai" id="ppn_nilai" value="<?php echo isset($_POST['ppn_nilai']) ? htmlspecialchars($_POST['ppn_nilai']) : 0; ?>">
 
     <div class="row flex-shrink-0">
 
@@ -351,11 +468,23 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                             </div>
                         </div>
                     </div>
-                    <div class="form-group mb-0">
-                        <label class="bp-field-label">Catatan</label>
-                        <textarea name="notein" id="notein"
-                            class="form-control form-control-sm bp-input" rows="2"
-                            placeholder="Catatan tambahan pesanan..."><?php echo isset($_POST['notein']) ? htmlspecialchars($_POST['notein']) : ''; ?></textarea>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group mb-0">
+                                <label class="bp-field-label">Catatan Internal (Note In)</label>
+                                <textarea name="notein" id="notein"
+                                    class="form-control form-control-sm bp-input" rows="4"
+                                    placeholder="Catatan internal..."><?php echo isset($_POST['notein']) ? htmlspecialchars($_POST['notein']) : ''; ?></textarea>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group mb-0">
+                                <label class="bp-field-label">Catatan Eksternal (Note Out)</label>
+                                <textarea name="noteout" id="noteout"
+                                    class="form-control form-control-sm bp-input" rows="4"
+                                    placeholder="Catatan untuk vendor/eksternal..."><?php echo isset($_POST['noteout']) ? htmlspecialchars($_POST['noteout']) : ''; ?></textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -435,8 +564,8 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                 <div class="bp-panel-icon"><i class="fas fa-boxes"></i></div>
                 Rincian Barang Pesanan
             </div>
-            <button type="button" class="btn btn-sm btn-light font-weight-bold" style="border:1px solid #fbbf24; color:#d97706;" onclick="openItemModal()">
-                <i class="fas fa-plus mr-1"></i> Tambah Baris Modal
+            <button type="button" class="btn btn-sm btn-light font-weight-bold" style="border:1px solid #fbbf24; color:#d97706;" onclick="openGridModal()">
+                <i class="fas fa-table mr-1"></i> Edit Rincian Barang (Data Grid)
             </button>
         </div>
         <div class="bp-panel-body" style="padding:0.4rem; flex: 1 1 auto; overflow-y: auto;">
@@ -482,62 +611,41 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
 
 </div> <!-- /STYLED BOX WRAPPER -->
 
-<!-- Modal Add Item -->
-<div id="itemModal" class="sp-modal-overlay">
+<!-- Modal Data Grid -->
+<div id="gridModal" class="sp-modal-overlay">
     <div class="sp-modal-content">
         <div class="sp-modal-header">
-            <h5 class="mb-0 font-weight-bold" style="color:#1f2937;"><i class="fas fa-box-open text-primary"></i> Detail Barang</h5>
-            <button type="button" class="btn-close-modal" onclick="closeItemModal()"><i class="fas fa-times"></i></button>
+            <h5 class="mb-0 font-weight-bold" style="color:#1f2937;"><i class="fas fa-table text-primary"></i> Data Grid Rincian Barang</h5>
+            <button type="button" class="btn-close-modal" onclick="closeGridModal()"><i class="fas fa-times"></i></button>
         </div>
-        <div class="sp-modal-body">
-            <input type="hidden" id="edit_index" value="-1">
-            <div class="row">
-                <div class="col-md-12 mb-2">
-                    <label>Nama Barang *</label>
-                    <input type="text" id="item_barang" class="form-control form-control-sm font-weight-bold">
-                </div>
-                <div class="col-md-12 mb-2">
-                    <label>Spesifikasi</label>
-                    <input type="text" id="item_spec" class="form-control form-control-sm">
-                </div>
-                <div class="col-md-6 mb-2">
-                    <label>Merk</label>
-                    <input type="text" id="item_merk" class="form-control form-control-sm">
-                </div>
-                <div class="col-md-6 mb-2">
-                    <label>Tipe</label>
-                    <input type="text" id="item_Tipe" class="form-control form-control-sm">
-                </div>
-                <div class="col-md-4 mb-2">
-                    <label>Kuantitas (Qty)</label>
-                    <input type="number" id="item_qty" class="form-control form-control-sm text-center font-weight-bold" value="1" step="0.01" min="0.01" onkeyup="calculateItemTotal()" onchange="calculateItemTotal()">
-                </div>
-                <div class="col-md-4 mb-2">
-                    <label>Satuan</label>
-                    <select id="item_satuan" class="form-control form-control-sm">
-                        <?php foreach($satuans as $st) echo '<option value="'.$st.'">'.$st.'</option>'; ?>
-                    </select>
-                </div>
-                <div class="col-md-4 mb-2">
-                    <label>Diskon Item (Rp)</label>
-                    <input type="number" id="item_disc" class="form-control form-control-sm text-right text-danger" value="0" onkeyup="calculateItemTotal()" onchange="calculateItemTotal()">
-                </div>
-                <div class="col-md-12 mb-2">
-                    <label>Harga Satuan</label>
-                    <div class="input-group input-group-sm">
-                        <div class="input-group-prepend"><span class="input-group-text">Rp</span></div>
-                        <input type="number" id="item_harga" class="form-control form-control-sm text-right font-weight-bold" value="0" onkeyup="calculateItemTotal()" onchange="calculateItemTotal()">
-                    </div>
-                </div>
+        <div class="sp-modal-body" style="background-color: #f9fafb;">
+            <div class="mb-2">
+                <button type="button" class="btn btn-sm btn-success font-weight-bold" onclick="addEmptyGridRow()">
+                    <i class="fas fa-plus mr-1"></i> Tambah Baris Baru
+                </button>
             </div>
-            <div class="mt-3 p-2 rounded" style="background:#f0fdfa; border:1px solid #ccfbf1; display:flex; justify-content:space-between; align-items:center;">
-                <span class="font-weight-bold text-success" style="font-size:0.85rem;">SUBTOTAL ITEM</span>
-                <div class="font-weight-bold text-success" style="font-size:1.1rem;">Rp <span id="item_jumlah">0</span></div>
+            <div class="table-responsive" style="background: white; border: 1px solid #e5e7eb; border-radius: 4px;">
+                <table class="table table-bordered mb-0 bp-items-table">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="width:2.8rem;">#</th>
+                            <th style="min-width:12rem;">Nama Barang & Spesifikasi <span style="color:#fbbf24;">*</span></th>
+                            <th style="min-width:10rem;">Merk & Tipe</th>
+                            <th class="text-center" style="width:8rem;">Qty & Satuan</th>
+                            <th class="text-right" style="width:9rem;">Harga Satuan</th>
+                            <th class="text-right" style="width:8rem;">Diskon</th>
+                            <th class="text-right" style="width:9rem;">Subtotal</th>
+                            <th class="text-center" style="width:4rem;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="grid-items-body">
+                        <!-- Filled by Javascript Grid -->
+                    </tbody>
+                </table>
             </div>
         </div>
         <div class="sp-modal-footer">
-            <button type="button" class="btn btn-sm btn-secondary" onclick="closeItemModal()">Batal</button>
-            <button type="button" class="btn btn-sm btn-primary" onclick="addItem()"><i class="fas fa-check"></i> Simpan Item</button>
+            <button type="button" class="btn btn-sm btn-primary" onclick="closeGridModal()"><i class="fas fa-check"></i> Selesai & Terapkan</button>
         </div>
     </div>
 </div>
@@ -691,53 +799,101 @@ function clearItemForm() {
     $('#item_jumlah').text('0');
 }
 
-function addItem() {
-    let item = {
-        nama_barang: $('#item_barang').val().trim(),
-        merk: $('#item_merk').val().trim(),
-        Tipe: $('#item_Tipe').val().trim(),
-        spec: $('#item_spec').val().trim(),
-        jumlah: parseFloat($('#item_qty').val()) || 0,
-        satuan: $('#item_satuan').val(),
-        harga_satuan: parseFloat($('#item_harga').val()) || 0,
-        disc: parseFloat($('#item_disc').val()) || 0
-    };
-    
-    item.subtotal = Math.max(0, (item.jumlah * item.harga_satuan) - item.disc);
-    
-    if(!item.nama_barang) {
-        alert("Nama barang harus diisi!");
-        return;
-    }
-    if(item.jumlah <= 0) {
-        alert("Kuantitas harus lebih dari 0!");
-        return;
-    }
-    
-    let idx = parseInt($('#edit_index').val());
-    if(idx >= 0) {
-        orderItems[idx] = item;
-    } else {
-        orderItems.push(item);
-    }
-    
-    renderItemsTable();
-    closeItemModal();
-    calculateGlobal();
+function openGridModal() {
+    renderGridTable();
+    $('#gridModal').css('display', 'flex');
 }
 
-function removeItem(index) {
-    if(confirm("Hapus barang ini dari pesanan?")) {
+function closeGridModal() {
+    renderItemsTable();
+    $('#gridModal').css('display', 'none');
+}
+
+function updateItem(idx, field, value) {
+    if(field === 'jumlah' || field === 'harga_satuan' || field === 'disc') {
+        orderItems[idx][field] = parseFloat(value) || 0;
+        orderItems[idx].subtotal = Math.max(0, (orderItems[idx].jumlah * orderItems[idx].harga_satuan) - orderItems[idx].disc);
+        $('#grid_subtotal_' + idx).text('Rp ' + formatCurrency(orderItems[idx].subtotal));
+        calculateGlobal(); // To keep background total in sync if needed
+    } else {
+        orderItems[idx][field] = value;
+    }
+}
+
+function addEmptyGridRow() {
+    orderItems.push({
+        nama_barang: '',
+        merk: '',
+        Tipe: '',
+        spec: '',
+        jumlah: 1,
+        satuan: 'pcs',
+        harga_satuan: 0,
+        disc: 0,
+        subtotal: 0
+    });
+    renderGridTable();
+    // Focus the newly created row's first input
+    setTimeout(() => {
+        $(`#grid_nama_barang_${orderItems.length - 1}`).focus();
+    }, 100);
+}
+
+function removeGridItem(index) {
+    if(confirm("Hapus baris ini?")) {
         orderItems.splice(index, 1);
-        renderItemsTable();
+        renderGridTable();
         calculateGlobal();
     }
+}
+
+function renderGridTable() {
+    let html = '';
+    if(orderItems.length === 0) {
+        html = '<tr><td colspan="8" class="text-center text-muted font-italic" style="padding:16px;">Belum ada barang. Klik Tambah Baris Baru.</td></tr>';
+    } else {
+        const satuanOptions = <?php echo $satuans_json; ?>;
+        orderItems.forEach((item, idx) => {
+            let selectSatuanHtml = `<select class="excel-select" style="width:100%;" onchange="updateItem(${idx}, 'satuan', this.value)">`;
+            satuanOptions.forEach(st => {
+                selectSatuanHtml += `<option value="${st}" ${item.satuan === st ? 'selected' : ''}>${st}</option>`;
+            });
+            selectSatuanHtml += `</select>`;
+
+            html += `<tr>
+                <td class="text-center align-middle"><span class="badge badge-secondary">${idx + 1}</span></td>
+                <td class="excel-cell" style="vertical-align: top;">
+                    <input type="text" class="excel-input font-weight-bold" id="grid_nama_barang_${idx}" value="${escapeHtml(item.nama_barang)}" placeholder="Nama Barang..." onchange="updateItem(${idx}, 'nama_barang', this.value)" style="border-bottom:1px solid #f3f4f6; margin-bottom:1px;">
+                    <input type="text" class="excel-input text-muted" style="font-size:0.75rem; padding-top:2px;" value="${escapeHtml(item.spec)}" placeholder="Spesifikasi..." onchange="updateItem(${idx}, 'spec', this.value)">
+                </td>
+                <td class="excel-cell" style="vertical-align: top;">
+                    <input type="text" class="excel-input" value="${escapeHtml(item.merk)}" placeholder="Merk..." onchange="updateItem(${idx}, 'merk', this.value)" style="border-bottom:1px solid #f3f4f6; margin-bottom:1px;">
+                    <input type="text" class="excel-input text-muted" style="font-size:0.75rem; padding-top:2px;" value="${escapeHtml(item.Tipe)}" placeholder="Tipe..." onchange="updateItem(${idx}, 'Tipe', this.value)">
+                </td>
+                <td class="excel-cell" style="vertical-align: top;">
+                    <input type="number" class="excel-input text-center font-weight-bold" value="${item.jumlah}" min="0.01" step="0.01" onchange="updateItem(${idx}, 'jumlah', this.value)" oninput="updateItem(${idx}, 'jumlah', this.value)" style="border-bottom:1px solid #f3f4f6; margin-bottom:1px;">
+                    ${selectSatuanHtml}
+                </td>
+                <td class="excel-cell align-middle">
+                    <input type="number" class="excel-input text-right font-weight-bold" value="${item.harga_satuan}" onchange="updateItem(${idx}, 'harga_satuan', this.value)" oninput="updateItem(${idx}, 'harga_satuan', this.value)">
+                </td>
+                <td class="excel-cell align-middle">
+                    <input type="number" class="excel-input text-right text-danger" value="${item.disc}" onchange="updateItem(${idx}, 'disc', this.value)" oninput="updateItem(${idx}, 'disc', this.value)">
+                </td>
+                <td class="text-right align-middle font-weight-bold text-success" id="grid_subtotal_${idx}">Rp ${formatCurrency(item.subtotal)}</td>
+                <td class="text-center align-middle">
+                    <button type="button" class="btn btn-sm btn-light text-danger" style="padding:4px 8px;" onclick="removeGridItem(${idx})" title="Hapus Baris"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>`;
+        });
+    }
+    $('#grid-items-body').html(html);
 }
 
 function renderItemsTable() {
     let html = '';
     if(orderItems.length === 0) {
-        html = '<tr><td colspan="8" class="text-center text-muted font-italic" style="padding:16px;">Belum ada barang. Klik Tambah Baris Modal.</td></tr>';
+        html = '<tr><td colspan="8" class="text-center text-muted font-italic" style="padding:16px;">Belum ada barang. Klik Edit Rincian Barang (Data Grid).</td></tr>';
     } else {
         orderItems.forEach((item, idx) => {
             html += `<tr>
@@ -766,13 +922,13 @@ function renderItemsTable() {
                 <td class="text-right align-middle text-danger">Rp ${formatCurrency(item.disc)}</td>
                 <td class="text-right align-middle font-weight-bold text-success">Rp ${formatCurrency(item.subtotal)}</td>
                 <td class="text-center align-middle">
-                    <button type="button" class="btn btn-sm btn-light text-primary" style="padding:2px 6px;" onclick="openItemModal(${idx})" title="Edit"><i class="fas fa-edit"></i></button>
-                    <button type="button" class="btn btn-sm btn-light text-danger" style="padding:2px 6px;" onclick="removeItem(${idx})" title="Hapus"><i class="fas fa-trash"></i></button>
+                    <!-- Removed inline edit/delete since it's managed via modal now -->
                 </td>
             </tr>`;
         });
     }
     $('#po-items-body').html(html);
+    calculateGlobal();
 }
 
 function escapeHtml(text) {
