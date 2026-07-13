@@ -312,7 +312,7 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
     background-color: #ffffff;
     border-radius: 8px;
     width: 100%;
-    max-width: 900px;
+    max-width: 98vw;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
@@ -565,7 +565,7 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                 Rincian Barang Pesanan
             </div>
             <button type="button" class="btn btn-sm btn-light font-weight-bold" style="border:1px solid #fbbf24; color:#d97706;" onclick="openGridModal()">
-                <i class="fas fa-table mr-1"></i> Edit Rincian Barang (Data Grid)
+                <i class="fas fa-table mr-1"></i> Tambah Rincian Barang (Data Grid)
             </button>
         </div>
         <div class="bp-panel-body" style="padding:0.4rem; flex: 1 1 auto; overflow-y: auto;">
@@ -629,9 +629,12 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                     <thead>
                         <tr>
                             <th class="text-center" style="width:2.8rem;">#</th>
-                            <th style="min-width:12rem;">Nama Barang & Spesifikasi <span style="color:#fbbf24;">*</span></th>
-                            <th style="min-width:10rem;">Merk & Tipe</th>
-                            <th class="text-center" style="width:8rem;">Qty & Satuan</th>
+                            <th style="min-width:12rem;">Nama Barang <span style="color:#fbbf24;">*</span></th>
+                            <th style="min-width:10rem;">Spesifikasi</th>
+                            <th style="min-width:8rem;">Merk</th>
+                            <th style="min-width:8rem;">Tipe</th>
+                            <th class="text-center" style="width:6rem;">Qty</th>
+                            <th class="text-center" style="width:7rem;">Satuan</th>
                             <th class="text-right" style="width:9rem;">Harga Satuan</th>
                             <th class="text-right" style="width:8rem;">Diskon</th>
                             <th class="text-right" style="width:9rem;">Subtotal</th>
@@ -847,14 +850,36 @@ function removeGridItem(index) {
     }
 }
 
+function unformatCurrency(val) {
+    if(typeof val === 'number') return val;
+    if(!val) return 0;
+    return parseFloat(val.replace(/\./g, '').replace(/,/g, '.')) || 0;
+}
+
+function updateItemGrid(idx, field, elm) {
+    let value = elm.value;
+    if(field === 'jumlah' || field === 'harga_satuan' || field === 'disc') {
+        let numVal = unformatCurrency(value);
+        if(field !== 'jumlah') {
+            elm.value = formatCurrency(numVal); // Re-format input field
+        }
+        orderItems[idx][field] = numVal;
+        orderItems[idx].subtotal = Math.max(0, (orderItems[idx].jumlah * orderItems[idx].harga_satuan) - orderItems[idx].disc);
+        $('#grid_subtotal_' + idx).text('Rp ' + formatCurrency(orderItems[idx].subtotal));
+        calculateGlobal(); // To keep background total in sync if needed
+    } else {
+        orderItems[idx][field] = value;
+    }
+}
+
 function renderGridTable() {
     let html = '';
     if(orderItems.length === 0) {
-        html = '<tr><td colspan="8" class="text-center text-muted font-italic" style="padding:16px;">Belum ada barang. Klik Tambah Baris Baru.</td></tr>';
+        html = '<tr><td colspan="11" class="text-center text-muted font-italic" style="padding:16px;">Belum ada barang. Klik Tambah Baris Baru.</td></tr>';
     } else {
         const satuanOptions = <?php echo $satuans_json; ?>;
         orderItems.forEach((item, idx) => {
-            let selectSatuanHtml = `<select class="excel-select" style="width:100%;" onchange="updateItem(${idx}, 'satuan', this.value)">`;
+            let selectSatuanHtml = `<select class="excel-select" style="width:100%;" onchange="updateItemGrid(${idx}, 'satuan', this)">`;
             satuanOptions.forEach(st => {
                 selectSatuanHtml += `<option value="${st}" ${item.satuan === st ? 'selected' : ''}>${st}</option>`;
             });
@@ -862,23 +887,29 @@ function renderGridTable() {
 
             html += `<tr>
                 <td class="text-center align-middle"><span class="badge badge-secondary">${idx + 1}</span></td>
-                <td class="excel-cell" style="vertical-align: top;">
-                    <input type="text" class="excel-input font-weight-bold" id="grid_nama_barang_${idx}" value="${escapeHtml(item.nama_barang)}" placeholder="Nama Barang..." onchange="updateItem(${idx}, 'nama_barang', this.value)" style="border-bottom:1px solid #f3f4f6; margin-bottom:1px;">
-                    <input type="text" class="excel-input text-muted" style="font-size:0.75rem; padding-top:2px;" value="${escapeHtml(item.spec)}" placeholder="Spesifikasi..." onchange="updateItem(${idx}, 'spec', this.value)">
+                <td class="excel-cell">
+                    <input type="text" class="excel-input font-weight-bold" id="grid_nama_barang_${idx}" value="${escapeHtml(item.nama_barang)}" placeholder="Nama..." onchange="updateItemGrid(${idx}, 'nama_barang', this)">
                 </td>
-                <td class="excel-cell" style="vertical-align: top;">
-                    <input type="text" class="excel-input" value="${escapeHtml(item.merk)}" placeholder="Merk..." onchange="updateItem(${idx}, 'merk', this.value)" style="border-bottom:1px solid #f3f4f6; margin-bottom:1px;">
-                    <input type="text" class="excel-input text-muted" style="font-size:0.75rem; padding-top:2px;" value="${escapeHtml(item.Tipe)}" placeholder="Tipe..." onchange="updateItem(${idx}, 'Tipe', this.value)">
+                <td class="excel-cell">
+                    <input type="text" class="excel-input" value="${escapeHtml(item.spec)}" placeholder="Spesifikasi..." onchange="updateItemGrid(${idx}, 'spec', this)">
                 </td>
-                <td class="excel-cell" style="vertical-align: top;">
-                    <input type="number" class="excel-input text-center font-weight-bold" value="${item.jumlah}" min="0.01" step="0.01" onchange="updateItem(${idx}, 'jumlah', this.value)" oninput="updateItem(${idx}, 'jumlah', this.value)" style="border-bottom:1px solid #f3f4f6; margin-bottom:1px;">
+                <td class="excel-cell">
+                    <input type="text" class="excel-input" value="${escapeHtml(item.merk)}" placeholder="Merk..." onchange="updateItemGrid(${idx}, 'merk', this)">
+                </td>
+                <td class="excel-cell">
+                    <input type="text" class="excel-input" value="${escapeHtml(item.Tipe)}" placeholder="Tipe..." onchange="updateItemGrid(${idx}, 'Tipe', this)">
+                </td>
+                <td class="excel-cell">
+                    <input type="number" class="excel-input text-center font-weight-bold" value="${item.jumlah}" min="0.01" step="0.01" onchange="updateItemGrid(${idx}, 'jumlah', this)" oninput="updateItemGrid(${idx}, 'jumlah', this)">
+                </td>
+                <td class="excel-cell">
                     ${selectSatuanHtml}
                 </td>
                 <td class="excel-cell align-middle">
-                    <input type="number" class="excel-input text-right font-weight-bold" value="${item.harga_satuan}" onchange="updateItem(${idx}, 'harga_satuan', this.value)" oninput="updateItem(${idx}, 'harga_satuan', this.value)">
+                    <input type="text" class="excel-input text-right font-weight-bold" value="${formatCurrency(item.harga_satuan)}" onchange="updateItemGrid(${idx}, 'harga_satuan', this)" onfocus="this.select()">
                 </td>
                 <td class="excel-cell align-middle">
-                    <input type="number" class="excel-input text-right text-danger" value="${item.disc}" onchange="updateItem(${idx}, 'disc', this.value)" oninput="updateItem(${idx}, 'disc', this.value)">
+                    <input type="text" class="excel-input text-right text-danger" value="${formatCurrency(item.disc)}" onchange="updateItemGrid(${idx}, 'disc', this)" onfocus="this.select()">
                 </td>
                 <td class="text-right align-middle font-weight-bold text-success" id="grid_subtotal_${idx}">Rp ${formatCurrency(item.subtotal)}</td>
                 <td class="text-center align-middle">

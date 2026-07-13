@@ -47,7 +47,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_receipt_checklis
 }
 
 // Fetch all approved (ACC) Purchase Orders
-$approved_pos = db_get_purchase_orders('acc');
+$raw_approved_pos = db_get_purchase_orders('acc');
+$filter_kelengkapan = isset($_GET['kelengkapan']) ? $_GET['kelengkapan'] : '';
+
+$approved_pos = array();
+foreach ($raw_approved_pos as $po) {
+    $po_items = db_get_purchase_order_items($po['id']);
+    $is_lengkap = true;
+    if (count($po_items) === 0) {
+        $is_lengkap = false;
+    } else {
+        foreach ($po_items as $item) {
+            if ($item['status_terima'] !== 'lengkap') {
+                $is_lengkap = false;
+                break;
+            }
+        }
+    }
+    
+    $po['is_lengkap'] = $is_lengkap;
+    
+    if ($filter_kelengkapan === 'lengkap' && !$is_lengkap) continue;
+    if ($filter_kelengkapan === 'belum_lengkap' && $is_lengkap) continue;
+    
+    $approved_pos[] = $po;
+}
 
 // If a PO is selected, fetch its details
 $selected_po = null;
@@ -78,17 +102,31 @@ require_once dirname(__FILE__) . '/../includes/header.php';
     </div>
 <?php endif; ?>
 
-<div class="bp-hero no-print" style="padding:0.5rem 1rem; margin-bottom:0.5rem;">
+<div class="bp-hero no-print" style="padding:2.5rem 1.5rem; margin-bottom:1rem;">
     <div class="bp-hero-badge"><i class="fas fa-boxes"></i> Penerimaan Barang</div>
-    <h4 class="bp-hero-title" style="font-size:1rem; margin-bottom:0;">Checklist Kedatangan Barang</h4>
+    <h4 class="bp-hero-title" style="font-size:1.2rem; margin-bottom:0;">Checklist Kedatangan Barang</h4>
 </div>
 
 <div class="row" style="flex: 1 1 auto; min-height: 0; margin-left:-0.25rem; margin-right:-0.25rem;">
     <!-- LEFT PANEL: Approved PO Selector -->
-    <div class="col-md-4 mb-2 px-1">
+    <div class="col-md-3 mb-2 px-1">
         <div class="bp-panel bp-panel-violet" style="height: 100%; margin-bottom: 0; display: flex; flex-direction: column;">
             <div class="bp-panel-header" style="padding:0.4rem 0.8rem;">
                 <div><i class="fas fa-check-double mr-2"></i> Pilih SP (Status ACC)</div>
+            </div>
+            
+            <div style="padding: 0.5rem; background-color: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                <form action="home.php" method="GET" class="m-0">
+                    <input type="hidden" name="page" value="penerimaan">
+                    <?php if (isset($_GET['po_id'])): ?>
+                        <input type="hidden" name="po_id" value="<?php echo (int)$_GET['po_id']; ?>">
+                    <?php endif; ?>
+                    <select name="kelengkapan" class="form-control form-control-sm" onchange="this.form.submit()" style="font-size:0.8rem; height:auto; padding:0.2rem 0.4rem;">
+                        <option value="">-- Semua Status --</option>
+                        <option value="lengkap" <?php echo $filter_kelengkapan === 'lengkap' ? 'selected' : ''; ?>>Lengkap</option>
+                        <option value="belum_lengkap" <?php echo $filter_kelengkapan === 'belum_lengkap' ? 'selected' : ''; ?>>Belum Lengkap</option>
+                    </select>
+                </form>
             </div>
             
             <div class="bp-panel-body p-0" style="flex: 1 1 auto; overflow-y: auto;">
@@ -108,9 +146,16 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                                         <?php echo format_date($po['tgl_pesanan']); ?>
                                     </small>
                                 </div>
-                                <p class="mb-0 small <?php echo ($selected_po && $selected_po['id'] == $po['id']) ? 'text-white' : 'text-secondary'; ?>" style="font-size:0.7rem;">
-                                    Vendor: <strong><?php echo htmlspecialchars($po['nama_vendor']); ?></strong>
-                                </p>
+                                <div class="d-flex w-100 justify-content-between align-items-center mt-1">
+                                    <p class="mb-0 small <?php echo ($selected_po && $selected_po['id'] == $po['id']) ? 'text-white' : 'text-secondary'; ?>" style="font-size:0.7rem;">
+                                        Vendor: <strong><?php echo htmlspecialchars($po['nama_vendor']); ?></strong>
+                                    </p>
+                                    <?php if ($po['is_lengkap']): ?>
+                                        <span class="badge badge-success" style="font-size:0.6rem;"><i class="fas fa-check"></i> Lengkap</span>
+                                    <?php else: ?>
+                                        <span class="badge badge-warning" style="font-size:0.6rem;"><i class="fas fa-clock"></i> Belum Lengkap</span>
+                                    <?php endif; ?>
+                                </div>
                             </a>
                         <?php endforeach; ?>
                     <?php endif; ?>
@@ -120,7 +165,7 @@ require_once dirname(__FILE__) . '/../includes/header.php';
     </div>
 
     <!-- RIGHT PANEL: Checklist Form -->
-    <div class="col-md-8 mb-2 px-1 d-flex flex-column" style="height: 100%;">
+    <div class="col-md-9 mb-2 px-1 d-flex flex-column" style="height: 100%;">
         <?php if ($selected_po): ?>
             <?php
             $total_items = count($selected_po_items);
