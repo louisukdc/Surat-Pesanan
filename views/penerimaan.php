@@ -47,7 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_receipt_checklis
 }
 
 // Fetch all approved (ACC) Purchase Orders
-$raw_approved_pos = db_get_purchase_orders('acc');
+$f_tgl_mulai = isset($_GET['tgl_mulai']) ? $_GET['tgl_mulai'] : '';
+$f_tgl_selesai = isset($_GET['tgl_selesai']) ? $_GET['tgl_selesai'] : '';
+$raw_approved_pos = db_get_purchase_orders('acc', '', $f_tgl_mulai, $f_tgl_selesai);
 $filter_kelengkapan = isset($_GET['kelengkapan']) ? $_GET['kelengkapan'] : '';
 
 $approved_pos = array();
@@ -121,11 +123,29 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                     <?php if (isset($_GET['po_id'])): ?>
                         <input type="hidden" name="po_id" value="<?php echo (int)$_GET['po_id']; ?>">
                     <?php endif; ?>
-                    <select name="kelengkapan" class="form-control form-control-sm" onchange="this.form.submit()" style="font-size:0.8rem; height:auto; padding:0.2rem 0.4rem;">
-                        <option value="">-- Semua Status --</option>
-                        <option value="lengkap" <?php echo $filter_kelengkapan === 'lengkap' ? 'selected' : ''; ?>>Lengkap</option>
-                        <option value="belum_lengkap" <?php echo $filter_kelengkapan === 'belum_lengkap' ? 'selected' : ''; ?>>Belum Lengkap</option>
-                    </select>
+                    <div class="mb-1">
+                        <select name="kelengkapan" class="form-control form-control-sm" style="font-size:0.8rem; height:auto; padding:0.2rem 0.4rem;">
+                            <option value="">-- Semua Status --</option>
+                            <option value="lengkap" <?php echo $filter_kelengkapan === 'lengkap' ? 'selected' : ''; ?>>Lengkap</option>
+                            <option value="belum_lengkap" <?php echo $filter_kelengkapan === 'belum_lengkap' ? 'selected' : ''; ?>>Belum Lengkap</option>
+                        </select>
+                    </div>
+                    <div class="row mx-0">
+                        <div class="col-6 px-0 pr-1 mb-1">
+                            <input type="date" name="tgl_mulai" class="form-control form-control-sm" style="font-size:0.75rem; height:auto; padding:0.2rem;" value="<?php echo htmlspecialchars($f_tgl_mulai); ?>" title="Tanggal Mulai">
+                        </div>
+                        <div class="col-6 px-0 pl-1 mb-1">
+                            <input type="date" name="tgl_selesai" class="form-control form-control-sm" style="font-size:0.75rem; height:auto; padding:0.2rem;" value="<?php echo htmlspecialchars($f_tgl_selesai); ?>" title="Tanggal Selesai">
+                        </div>
+                    </div>
+                    <div class="d-flex gap-1">
+                        <button type="submit" class="btn btn-sm btn-premium flex-grow-1 m-0" style="padding:0.2rem; font-size:0.75rem;">
+                            <i class="fas fa-search"></i> Filter
+                        </button>
+                        <a href="home.php?page=penerimaan" class="btn btn-sm btn-premium-secondary ml-1" style="padding:0.2rem 0.5rem; font-size:0.75rem;">
+                            <i class="fas fa-sync"></i>
+                        </a>
+                    </div>
                 </form>
             </div>
             
@@ -136,8 +156,12 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                             Tidak ada Surat Pesanan yang berstatus ACC saat ini.
                         </div>
                     <?php else: ?>
-                        <?php foreach ($approved_pos as $po): ?>
-                            <a href="home.php?page=penerimaan&po_id=<?php echo $po['id']; ?>" class="list-group-item list-group-item-action p-2 <?php echo ($selected_po && $selected_po['id'] == $po['id']) ? 'active' : ''; ?>">
+                        <?php foreach ($approved_pos as $po): 
+                            $qs = $_GET;
+                            $qs['po_id'] = $po['id'];
+                            $link = 'home.php?' . http_build_query($qs);
+                        ?>
+                            <a href="<?php echo htmlspecialchars($link); ?>" class="list-group-item list-group-item-action p-2 <?php echo ($selected_po && $selected_po['id'] == $po['id']) ? 'active' : ''; ?>">
                                 <div class="d-flex w-100 justify-content-between mb-0">
                                     <h6 class="mb-0 font-weight-bold <?php echo ($selected_po && $selected_po['id'] == $po['id']) ? 'text-white' : 'text-dark'; ?>" style="font-size:0.85rem;">
                                         <?php echo htmlspecialchars($po['no_pesanan']); ?>

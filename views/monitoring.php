@@ -44,13 +44,23 @@ $f_tgl_selesai = isset($_GET['tgl_selesai']) ? $_GET['tgl_selesai'] : '';
 // Fetch POs
 $orders = db_get_purchase_orders($f_status, $f_vendor, $f_tgl_mulai, $f_tgl_selesai);
 
-// Prioritaskan yang status DIAJUKAN dan batasi maksimal 10 data
+// Prioritaskan yang status DIAJUKAN
 usort($orders, function($a, $b) {
     if ($a['status'] === 'diajukan' && $b['status'] !== 'diajukan') return -1;
     if ($a['status'] !== 'diajukan' && $b['status'] === 'diajukan') return 1;
     return $b['id'] < $a['id'] ? -1 : ($b['id'] > $a['id'] ? 1 : 0);
 });
-$orders = array_slice($orders, 0, 10);
+
+// Pagination Setup
+$page = isset($_GET['p']) ? max(1, (int)$_GET['p']) : 1;
+$limit = 20;
+$total_data = count($orders);
+$total_pages = ceil($total_data / $limit);
+if ($total_pages == 0) $total_pages = 1;
+if ($page > $total_pages) $page = $total_pages;
+
+$offset = ($page - 1) * $limit;
+$orders = array_slice($orders, $offset, $limit);
 
 // Detail view if po_id parameter is set
 $selected_po = null;
@@ -445,7 +455,8 @@ require_once dirname(__FILE__) . '/../includes/header.php';
         <form action="home.php" method="GET" class="mb-2 flex-shrink-0">
             <input type="hidden" name="page" value="monitoring">
             <div class="row align-items-end" style="margin-left:-0.25rem; margin-right:-0.25rem;">
-                <div class="col-md-3 col-sm-6 mb-1 px-1">
+                <!-- Baris 1: Status dan Tanggal -->
+                <div class="col-md-4 col-sm-4 mb-1 px-1">
                     <label for="status" class="bp-field-label">Status Pesanan</label>
                     <select name="status" id="status" class="form-control form-control-sm bp-input">
                         <option value="">-- Semua Status --</option>
@@ -457,23 +468,29 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                     </select>
                 </div>
                 
-                <div class="col-md-3 col-sm-6 mb-1 px-1">
-                    <label for="vendor" class="bp-field-label">Nama Vendor</label>
-                    <input type="text" name="vendor" id="vendor" class="form-control form-control-sm bp-input" placeholder="Cari nama vendor..." value="<?php echo htmlspecialchars($f_vendor); ?>">
-                </div>
-                
-                <div class="col-md-2 col-sm-6 mb-1 px-1">
+                <div class="col-md-4 col-sm-4 mb-1 px-1">
                     <label for="tgl_mulai" class="bp-field-label">Tgl Mulai</label>
                     <input type="date" name="tgl_mulai" id="tgl_mulai" class="form-control form-control-sm bp-input" value="<?php echo htmlspecialchars($f_tgl_mulai); ?>">
                 </div>
                 
-                <div class="col-md-2 col-sm-6 mb-1 px-1">
+                <div class="col-md-4 col-sm-4 mb-1 px-1">
                     <label for="tgl_selesai" class="bp-field-label">Tgl Selesai</label>
                     <input type="date" name="tgl_selesai" id="tgl_selesai" class="form-control form-control-sm bp-input" value="<?php echo htmlspecialchars($f_tgl_selesai); ?>">
                 </div>
                 
-                <div class="col-md-2 col-sm-12 mb-1 px-1 d-flex gap-1">
-                    <button type="submit" class="btn btn-sm btn-premium btn-block m-0" style="padding:0.2rem 0.5rem; font-size:0.75rem;">
+                <!-- Baris 2: Pencarian Vendor dan Tombol Cari -->
+                <div class="col-md-8 col-sm-8 mb-1 px-1 mt-1">
+                    <label for="vendor" class="bp-field-label">Pencarian</label>
+                    <div class="input-group input-group-sm">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+                        </div>
+                        <input type="text" name="vendor" id="vendor" class="form-control bp-input border-left-0 pl-0" placeholder="Search..." value="<?php echo htmlspecialchars($f_vendor); ?>">
+                    </div>
+                </div>
+                
+                <div class="col-md-4 col-sm-4 mb-1 px-1 mt-1 d-flex gap-1">
+                    <button type="submit" class="btn btn-sm btn-premium flex-grow-1 m-0" style="padding:0.2rem 0.5rem; font-size:0.75rem;">
                         <i class="fas fa-search"></i> Cari
                     </button>
                     <a href="home.php?page=monitoring" class="btn btn-sm btn-premium-secondary ml-1" style="padding:0.2rem 0.5rem; font-size:0.75rem;">
@@ -531,6 +548,40 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination Controls -->
+        <?php if ($total_pages > 1): ?>
+        <div class="d-flex justify-content-between align-items-center mt-3 px-3 pb-3">
+            <span class="text-muted small font-weight-bold">Menampilkan <?php echo $offset + 1; ?> - <?php echo min($offset + $limit, $total_data); ?> dari <?php echo $total_data; ?> data</span>
+            <ul class="pagination pagination-sm mb-0 shadow-sm">
+                <?php
+                $qs = $_GET;
+                unset($qs['p']);
+                $base_url = 'home.php?' . http_build_query($qs);
+                ?>
+                <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
+                    <a class="page-link" href="<?php echo $base_url . '&p=' . ($page - 1); ?>">Sebelumnya</a>
+                </li>
+                <?php
+                $start_p = max(1, $page - 2);
+                $end_p = min($total_pages, $page + 2);
+                if ($start_p > 1) { echo '<li class="page-item disabled"><span class="page-link">...</span></li>'; }
+                for ($i = $start_p; $i <= $end_p; $i++) {
+                    echo '<li class="page-item ' . ($i === $page ? 'active' : '') . '"><a class="page-link" href="' . $base_url . '&p=' . $i . '">' . $i . '</a></li>';
+                }
+                if ($end_p < $total_pages) { echo '<li class="page-item disabled"><span class="page-link">...</span></li>'; }
+                ?>
+                <li class="page-item <?php echo $page >= $total_pages ? 'disabled' : ''; ?>">
+                    <a class="page-link" href="<?php echo $base_url . '&p=' . ($page + 1); ?>">Berikutnya</a>
+                </li>
+            </ul>
+        </div>
+        <?php elseif ($total_data > 0): ?>
+        <div class="mt-3 px-3 pb-3 text-muted small font-weight-bold">
+            Menampilkan total <?php echo $total_data; ?> data
+        </div>
+        <?php endif; ?>
+        
     </div>
 </div>
 <?php endif; ?>

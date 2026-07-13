@@ -341,7 +341,10 @@ function db_get_dashboard_stats() {
 function db_get_purchase_orders($status = '', $vendor = '', $tgl_mulai = '', $tgl_selesai = '') {
     $where = array("1=1");
     if ($status    !== '') $where[] = "po.status = '"    . db_escape($status)     . "'";
-    if ($vendor    !== '') $where[] = "po.namasup LIKE '%" . db_escape($vendor) . "%'";
+    if ($vendor !== '') {
+        $search = db_escape($vendor);
+        $where[] = "(po.namasup LIKE '%$search%' OR po.no_sp LIKE '%$search%' OR COALESCE(u.NamaUser, po.user) LIKE '%$search%')";
+    }
     if ($tgl_mulai !== '') $where[] = "po.tgl_sp >= '" . db_escape($tgl_mulai) . "'";
     if ($tgl_selesai !== '') $where[] = "po.tgl_sp <= '" . db_escape($tgl_selesai) . "'";
 
