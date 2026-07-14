@@ -404,8 +404,40 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                     </div>
                 </div>
 
-                <!-- Approval Forms -->
+                <!-- Approval Forms & Attachments -->
                 <div class="col-md-6 no-print">
+                    <?php if (!empty($selected_po['nama_lampiran'])): ?>
+                    <div class="bp-panel bp-panel-slate mb-2">
+                        <div class="bp-panel-header"><i class="fas fa-file-invoice mr-2"></i> Lampiran Surat Pesanan</div>
+                        <div class="bp-panel-body" style="padding:1rem;">
+                            <?php 
+                            $lampiran_files = explode(',', $selected_po['nama_lampiran']);
+                            foreach ($lampiran_files as $idx => $file): 
+                                $file = trim($file);
+                                if (empty($file)) continue;
+                                // Anggap default folder uploads/lampiran/
+                                $file_url = 'uploads/lampiran/' . $file;
+                            ?>
+                                <a href="<?php echo htmlspecialchars($file_url); ?>" target="_blank" class="btn btn-sm btn-outline-primary font-weight-bold mr-2 mb-2">
+                                    <i class="fas fa-file-download mr-1"></i> Lampiran <?php echo $idx + 1; ?>
+                                </a>
+                            <?php endforeach; ?>
+                            <p class="text-muted small mt-1 mb-0">Dokumen lampiran yang diunggah saat pesanan dibuat.</p>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($selected_po['lampiran_penerimaan'])): ?>
+                    <div class="bp-panel bp-panel-slate mb-0">
+                        <div class="bp-panel-header"><i class="fas fa-paperclip mr-2"></i> Lampiran Penerimaan Barang</div>
+                        <div class="bp-panel-body text-center" style="padding:1.5rem;">
+                            <a href="<?php echo htmlspecialchars($selected_po['lampiran_penerimaan']); ?>" target="_blank" class="btn btn-info font-weight-bold">
+                                <i class="fas fa-file-download mr-1"></i> Buka Lampiran
+                            </a>
+                            <p class="text-muted small mt-2 mb-0">File lampiran surat jalan atau bukti penerimaan.</p>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div> <!-- end scrollable content -->
@@ -419,7 +451,7 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                             <strong>Tindakan Dibutuhkan:</strong> Tinjau rincian SP ini. Anda dapat menyetujui (ACC) atau menolak permintaan ini.
                         </div>
                         <div style="flex: 1; margin-left: 1rem;">
-                            <form action="/home.php?page=monitoring&po_id=<?php echo $selected_po['id']; ?>" method="POST" id="form-approval" class="d-flex align-items-center justify-content-end gap-2" style="gap:0.5rem;">
+                            <form action="home.php?page=monitoring&po_id=<?php echo $selected_po['id']; ?>" method="POST" id="form-approval" class="d-flex align-items-center justify-content-end gap-2" style="gap:0.5rem;">
                                 <input type="hidden" name="po_approval_action" value="1">
                                 <input type="hidden" name="po_id" value="<?php echo $selected_po['id']; ?>">
                                 <input type="hidden" name="status" id="approval-status-input" value="">

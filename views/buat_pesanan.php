@@ -96,6 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Harga dari vendor harus lebih besar dari 0.';
     } elseif (empty($item_names)) {
         $error = 'Minimal harus memasukkan 1 barang pesanan.';
+    } elseif ($action_status === 'diajukan' && empty($nama_lampiran_arr)) {
+        $error = 'Lampiran Surat Pesanan wajib diunggah sebelum dapat diajukan.';
     } else {
         $items = array();
         for ($i = 0; $i < count($item_names); $i++) {
@@ -118,27 +120,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
             }
         }
+
         if (empty($items)) {
             $error = 'Semua baris barang kosong atau jumlah tidak valid.';
         } else {
             $is_edit = isset($_POST['edit_id']) && (int)$_POST['edit_id'] > 0;
+            
+            $is_auto_acc = false;
+            if ($action_status === 'diajukan' && $total_setelah_diskon < 5000000) {
+                $action_status = 'acc';
+                $is_auto_acc = true;
+            }
+
             if ($is_edit) {
                 $po_id = db_update_purchase_order(
                     (int)$_POST['edit_id'], $tgl_pesanan, $nama_vendor,
                     $harga_vendor, $diskon_vendor, $total_setelah_diskon,
                     $action_status, $_SESSION['user_id'], $items, $extra
                 );
-                $success_msg = 'Surat Pesanan ' . htmlspecialchars($no_pesanan) . ' berhasil diedit dan disimpan sebagai ' . ($action_status === 'diajukan' ? 'Diajukan ke Direktur' : 'Draft') . '.';
+                $success_msg = 'Surat Pesanan ' . htmlspecialchars($no_pesanan) . ' berhasil diedit dan disimpan sebagai ' . ($action_status === 'acc' ? ($is_auto_acc ? 'Disetujui Otomatis (Oleh Pembelian)' : 'Diajukan ke Direktur') : 'Draft') . '.';
             } else {
                 $po_id = db_create_purchase_order(
                     $no_pesanan, $tgl_pesanan, $nama_vendor,
                     $harga_vendor, $diskon_vendor, $total_setelah_diskon,
                     $action_status, $_SESSION['user_id'], $items, $extra
                 );
-                $success_msg = 'Surat Pesanan ' . htmlspecialchars($no_pesanan) . ' berhasil dibuat dan disimpan sebagai ' . ($action_status === 'diajukan' ? 'Diajukan ke Direktur' : 'Draft') . '.';
+                $success_msg = 'Surat Pesanan ' . htmlspecialchars($no_pesanan) . ' berhasil dibuat dan disimpan sebagai ' . ($action_status === 'acc' ? ($is_auto_acc ? 'Disetujui Otomatis (Oleh Pembelian)' : 'Diajukan ke Direktur') : 'Draft') . '.';
             }
 
             if ($po_id !== false) {
+                if ($is_auto_acc) {
+                    $u_name = 'Pembelian';
+                    if (function_exists('db_get_user_by_id')) {
+                        $usr = db_get_user_by_id($_SESSION['user_id']);
+                        if ($usr) $u_name = $usr['nama'];
+                    } else {
+                        $u_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Pembelian';
+                    }
+                    $catatan = db_escape("Telah disetujui otomatis oleh " . $u_name . " (Pembelian) karena nominal pesanan di bawah 5 Juta.");
+                    mysqli_query($GLOBALS['db_conn'], "INSERT INTO sp_log_persetujuan (surat_pesanan_id, jenis, status, catatan, oleh, tanggal) VALUES ($po_id, 'permintaan', 'acc', '$catatan', {$_SESSION['user_id']}, NOW())");
+                }
+                
                 $success = $success_msg;
                 $_POST = array(); // Clear post data after success
                 if ($is_edit) {
@@ -405,7 +427,7 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                                 <label class="bp-field-label">Lampiran (PDF)</label>
                                 <input type="file" name="lampiran_pdf[]" id="lampiran_pdf"
                                     class="form-control form-control-sm bp-input" accept="application/pdf" multiple style="padding-bottom:28px;">
-                                <input type="hidden" name="nama_lampiran_existing" value="<?php echo isset($_POST['nama_lampiran']) ? htmlspecialchars($_POST['nama_lampiran']) : ''; ?>">
+                                <input type="hidden" name="nama_lampiran_existing" value="<?php echo isset($_POST['nama_lampiran_existing']) ? htmlspecialchars($_POST['nama_lampiran_existing']) : ''; ?>">
                             </div>
                         </div>
                     </div>
@@ -1023,6 +1045,15 @@ function submitAs(status) {
     if (orderItems.length === 0) {
         alert('Minimal harus ada 1 barang pesanan.');
         return;
+    }
+    
+    if (status === 'diajukan') {
+        let hasNewFile = document.getElementById('lampiran_pdf').files.length > 0;
+        let hasExistingFile = $('input[name="nama_lampiran_existing"]').val().trim() !== '';
+        if (!hasNewFile && !hasExistingFile) {
+            alert('Lampiran Surat Pesanan (PDF/Gambar) wajib diunggah sebelum dapat diajukan.');
+            return;
+        }
     }
     
     // Since harga_vendor is formatted as "1,200,000", we should strip commas before submitting

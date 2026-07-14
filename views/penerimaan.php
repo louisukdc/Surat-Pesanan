@@ -24,7 +24,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_receipt_checklis
     $dates = isset($_POST['tgl_diterima']) ? $_POST['tgl_diterima'] : array();
     $notes = isset($_POST['keterangan']) ? $_POST['keterangan'] : array();
     
-    $saved_count = 0;
+    $has_qty_to_save = false;
+    foreach ($qtys as $item_id => $qty) {
+        if ((int)$qty > 0) {
+            $has_qty_to_save = true;
+            break;
+        }
+    }
+    
+    $is_uploading = isset($_FILES['lampiran']) && $_FILES['lampiran']['error'] === UPLOAD_ERR_OK;
+    
+    if ($has_qty_to_save && !$is_uploading) {
+        $error = "Anda wajib mengunggah file lampiran bukti penerimaan barang (Surat Jalan/Faktur) saat mencatat barang masuk.";
+    } else {
+        $saved_count = 0;
     
     foreach ($qtys as $item_id => $qty) {
         $qty = (int)$qty;
@@ -39,10 +52,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_receipt_checklis
         }
     }
     
-    if ($saved_count > 0) {
-        $success = "Berhasil mencatat $saved_count penerimaan barang.";
-    } else {
-        $error = "Tidak ada barang baru yang dicentang / diinput.";
+    $lampiran_uploaded = false;
+    if (isset($_FILES['lampiran']) && $_FILES['lampiran']['error'] === UPLOAD_ERR_OK && $po_id > 0) {
+        $upload_dir = 'uploads/penerimaan/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+        }
+        
+        $tmp_name = $_FILES['lampiran']['tmp_name'];
+        $original_name = basename($_FILES['lampiran']['name']);
+        $clean_name = preg_replace("/[^a-zA-Z0-9.-]/", "_", $original_name);
+        $file_name = time() . '_PO' . $po_id . '_' . $clean_name;
+        $target_file = $upload_dir . $file_name;
+        
+        $ext = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+        $allowed = ['pdf', 'jpg', 'jpeg', 'png'];
+        if (in_array($ext, $allowed)) {
+            if (move_uploaded_file($tmp_name, $target_file)) {
+                $escaped_target = db_escape($target_file);
+                mysqli_query($GLOBALS['db_conn'], "UPDATE spu_h SET lampiran_penerimaan = '$escaped_target' WHERE id = $po_id");
+                $lampiran_uploaded = true;
+            } else {
+                $error = "Gagal mengunggah lampiran.";
+            }
+        } else {
+            $error = "Tipe file lampiran tidak diizinkan (Hanya PDF, JPG, PNG).";
+        }
+    }
+    
+        if ($saved_count > 0 && $lampiran_uploaded) {
+            $success = "Berhasil mencatat $saved_count penerimaan barang dan lampiran diperbarui.";
+        } elseif ($saved_count > 0) {
+            $success = "Berhasil mencatat $saved_count penerimaan barang.";
+        } elseif ($lampiran_uploaded) {
+            $success = "Berhasil memperbarui lampiran surat pesanan.";
+        } else {
+            if (empty($error)) {
+                $error = "Tidak ada barang baru yang dicentang / diinput dan tidak ada lampiran baru.";
+            }
+        }
     }
 }
 
@@ -214,25 +262,34 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                 </div>
                 
                 <div class="bp-panel-body" style="padding:0.4rem; flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0;">
+                    <?php
+                    $res_log = mysqli_query($GLOBALS['db_conn'], "SELECT l.*, u.NamaUser as user_nama, u.role as user_role FROM sp_log_persetujuan l LEFT JOIN sp_user u ON l.oleh = u.id WHERE l.surat_pesanan_id = {$selected_po['id']} AND l.status = 'acc' ORDER BY l.id DESC LIMIT 1");
+                    $acc_log = $res_log ? mysqli_fetch_assoc($res_log) : null;
+                    $acc_name = $acc_log ? htmlspecialchars($acc_log['user_nama'] . ' (' . ucfirst($acc_log['user_role']) . ')') : 'Sistem';
+                    ?>
                     <div class="panel-info-highlight p-2 mb-2 flex-shrink-0" style="padding:0.4rem;">
                         <div class="row">
-                            <div class="col-sm-4">
+                            <div class="col-sm-3">
                                 <span class="d-block text-muted small" style="font-size:0.65rem;">Vendor</span>
                                 <strong class="text-dark" style="font-size:0.8rem;"><?php echo htmlspecialchars($selected_po['nama_vendor']); ?></strong>
                             </div>
-                            <div class="col-sm-4">
+                            <div class="col-sm-3">
                                 <span class="d-block text-muted small" style="font-size:0.65rem;">Tanggal Pesan</span>
                                 <strong style="font-size:0.8rem;"><?php echo format_date($selected_po['tgl_pesanan']); ?></strong>
                             </div>
-                            <div class="col-sm-4">
+                            <div class="col-sm-3">
                                 <span class="d-block text-muted small" style="font-size:0.65rem;">Total Nilai SP</span>
                                 <strong class="text-primary" style="font-size:0.8rem;"><?php echo format_rupiah($selected_po['total_setelah_diskon']); ?></strong>
+                            </div>
+                            <div class="col-sm-3">
+                                <span class="d-block text-muted small" style="font-size:0.65rem;">Disetujui Oleh</span>
+                                <strong class="text-success" style="font-size:0.8rem;"><?php echo $acc_name; ?></strong>
                             </div>
                         </div>
                     </div>
 
                     <!-- Receipt Form -->
-                     <form action="home.php?page=penerimaan&po_id=<?php echo $selected_po['id']; ?>" method="POST" style="flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0;">
+                     <form action="home.php?page=penerimaan&po_id=<?php echo $selected_po['id']; ?>" method="POST" enctype="multipart/form-data" style="flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0;">
                         <input type="hidden" name="po_id" value="<?php echo $selected_po['id']; ?>">
                         <input type="hidden" name="save_receipt_checklist" value="1">
                         
@@ -303,10 +360,22 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                         </div>
 
                         <?php if ($_SESSION['user_role'] === 'staff' && $completion_percent < 100): ?>
-                            <div class="bp-action-bar flex-shrink-0 mt-2" style="padding:0.4rem 0.6rem;">
+                            <div class="bp-action-bar flex-shrink-0 mt-2 d-flex justify-content-between align-items-center" style="padding:0.4rem 0.6rem;">
+                                <div class="d-flex align-items-center">
+                                    <label for="lampiran" class="mb-0 mr-2 font-weight-bold" style="font-size: 0.75rem;">Upload Lampiran:</label>
+                                    <input type="file" name="lampiran" id="lampiran" class="form-control-file" style="font-size: 0.75rem; width: auto;" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
                                 <button type="submit" class="bp-btn-submit ml-auto font-weight-bold" style="padding:0.4rem 1rem; font-size:0.8rem;">
-                                    <i class="fas fa-save mr-1"></i> Simpan Penerimaan Barang
+                                    <i class="fas fa-save mr-1"></i> Simpan Penerimaan
                                 </button>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <?php if (!empty($selected_po['lampiran_penerimaan'])): ?>
+                            <div class="mt-2 text-right">
+                                <a href="<?php echo htmlspecialchars($selected_po['lampiran_penerimaan']); ?>" target="_blank" class="btn btn-sm btn-info" style="font-size:0.75rem;">
+                                    <i class="fas fa-paperclip"></i> Lihat Lampiran Saat Ini
+                                </a>
                             </div>
                         <?php endif; ?>
                     </form>

@@ -1,0 +1,5 @@
+Pada role pembelian:
+1. Pada menu Permohonan Pesanan: walaupun totalnya lebih dari 5 juta atau kurang dari 5 juta, isi harus tetap upload lampiran dan apabila tidak upload lampiran maka tidak bisa di klik ajukan.
+2. Pada menu monitoring SP: status SP (diajukan belum dibayar) lampiran nya seharusnya ada 2 jenis. Walaupun permohonan pesanan itu totalnya kurang dari 5 juta yang tidak perlu persetujuan direktur tapi langsung di ACC dan ditulis persetujuan pembelian.
+3. Pada menu penerimaan barang: kalau status belum lengkap ada di keterangan di ACC oleh siapnya (misalkan oleh direktur atau oleh pembelian). Dan tidka boleh simpan pesanan kalau lampiran tidak diikutkan.
+4. Pada menu monitoring SP: kalau totalnya dibawah 5 juta log riwayat persetujuan itu seharusnya ditulis disetujui oleh pembelian 

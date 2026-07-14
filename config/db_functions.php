@@ -379,7 +379,7 @@ function db_get_purchase_order_by_id($id) {
     $query = "SELECT po.id, po.status, po.dibuat_oleh, po.dibuat_pada, 
                      (SELECT no_sp FROM spu_d WHERE id_header = po.id LIMIT 1) as no_sp, (SELECT no_sp FROM spu_d WHERE id_header = po.id LIMIT 1) as no_pesanan, po.tgl_sp as tgl_pesanan, po.namasup as nama_vendor,
                      (po.flag + po.potongan) as harga_vendor, po.potongan as diskon_vendor, po.flag as total_setelah_diskon,
-                     COALESCE(u.NamaUser, po.user) as pembuat_nama
+                     COALESCE(u.NamaUser, po.user) as pembuat_nama, po.lampiran_penerimaan, po.nama_lampiran
               FROM spu_h po
               LEFT JOIN sp_user u ON po.dibuat_oleh = u.id
               WHERE po.id = $id LIMIT 1";
