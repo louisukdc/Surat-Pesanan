@@ -391,8 +391,14 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                                                     Status: <?php echo get_status_badge($log['status']); ?>
                                                 </div>
                                                 <?php if ($log['catatan'] !== ''): ?>
+                                                    <?php 
+                                                        $safe_catatan = htmlspecialchars($log['catatan']);
+                                                        // Highlight the specific text with a light yellow marker
+                                                        $pattern = '/(\(Pembelian\) karena nominal pesanan di bawah 5 Juta\.?)/i';
+                                                        $safe_catatan = preg_replace($pattern, '<mark style="background-color: #fef08a; padding: 0.1em 0.3em; border-radius: 0.2em; font-weight: 500;">$1</mark>', $safe_catatan);
+                                                    ?>
                                                     <div class="mt-1 text-secondary bg-light p-1 rounded font-italic">
-                                                        "<?php echo htmlspecialchars($log['catatan']); ?>"
+                                                        "<?php echo $safe_catatan; ?>"
                                                     </div>
                                                 <?php endif; ?>
                                             </li>
@@ -560,8 +566,28 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                                 <td><?php echo htmlspecialchars($po['nama_vendor']); ?></td>
                                 <td class="text-right font-weight-bold"><?php echo format_rupiah($po['total_setelah_diskon']); ?></td>
                                 <td><?php echo htmlspecialchars($po['pembuat_nama']); ?></td>
-                                <td class="text-center"><?php echo get_status_badge($po['status']); ?></td>
-                                <td class="text-center"><?php echo get_payment_badge($po['status_bayar']); ?></td>
+                                <td class="text-center">
+                                    <?php echo get_status_badge($po['status']); ?>
+                                    <?php
+                                    if (in_array($po['status'], ['acc', 'selesai'])) {
+                                        $res_acc = mysqli_query($GLOBALS['db_conn'], "SELECT u.NamaUser FROM sp_log_persetujuan l LEFT JOIN sp_user u ON l.oleh = u.id WHERE l.surat_pesanan_id = {$po['id']} AND l.status = 'acc' AND (l.jenis = 'permintaan' OR l.jenis IS NULL OR l.jenis = '') ORDER BY l.id DESC LIMIT 1");
+                                        if ($res_acc && $r = mysqli_fetch_assoc($res_acc)) {
+                                            echo '<div class="small text-muted mt-1" style="font-size:0.65rem;">ACC: '.htmlspecialchars($r['NamaUser']).'</div>';
+                                        }
+                                    }
+                                    ?>
+                                </td>
+                                <td class="text-center">
+                                    <?php echo get_payment_badge($po['status_bayar']); ?>
+                                    <?php
+                                    if (in_array($po['status_bayar'], ['lunas', 'parsial', 'acc'])) {
+                                        $res_pay = mysqli_query($GLOBALS['db_conn'], "SELECT u.NamaUser FROM sp_log_persetujuan l LEFT JOIN sp_user u ON l.oleh = u.id WHERE l.surat_pesanan_id = {$po['id']} AND l.status = 'acc' AND l.jenis = 'pembayaran' ORDER BY l.id DESC LIMIT 1");
+                                        if ($res_pay && $r = mysqli_fetch_assoc($res_pay)) {
+                                            echo '<div class="small text-muted mt-1" style="font-size:0.65rem;">ACC: '.htmlspecialchars($r['NamaUser']).'</div>';
+                                        }
+                                    }
+                                    ?>
+                                </td>
                                 <td class="text-center">
                                     <div class="btn-group" role="group">
                                         <a href="home.php?page=monitoring&po_id=<?php echo $po['id']; ?>" class="btn btn-sm btn-premium py-1 px-2" title="Detail">

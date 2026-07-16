@@ -222,11 +222,22 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                                     <p class="mb-0 small <?php echo ($selected_po && $selected_po['id'] == $po['id']) ? 'text-white' : 'text-secondary'; ?>" style="font-size:0.7rem;">
                                         Vendor: <strong><?php echo htmlspecialchars($po['nama_vendor']); ?></strong>
                                     </p>
-                                    <?php if ($po['is_lengkap']): ?>
-                                        <span class="badge badge-success" style="font-size:0.6rem;"><i class="fas fa-check"></i> Lengkap</span>
-                                    <?php else: ?>
-                                        <span class="badge badge-warning" style="font-size:0.6rem;"><i class="fas fa-clock"></i> Belum Lengkap</span>
-                                    <?php endif; ?>
+                                    <?php
+                                    $acc_name_list = '-';
+                                    if (in_array($po['status'], ['acc', 'selesai'])) {
+                                        $acc_name_list = ($po['total_setelah_diskon'] < 5000000) ? 'Pembelian' : 'Direksi';
+                                    }
+                                    ?>
+                                    <div class="text-right">
+                                        <?php if ($po['is_lengkap']): ?>
+                                            <span class="badge badge-success" style="font-size:0.6rem;"><i class="fas fa-check"></i> Lengkap</span>
+                                        <?php else: ?>
+                                            <span class="badge badge-warning" style="font-size:0.6rem;"><i class="fas fa-clock"></i> Belum Lengkap</span>
+                                        <?php endif; ?>
+                                        <div class="<?php echo ($selected_po && $selected_po['id'] == $po['id']) ? 'text-white-50' : 'text-muted'; ?>" style="font-size:0.6rem; margin-top:2px;">
+                                            ACC: <?php echo $acc_name_list; ?>
+                                        </div>
+                                    </div>
                                 </div>
                             </a>
                         <?php endforeach; ?>
@@ -263,33 +274,56 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                 
                 <div class="bp-panel-body" style="padding:0.4rem; flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0;">
                     <?php
-                    $res_log = mysqli_query($GLOBALS['db_conn'], "SELECT l.*, u.NamaUser as user_nama, u.role as user_role FROM sp_log_persetujuan l LEFT JOIN sp_user u ON l.oleh = u.id WHERE l.surat_pesanan_id = {$selected_po['id']} AND l.status = 'acc' ORDER BY l.id DESC LIMIT 1");
-                    $acc_log = $res_log ? mysqli_fetch_assoc($res_log) : null;
-                    $acc_name = $acc_log ? htmlspecialchars($acc_log['user_nama'] . ' (' . ucfirst($acc_log['user_role']) . ')') : 'Sistem';
+                    $acc_name = '-';
+                    if (in_array($selected_po['status'], ['acc', 'selesai'])) {
+                        $acc_name = ($selected_po['total_setelah_diskon'] < 5000000) ? 'Pembelian' : 'Direksi';
+                    }
                     ?>
                     <div class="panel-info-highlight p-2 mb-2 flex-shrink-0" style="padding:0.4rem;">
                         <div class="row">
-                            <div class="col-sm-3">
+                            <div class="col-sm-2">
                                 <span class="d-block text-muted small" style="font-size:0.65rem;">Vendor</span>
-                                <strong class="text-dark" style="font-size:0.8rem;"><?php echo htmlspecialchars($selected_po['nama_vendor']); ?></strong>
+                                <strong class="text-dark" style="font-size:0.75rem;"><?php echo htmlspecialchars($selected_po['nama_vendor']); ?></strong>
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-2">
                                 <span class="d-block text-muted small" style="font-size:0.65rem;">Tanggal Pesan</span>
-                                <strong style="font-size:0.8rem;"><?php echo format_date($selected_po['tgl_pesanan']); ?></strong>
+                                <strong style="font-size:0.75rem;"><?php echo format_date($selected_po['tgl_pesanan']); ?></strong>
                             </div>
                             <div class="col-sm-3">
-                                <span class="d-block text-muted small" style="font-size:0.65rem;">Total Nilai SP</span>
-                                <strong class="text-primary" style="font-size:0.8rem;"><?php echo format_rupiah($selected_po['total_setelah_diskon']); ?></strong>
+                                <span class="d-block text-muted small" style="font-size:0.65rem;">Total Nilai</span>
+                                <strong class="text-primary" style="font-size:0.75rem;"><?php echo format_rupiah($selected_po['total_setelah_diskon']); ?></strong>
+                            </div>
+                            <div class="col-sm-2">
+                                <span class="d-block text-muted small" style="font-size:0.65rem;">Status SP</span>
+                                <div style="font-size:0.75rem; line-height:1.2;">
+                                    <?php echo get_status_badge($selected_po['status']); ?><br>
+                                    <small class="text-success font-weight-bold">ACC: <?php echo $acc_name; ?></small>
+                                </div>
                             </div>
                             <div class="col-sm-3">
-                                <span class="d-block text-muted small" style="font-size:0.65rem;">Disetujui Oleh</span>
-                                <strong class="text-success" style="font-size:0.8rem;"><?php echo $acc_name; ?></strong>
+                                <span class="d-block text-muted small" style="font-size:0.65rem;">Status Bayar</span>
+                                <?php
+                                $acc_bayar_name = '-';
+                                $is_bayar_acc = false;
+                                if (in_array($selected_po['status_bayar'], ['acc', 'lunas', 'parsial'])) {
+                                    $acc_bayar_name = 'Direksi';
+                                    $is_bayar_acc = true;
+                                }
+                                ?>
+                                <div style="font-size:0.75rem; line-height:1.2;">
+                                    <?php echo get_payment_badge($selected_po['status_bayar']); ?><br>
+                                    <?php if ($is_bayar_acc): ?>
+                                        <small class="text-success font-weight-bold">ACC: <?php echo $acc_bayar_name; ?></small>
+                                    <?php else: ?>
+                                        <small class="text-muted">ACC: -</small>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Receipt Form -->
-                     <form action="home.php?page=penerimaan&po_id=<?php echo $selected_po['id']; ?>" method="POST" enctype="multipart/form-data" style="flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0;">
+                     <form action="home.php?page=penerimaan&po_id=<?php echo $selected_po['id']; ?>" method="POST" enctype="multipart/form-data" style="flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0;" onsubmit="return validatePenerimaan();">
                         <input type="hidden" name="po_id" value="<?php echo $selected_po['id']; ?>">
                         <input type="hidden" name="save_receipt_checklist" value="1">
                         
@@ -445,6 +479,24 @@ require_once dirname(__FILE__) . '/../includes/header.php';
         <?php endif; ?>
     </div>
 </div>
+
+<script>
+function validatePenerimaan() {
+    let hasQty = false;
+    $('input[name^="qty_diterima"]').each(function() {
+        if (parseInt($(this).val()) > 0) hasQty = true;
+    });
+    
+    if (hasQty) {
+        let fileInput = document.getElementById('lampiran');
+        if (fileInput && fileInput.files.length === 0) {
+            alert("Anda wajib mengunggah file lampiran bukti penerimaan barang (Surat Jalan/Faktur) saat mencatat barang masuk.");
+            return false;
+        }
+    }
+    return true;
+}
+</script>
 
 <?php
 require_once dirname(__FILE__) . '/../includes/footer.php';
