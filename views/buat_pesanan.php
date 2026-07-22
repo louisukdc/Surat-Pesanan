@@ -246,6 +246,9 @@ $suppliers_json = json_encode($suppliers);
 $gudang_list = db_get_gudang();
 $gudang_json = json_encode($gudang_list);
 
+$unit = db_get_units();
+$master_pengadaans = db_get_pengadaan();
+
 require_once dirname(__FILE__) . '/../includes/header.php';
 
 $satuans = array('pcs','unit','lusin','kodi','rim','roll','box','set','kg','ltr','m','cm');
@@ -388,11 +391,14 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                         <div class="col-sm-6">
                             <div class="form-group mb-3">
                                 <label class="bp-field-label">No Permintaan</label>
-                                <input type="text" name="no_permintaan" id="no_permintaan"
-                                    class="form-control form-control-sm bp-input"
-                                    placeholder="No surat permintaan..."
-                                    maxlength="15"
-                                    value="<?php echo isset($_POST['no_permintaan']) ? htmlspecialchars($_POST['no_permintaan']) : ''; ?>">
+                                <select name="no_permintaan" id="no_permintaan" class="form-control form-control-sm bp-input select2-field">
+                                    <option value="">-- Pilih No Surat --</option>
+                                    <?php foreach ($master_pengadaans as $p): ?>
+                                        <option value="<?php echo htmlspecialchars($p['notiket']); ?>" <?php echo (isset($_POST['no_permintaan']) && $_POST['no_permintaan'] == $p['notiket']) ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($p['notiket'] . ' - ' . $p['bagian'] . ' (' . $p['diminta'] . ')'); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                         </div>
                         <div class="col-sm-6">
@@ -413,13 +419,15 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                         </div>
                         <div class="col-sm-6">
                             <div class="form-group mb-3" style="position:relative;">
-                                <label class="bp-field-label">Unit / Bagian</label>
-                                <input type="text" name="unit" id="unit"
-                                    class="form-control form-control-sm bp-input"
-                                    placeholder="Cari unit..." autocomplete="off" oninput="searchGudang(this.value)"
-                                    maxlength="35"
-                                    value="<?php echo isset($_POST['unit']) ? htmlspecialchars($_POST['unit']) : ''; ?>">
-                                <div id="gudang-suggestions" class="suggestions-box" style="display:none; position:absolute; top:100%; left:0;"></div>
+                                <label class="bp-field-label">Unit/Bagian <span class="req">*</span></label>
+                                <select name="unit" id="unit" class="form-control form-control-sm bp-input select2-field" required>
+                                    <option value="">-- Pilih Unit/Bagian --</option>
+                                    <?php foreach ($gudang_list as $gudang): ?>
+                                        <option value="<?php echo htmlspecialchars($gudang['NamaGudang']); ?>" <?php echo (isset($_POST['unit']) && $_POST['unit'] == $gudang['NamaGudang']) ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($gudang['NamaGudang']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                         </div>
                         <div class="col-sm-6">
@@ -445,9 +453,14 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                 <div class="bp-panel-body">
                     <div class="form-group mb-3" style="position:relative;">
                         <label class="bp-field-label">Nama Vendor <span class="req">*</span></label>
-                        <input type="hidden" name="nama_vendor" id="nama_vendor" value="<?php echo isset($_POST['nama_vendor']) ? htmlspecialchars($_POST['nama_vendor']) : ''; ?>">
-                        <input type="text" id="namasup_input" class="form-control form-control-sm bp-input" placeholder="Ketik nama vendor..." autocomplete="off" onkeyup="searchSupplier(this.value)" value="<?php echo isset($_POST['nama_vendor']) ? htmlspecialchars($_POST['nama_vendor']) : ''; ?>" required>
-                        <div id="supplier-suggestions" class="suggestions-box"></div>
+                                                <select name="nama_vendor" id="nama_vendor" class="form-control form-control-sm bp-input select2-field" required>
+                            <option value="">-- Pilih Vendor --</option>
+                            <?php foreach ($suppliers as $sup): ?>
+                                <option value="<?php echo htmlspecialchars($sup['NamaSupplier']); ?>" <?php echo (isset($_POST['nama_vendor']) && $_POST['nama_vendor'] == $sup['NamaSupplier']) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($sup['NamaSupplier']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                     <div class="row">
                         <div class="col-sm-6">
@@ -609,6 +622,32 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                         <!-- Filled by Javascript -->
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SIGNATURE PREVIEW ===== -->
+    <div class="bp-panel mt-3 mb-2" style="background-color: #f8f9fa;">
+        <div class="bp-panel-body" style="padding: 15px;">
+            <div class="row text-center" style="font-size: 0.9rem;">
+                <div class="col-4">
+                    <p class="mb-4 text-muted">Dibuat Oleh,</p>
+                    <p class="font-weight-bold mb-0"><u>( <?php echo htmlspecialchars($_SESSION['NamaUser'] ?? 'Staff Pembelian'); ?> )</u></p>
+                    <p class="small text-muted">Pembelian</p>
+                </div>
+                <div class="col-4">
+                    <p class="mb-4 text-muted">Disetujui Oleh,</p>
+                    <p class="font-weight-bold mb-0" id="preview_acc_sp"><u>( Direktur )</u></p>
+                    <p class="small text-muted" id="preview_acc_jabatan">Direktur Utama</p>
+                </div>
+                <div class="col-4">
+                    <p class="mb-4 text-muted">Mengetahui (Bayar),</p>
+                    <p class="font-weight-bold mb-0"><u>( Direktur )</u></p>
+                    <p class="small text-muted">Direktur Utama</p>
+                </div>
+            </div>
+            <div class="text-center mt-2">
+                <small class="text-info"><i class="fas fa-info-circle"></i> <i>Penyetuju SP otomatis menyesuaikan total nilai pesanan ( > 5 Juta oleh Direktur, < 5 Juta oleh Pembelian )</i></small>
             </div>
         </div>
     </div>
@@ -1032,18 +1071,38 @@ function calculateGlobal() {
     // update harga_vendor formatted value using original input-rupiah class styling if needed, but since it's readonly now:
     let formatted_harga_vendor = formatCurrency(harga_vendor);
     $('#harga_vendor').val(formatted_harga_vendor);
+    
+    // Dynamic Signature
+    if (grand_total < 5000000) {
+        $('#preview_acc_sp').html('<u>( Pembelian )</u>');
+        $('#preview_acc_jabatan').text('Bagian Pembelian');
+    } else {
+        $('#preview_acc_sp').html('<u>( Direktur )</u>');
+        $('#preview_acc_jabatan').text('Direktur Utama');
+    }
 }
 
 function submitAs(status) {
     $('#action_status').val(status);
     
     if (!$('#nama_vendor').val()) {
-        alert('Silakan pilih Supplier/Vendor.');
-        $('#namasup_input').focus();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Perhatian',
+            text: 'Silakan pilih Supplier/Vendor.',
+            confirmButtonColor: '#3b82f6'
+        }).then(() => {
+            $('#namasup_input').focus();
+        });
         return;
     }
     if (orderItems.length === 0) {
-        alert('Minimal harus ada 1 barang pesanan.');
+        Swal.fire({
+            icon: 'warning',
+            title: 'Perhatian',
+            text: 'Minimal harus ada 1 barang pesanan.',
+            confirmButtonColor: '#3b82f6'
+        });
         return;
     }
     
@@ -1051,7 +1110,12 @@ function submitAs(status) {
         let hasNewFile = document.getElementById('lampiran_pdf').files.length > 0;
         let hasExistingFile = $('input[name="nama_lampiran_existing"]').val().trim() !== '';
         if (!hasNewFile && !hasExistingFile) {
-            alert('Lampiran Surat Pesanan (PDF/Gambar) wajib diunggah sebelum dapat diajukan.');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Dokumen Diperlukan',
+                text: 'Lampiran Surat Pesanan (PDF/Gambar) wajib diunggah sebelum dapat diajukan.',
+                confirmButtonColor: '#3b82f6'
+            });
             return;
         }
     }
@@ -1116,4 +1180,26 @@ $(document).ready(function() {
 });
 </script>
 
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('.select2-field').select2({
+        width: '100%',
+        dropdownAutoWidth: true
+    });
+
+    // Enter key navigation in grid
+    $(document).on('keydown', '#gridModal input, #gridModal select', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            var inputs = $('#gridModal').find('.excel-input, .excel-select');
+            var index = inputs.index(this);
+            if (index > -1 && index < inputs.length - 1) {
+                inputs.eq(index + 1).focus();
+            }
+        }
+    });
+});
+</script>
 <?php require_once dirname(__FILE__) . '/../includes/footer.php'; ?>

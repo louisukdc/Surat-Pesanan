@@ -22,10 +22,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['po_approval_action'])
     $po_id = isset($_POST['po_id']) ? (int)$_POST['po_id'] : 0;
     $status = isset($_POST['status']) ? $_POST['status'] : ''; // 'acc' or 'ditolak'
     $catatan = isset($_POST['catatan']) ? trim($_POST['catatan']) : '';
+    $pembayaran = isset($_POST['pembayaran']) ? trim($_POST['pembayaran']) : null;
+    $pembayaran1 = isset($_POST['pembayaran1']) ? trim($_POST['pembayaran1']) : null;
 
     if ($po_id <= 0 || !in_array($status, array('acc', 'ditolak'))) {
         $error = 'Data persetujuan tidak valid.';
     } else {
+        if ($pembayaran !== null) {
+            $esc_p = db_escape($pembayaran);
+            $esc_p1 = db_escape($pembayaran1);
+            mysqli_query($GLOBALS['db_conn'], "UPDATE spu_h SET pembayaran = '$esc_p', pembayaran1 = '$esc_p1' WHERE id = $po_id");
+        }
+
         $msg_status = $status === 'acc' ? 'DISETUJUI (ACC)' : 'DITOLAK';
         if (db_approve_po_request($po_id, $status, $catatan, $_SESSION['user_id'])) {
             $success = "Surat Pesanan berhasil di-update dengan status: $msg_status.";
@@ -79,17 +87,37 @@ require_once dirname(__FILE__) . '/../includes/header.php';
 ?>
 
 <?php if ($error !== ''): ?>
-    <div class="alert alert-danger alert-premium no-print">
-        <i class="fas fa-exclamation-circle fa-lg"></i>
-        <span><?php echo htmlspecialchars($error); ?></span>
-    </div>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: <?php echo json_encode($error); ?>,
+            confirmButtonColor: '#3b82f6',
+            background: '#ffffff',
+            customClass: {
+                popup: 'rounded-lg shadow-lg'
+            }
+        });
+    });
+    </script>
 <?php endif; ?>
 
 <?php if ($success !== ''): ?>
-    <div class="alert alert-success alert-premium no-print">
-        <i class="fas fa-check-circle fa-lg"></i>
-        <span><?php echo htmlspecialchars($success); ?></span>
-    </div>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: <?php echo json_encode($success); ?>,
+            confirmButtonColor: '#3b82f6',
+            background: '#ffffff',
+            customClass: {
+                popup: 'rounded-lg shadow-lg'
+            }
+        });
+    });
+    </script>
 <?php endif; ?>
 
 <!-- DETAIL VIEW SECTION -->
@@ -133,8 +161,8 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                 </div>
 
                 <div style="font-size: 12pt; margin-bottom: 1rem;">
-                    <p>Berdasarkan Surat Pesanan Saudara No : <?php echo htmlspecialchars($selected_po['no_tawar']); ?><br>
-                    tertanggal <?php echo format_date($selected_po['tgl_tawar']); ?> dengan ini kami memesan :</p>
+                    <p>Berdasarkan Surat Penawaran Saudara No : <?php echo isset($selected_po['no_tawar']) ? htmlspecialchars((string)$selected_po['no_tawar']) : '-'; ?><br>
+                    tertanggal <?php echo isset($selected_po['tgl_tawar']) && !empty($selected_po['tgl_tawar']) ? format_date($selected_po['tgl_tawar']) : '-'; ?> dengan ini kami memesan :</p>
                 </div>
 
                 <?php
@@ -185,22 +213,81 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                 
                 <div class="text-right mt-2 mb-4" style="font-size: 11pt;">
                     <div style="display:inline-block; text-align:right;">
-                        <div>Sub Total <span style="display:inline-block; width:30px; text-align:left; margin-left:10px;">Rp</span> <?php echo number_format($selected_po['subtotal'], 0, ',', '.'); ?></div>
-                        <div>PPN <span style="display:inline-block; width:30px; text-align:left; margin-left:10px;">Rp</span> <?php echo number_format($selected_po['ppn'], 0, ',', '.'); ?></div>
+                        <?php 
+                            $p_subtotal = isset($selected_po['total_setelah_diskon']) ? (float)$selected_po['total_setelah_diskon'] : (isset($selected_po['harga_vendor']) ? (float)$selected_po['harga_vendor'] : 0);
+                            $p_ppn = isset($selected_po['ppn_nominal']) ? (float)$selected_po['ppn_nominal'] : 0;
+                            $p_gtotal = isset($selected_po['grand_total']) ? (float)$selected_po['grand_total'] : ($p_subtotal + $p_ppn);
+                        ?>
+                        <div>Sub Total <span style="display:inline-block; width:30px; text-align:left; margin-left:10px;">Rp</span> <?php echo number_format($p_subtotal, 0, ',', '.'); ?></div>
+                        <?php if ($p_ppn > 0): ?>
+                        <div>PPN <span style="display:inline-block; width:30px; text-align:left; margin-left:10px;">Rp</span> <?php echo number_format($p_ppn, 0, ',', '.'); ?></div>
+                        <?php endif; ?>
                         <div class="font-weight-bold mt-1 pt-1" style="border-top:1px solid #000;">
-                            Grand Total <span style="display:inline-block; width:30px; text-align:left; margin-left:10px;">Rp</span> <?php echo number_format($selected_po['subtotal'] + $selected_po['ppn'], 0, ',', '.'); ?>
+                            Grand Total <span style="display:inline-block; width:30px; text-align:left; margin-left:10px;">Rp</span> <?php echo number_format($p_gtotal, 0, ',', '.'); ?>
                         </div>
                     </div>
                 </div>
 
                 <div style="font-size: 12pt;">
                     <p class="mb-1">Dengan :</p>
-                    <p class="mb-1">Cara Pembayaran : <?php echo htmlspecialchars($selected_po['pembayaran']); ?></p>
-                    <p class="mb-1">Catatan :<br><?php echo nl2br(htmlspecialchars($selected_po['notein'])); ?></p>
+                    <?php
+                        $dir_note = '';
+                        if (!empty($selected_po_logs)) {
+                            foreach ($selected_po_logs as $log) {
+                                if ($log['status'] === 'acc' && $log['user_role'] === 'direktur' && !empty(trim($log['catatan']))) {
+                                    $dir_note = trim($log['catatan']);
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        $cara_bayar = array();
+                        if (!empty($selected_po['pembayaran'])) {
+                            $cara_bayar[] = trim((string)$selected_po['pembayaran']);
+                        }
+                        if (!empty($selected_po['pembayaran1'])) {
+                            $cara_bayar[] = trim((string)$selected_po['pembayaran1']);
+                        }
+                        $bayar_str = implode(' ', $cara_bayar);
+                        if ($dir_note !== '') {
+                            $bayar_str .= ' ' . $dir_note;
+                        }
+                        if (trim($bayar_str) === '') $bayar_str = '-';
+                    ?>
+                    <p class="mb-1">Cara Pembayaran : <?php echo htmlspecialchars($bayar_str); ?></p>
+                    <p class="mb-1">Catatan :<br><?php echo nl2br(htmlspecialchars(isset($selected_po['noteout']) ? (string)$selected_po['noteout'] : '')); ?></p>
                 </div>
                 
                 <div class="mt-4" style="font-size: 12pt;">
                     <p>Terima Kasih atas perhatian dan kerjasamanya.</p>
+                </div>
+                
+                <?php
+                // Dynamic signature logic for print
+                $is_direktur = ($p_gtotal >= 5000000);
+                $acc_sp_name = $is_direktur ? '( Direktur )' : '( Pembelian )';
+                $acc_sp_title = $is_direktur ? 'Direktur Utama' : 'Bagian Pembelian';
+                $tgl_sp_formatted = isset($selected_po['tgl_sp']) ? format_date($selected_po['tgl_sp']) : format_date(date('Y-m-d'));
+                ?>
+                <div class="text-right" style="font-size: 12pt; margin-top: 2rem; margin-bottom: 0.5rem; padding-right: 40px;">
+                    Semarang, <?php echo $tgl_sp_formatted; ?>
+                </div>
+                <div class="row text-center" style="font-size: 12pt; color: #000; margin-top: 1rem;">
+                    <div class="col-4">
+                        <p style="margin-bottom: 70px;">Dibuat Oleh,</p>
+                        <p class="font-weight-bold mb-0"><u>( ..................................... )</u></p>
+                        <p>Pembelian</p>
+                    </div>
+                    <div class="col-4">
+                        <p style="margin-bottom: 70px;">Disetujui Oleh,</p>
+                        <p class="font-weight-bold mb-0"><u><?php echo $acc_sp_name; ?></u></p>
+                        <p><?php echo $acc_sp_title; ?></p>
+                    </div>
+                    <div class="col-4">
+                        <p style="margin-bottom: 70px;">Mengetahui (Bayar),</p>
+                        <p class="font-weight-bold mb-0"><u>( Direktur )</u></p>
+                        <p>Direktur Utama</p>
+                    </div>
                 </div>
             </div>
 
@@ -276,7 +363,7 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                         <div class="bp-panel-body" style="padding: 0.4rem;">
                             <table class="table table-sm table-borderless font-size-sm mb-0" style="line-height:1.2;">
                                 <tr>
-                                    <td class="text-muted py-0" style="width: 7.5rem;">Nomor Pesanan</td>
+                                    <td class="text-muted py-0" style="white-space: nowrap; width: 1%;">Nomor Pesanan</td>
                                     <td class="py-0">: <strong class="text-dark"><?php echo htmlspecialchars($selected_po['no_sp']); ?></strong></td>
                                 </tr>
                                 <tr>
@@ -290,6 +377,18 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                                 <tr>
                                     <td class="text-muted py-0">Dibuat Oleh</td>
                                     <td class="py-0">: <?php echo htmlspecialchars($selected_po['pembuat_nama']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted py-0">Cara Pembayaran 1</td>
+                                    <td class="py-0">: <?php echo isset($selected_po['pembayaran']) && $selected_po['pembayaran'] !== '' ? htmlspecialchars((string)$selected_po['pembayaran']) : '-'; ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted py-0">Cara Pembayaran 2</td>
+                                    <td class="py-0">: <?php echo isset($selected_po['pembayaran1']) && $selected_po['pembayaran1'] !== '' ? htmlspecialchars((string)$selected_po['pembayaran1']) : '-'; ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted py-0">Catatan Internal</td>
+                                    <td class="py-0 text-danger">: <?php echo isset($selected_po['notein']) && $selected_po['notein'] !== '' ? htmlspecialchars((string)$selected_po['notein']) : '-'; ?></td>
                                 </tr>
                             </table>
                         </div>
@@ -366,7 +465,42 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                     </table>
                     </div>
                 </div>
+            
+            <!-- Signature Block (For Printing/View) -->
+            <div class="row mt-4 mb-2 signature-block justify-content-center" style="display:none;">
+                <div class="col-4 text-center">
+                    <p class="mb-5">Dibuat Oleh,</p>
+                    <p class="font-weight-bold mb-0" style="text-transform:uppercase;"><u>( <?php echo htmlspecialchars($selected_po['user_nama'] ?? 'Staff Pembelian'); ?> )</u></p>
+                    <p class="small">Pembelian</p>
+                </div>
+                <div class="col-4 text-center">
+                    <p class="mb-5">Disetujui Oleh,</p>
+                    <p class="font-weight-bold mb-0" style="text-transform:uppercase;"><u>( <?php echo ($selected_po['total_setelah_diskon'] < 5000000) ? 'Pembelian' : 'Direktur'; ?> )</u></p>
+                    <p class="small"><?php echo ($selected_po['total_setelah_diskon'] < 5000000) ? 'Bagian Pembelian' : 'Direktur Utama'; ?></p>
+                </div>
+                <div class="col-4 text-center">
+                    <p class="mb-5">Mengetahui (Bayar),</p>
+                    <p class="font-weight-bold mb-0" style="text-transform:uppercase;"><u>( Direktur )</u></p>
+                    <p class="small">Direktur Utama</p>
+                </div>
             </div>
+            
+            <style>
+                @media print {
+                    .signature-block {
+                        display: flex !important;
+                        page-break-inside: avoid;
+                        margin-top: 50px !important;
+                        color: #000 !important;
+                    }
+                    .no-print {
+                        display: none !important;
+                    }
+                    .table th, .table td { border: 1px solid #000 !important; color: #000 !important; }
+                    .bp-panel-header { display: none !important; }
+                    .bp-panel { border: none !important; box-shadow: none !important; }
+                }
+            </style>
 
 
             <!-- Split Panel: Logs and Approval Forms -->
@@ -451,25 +585,60 @@ require_once dirname(__FILE__) . '/../includes/header.php';
             <!-- Approval Action Bar for Direktur -->
             <div class="flex-shrink-0 mt-2">
                 <?php if ($user_role === 'direktur' && $selected_po['status'] === 'diajukan'): ?>
-                    <div class="bp-action-bar no-print">
-                        <div class="bp-action-hint">
-                            <i class="fas fa-exclamation-triangle text-warning mr-1"></i>
-                            <strong>Tindakan Dibutuhkan:</strong> Tinjau rincian SP ini. Anda dapat menyetujui (ACC) atau menolak permintaan ini.
-                        </div>
-                        <div style="flex: 1; margin-left: 1rem;">
-                            <form action="home.php?page=monitoring&po_id=<?php echo $selected_po['id']; ?>" method="POST" id="form-approval" class="d-flex align-items-center justify-content-end gap-2" style="gap:0.5rem;">
+                    <div class="card shadow-sm border-0 no-print mt-2" style="border-radius: 8px; background: linear-gradient(to right, #ffffff, #f8fafc); border-left: 4px solid #3b82f6 !important;">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-center mb-2 pb-2" style="border-bottom: 1px solid #e2e8f0;">
+                                <div class="icon-circle text-primary mr-2" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #dbeafe;">
+                                    <i class="fas fa-clipboard-check"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 font-weight-bold" style="color: #1e293b; font-size: 0.95rem;">Keputusan Direktur</h6>
+                                    <p class="mb-0 text-muted" style="font-size: 0.75rem;">
+                                        <i class="fas fa-info-circle text-info mr-1"></i> Tinjau dan isi catatan sebelum ACC atau Tolak.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <form action="home.php?page=monitoring&po_id=<?php echo $selected_po['id']; ?>" method="POST" id="form-approval">
                                 <input type="hidden" name="po_approval_action" value="1">
                                 <input type="hidden" name="po_id" value="<?php echo $selected_po['id']; ?>">
                                 <input type="hidden" name="status" id="approval-status-input" value="">
                                 
-                                <input type="text" name="catatan" class="form-control bp-input mr-2" placeholder="Catatan opsional..." style="max-width: 20rem; font-size:0.85rem; padding: 0.45rem 0.8rem;">
-                                
-                                <button type="submit" class="bp-btn-draft flex-shrink-0" style="color:#ef4444; border-color:#ef4444;" onclick="document.getElementById('approval-status-input').value='ditolak';">
-                                    <i class="fas fa-times mr-1"></i> Tolak Permintaan
-                                </button>
-                                <button type="submit" class="btn btn-premium flex-shrink-0 font-weight-bold" style="padding: 0.45rem 1.1rem; font-size: 0.85rem;" onclick="document.getElementById('approval-status-input').value='acc';">
-                                    <i class="fas fa-check mr-1"></i> ACC Permintaan
-                                </button>
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <div class="form-group mb-2">
+                                            <label class="font-weight-bold text-secondary mb-1" style="font-size: 0.75rem; letter-spacing: 0.2px;">Cara Pembayaran</label>
+                                            <select name="pembayaran" class="form-control form-control-sm bp-input" style="height: auto; padding: 0.3rem 0.5rem; font-size: 0.85rem; border-color: #cbd5e1;">
+                                                <?php 
+                                                $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 Hari','Kredit 90 Hari','Giro');
+                                                foreach ($opts_bayar as $ob) {
+                                                    $sel = (isset($selected_po['pembayaran']) && $selected_po['pembayaran'] === $ob) ? 'selected' : '';
+                                                    echo "<option value=\"$ob\" $sel>$ob</option>";
+                                                }
+                                                ?>
+                                            </select>
+                                        </div>
+                                        <div class="form-group mb-2 mb-md-0">
+                                            <label class="font-weight-bold text-secondary mb-1" style="font-size: 0.75rem; letter-spacing: 0.2px;">Keterangan (Opsional)</label>
+                                            <input type="text" name="pembayaran1" class="form-control form-control-sm bp-input" placeholder="Contoh: DP 50%, termin 2..." value="<?php echo isset($selected_po['pembayaran1']) ? htmlspecialchars((string)$selected_po['pembayaran1']) : ''; ?>" style="padding: 0.3rem 0.5rem; font-size: 0.85rem; border-color: #cbd5e1;">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <div class="form-group mb-0" style="height: 100%; display: flex; flex-direction: column;">
+                                            <label class="font-weight-bold text-secondary mb-1" style="font-size: 0.75rem; letter-spacing: 0.2px;">Catatan Keputusan</label>
+                                            <textarea name="catatan" class="form-control bp-input" placeholder="Tuliskan catatan persetujuan atau alasan penolakan di sini..." style="flex: 1; min-height: 80px; resize: none; padding: 0.5rem; line-height: 1.4; font-size: 0.85rem; border-color: #cbd5e1;"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end align-items-center mt-3 pt-2" style="border-top: 1px dashed #cbd5e1; gap: 0.5rem;">
+                                    <button type="submit" class="bp-btn-draft d-flex align-items-center justify-content-center" style="color:#ef4444; border-color:#ef4444; padding: 0.4rem 1rem; font-size: 0.85rem; border-width: 1px; font-weight: 600; background: white; border-radius: 6px; transition: all 0.2s ease;" onclick="document.getElementById('approval-status-input').value='ditolak';" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'">
+                                        <i class="fas fa-times-circle mr-2"></i> Tolak Permintaan
+                                    </button>
+                                    <button type="submit" class="btn btn-premium d-flex align-items-center justify-content-center font-weight-bold" style="padding: 0.4rem 1.2rem; font-size: 0.85rem; border-radius: 6px; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); transition: all 0.2s ease;" onclick="document.getElementById('approval-status-input').value='acc';" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+                                        <i class="fas fa-check-circle mr-2"></i> ACC Permintaan
+                                    </button>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -523,7 +692,7 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                         <div class="input-group-prepend">
                             <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
                         </div>
-                        <input type="text" name="vendor" id="vendor" class="form-control bp-input border-left-0 pl-0" placeholder="Search..." value="<?php echo htmlspecialchars($f_vendor); ?>">
+                        <input type="text" name="vendor" id="vendor" class="form-control bp-input border-left-0 pl-0" placeholder="Pencarian Universal: No SP / Nama Vendor / Nama Barang..." value="<?php echo htmlspecialchars($f_vendor); ?>">
                     </div>
                 </div>
                 
@@ -590,14 +759,55 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-info py-1 px-2" data-toggle="collapse" data-target="#items-<?php echo $po['id']; ?>" title="Lihat Rincian Barang">
+                                            <i class="fas fa-box-open"></i>
+                                        </button>
                                         <a href="home.php?page=monitoring&po_id=<?php echo $po['id']; ?>" class="btn btn-sm btn-premium py-1 px-2" title="Detail">
-                                            <i class="fas fa-eye"></i> Detail
+                                            <i class="fas fa-eye"></i>
                                         </a>
                                         <?php if (in_array($po['status'], array('draft', 'ditolak', 'diajukan'))): ?>
                                             <a href="home.php?page=buat_pesanan&edit_id=<?php echo $po['id']; ?>" class="btn btn-sm btn-warning py-1 px-2" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                         <?php endif; ?>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr id="items-<?php echo $po['id']; ?>" class="collapse">
+                                <td colspan="8" class="p-0">
+                                    <div class="p-3 bg-light" style="border-bottom: 2px solid #cbd5e1; box-shadow: inset 0 3px 6px rgba(0,0,0,0.03);">
+                                        <h6 class="font-weight-bold text-secondary mb-2" style="font-size:0.85rem;"><i class="fas fa-boxes mr-1 text-info"></i> Rincian Barang Pesanan (Quick View)</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-bordered bg-white mb-0 shadow-sm" style="font-size:0.8rem;">
+                                                <thead style="background:#f1f5f9; color:#475569;">
+                                                    <tr>
+                                                        <th>Nama Barang</th>
+                                                        <th>Merk / Tipe</th>
+                                                        <th class="text-center">Qty</th>
+                                                        <th>Satuan</th>
+                                                        <th class="text-right">Harga Satuan</th>
+                                                        <th class="text-right">Total Net</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php 
+                                                    $po_items = db_get_purchase_order_items($po['id']);
+                                                    if(empty($po_items)):
+                                                    ?>
+                                                    <tr><td colspan="6" class="text-center text-muted">Belum ada rincian barang.</td></tr>
+                                                    <?php else: foreach($po_items as $itm): ?>
+                                                    <tr>
+                                                        <td class="font-weight-bold" style="color:#1e293b;"><?php echo htmlspecialchars($itm['nama_barang']); ?></td>
+                                                        <td class="text-muted"><?php echo htmlspecialchars($itm['merk']) . ($itm['model'] ? ' / '.htmlspecialchars($itm['model']) : ''); ?></td>
+                                                        <td class="text-center font-weight-bold"><?php echo (float)$itm['jumlah']; ?></td>
+                                                        <td class="text-muted"><?php echo htmlspecialchars($itm['satuan']); ?></td>
+                                                        <td class="text-right"><?php echo format_rupiah($itm['harga_satuan']); ?></td>
+                                                        <td class="text-right font-weight-bold" style="color:#059669;"><?php echo format_rupiah($itm['subtotal']); ?></td>
+                                                    </tr>
+                                                    <?php endforeach; endif; ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
