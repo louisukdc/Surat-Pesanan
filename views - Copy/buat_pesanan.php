@@ -246,9 +246,6 @@ $suppliers_json = json_encode($suppliers);
 $gudang_list = db_get_gudang();
 $gudang_json = json_encode($gudang_list);
 
-$unit = db_get_units();
-$master_pengadaans = db_get_pengadaan();
-
 require_once dirname(__FILE__) . '/../includes/header.php';
 
 $satuans = array('pcs','unit','lusin','kodi','rim','roll','box','set','kg','ltr','m','cm');
@@ -391,14 +388,11 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                         <div class="col-sm-6">
                             <div class="form-group mb-3">
                                 <label class="bp-field-label">No Permintaan</label>
-                                                                <select name="no_permintaan" id="no_permintaan" class="form-control form-control-sm bp-input select2-field">
-                                    <option value="">-- Pilih No Surat --</option>
-                                    <?php foreach ($master_pengadaans as $p): ?>
-                                        <option value="<?php echo htmlspecialchars($p['no_permintaan']); ?>" <?php echo (isset($_POST['no_permintaan']) && $_POST['no_permintaan'] == $p['no_permintaan']) ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($p['no_permintaan'] . ' - ' . $p['perihal']); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <input type="text" name="no_permintaan" id="no_permintaan"
+                                    class="form-control form-control-sm bp-input"
+                                    placeholder="No surat permintaan..."
+                                    maxlength="15"
+                                    value="<?php echo isset($_POST['no_permintaan']) ? htmlspecialchars($_POST['no_permintaan']) : ''; ?>">
                             </div>
                         </div>
                         <div class="col-sm-6">
@@ -419,15 +413,13 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                         </div>
                         <div class="col-sm-6">
                             <div class="form-group mb-3" style="position:relative;">
-                                <label class="bp-field-label">Unit/Bagian <span class="req">*</span></label>
-                                <select name="unit" id="unit" class="form-control form-control-sm bp-input select2-field" required>
-                                    <option value="">-- Pilih Unit/Bagian --</option>
-                                    <?php foreach ($gudang_list as $gudang): ?>
-                                        <option value="<?php echo htmlspecialchars($gudang['NamaGudang']); ?>" <?php echo (isset($_POST['unit']) && $_POST['unit'] == $gudang['NamaGudang']) ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($gudang['NamaGudang']); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <label class="bp-field-label">Unit / Bagian</label>
+                                <input type="text" name="unit" id="unit"
+                                    class="form-control form-control-sm bp-input"
+                                    placeholder="Cari unit..." autocomplete="off" oninput="searchGudang(this.value)"
+                                    maxlength="35"
+                                    value="<?php echo isset($_POST['unit']) ? htmlspecialchars($_POST['unit']) : ''; ?>">
+                                <div id="gudang-suggestions" class="suggestions-box" style="display:none; position:absolute; top:100%; left:0;"></div>
                             </div>
                         </div>
                         <div class="col-sm-6">
@@ -453,14 +445,9 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                 <div class="bp-panel-body">
                     <div class="form-group mb-3" style="position:relative;">
                         <label class="bp-field-label">Nama Vendor <span class="req">*</span></label>
-                                                <select name="nama_vendor" id="nama_vendor" class="form-control form-control-sm bp-input select2-field" required>
-                            <option value="">-- Pilih Vendor --</option>
-                            <?php foreach ($suppliers as $sup): ?>
-                                <option value="<?php echo htmlspecialchars($sup['NamaSupplier']); ?>" <?php echo (isset($_POST['nama_vendor']) && $_POST['nama_vendor'] == $sup['NamaSupplier']) ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($sup['NamaSupplier']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                        <input type="hidden" name="nama_vendor" id="nama_vendor" value="<?php echo isset($_POST['nama_vendor']) ? htmlspecialchars($_POST['nama_vendor']) : ''; ?>">
+                        <input type="text" id="namasup_input" class="form-control form-control-sm bp-input" placeholder="Ketik nama vendor..." autocomplete="off" onkeyup="searchSupplier(this.value)" value="<?php echo isset($_POST['nama_vendor']) ? htmlspecialchars($_POST['nama_vendor']) : ''; ?>" required>
+                        <div id="supplier-suggestions" class="suggestions-box"></div>
                     </div>
                     <div class="row">
                         <div class="col-sm-6">
@@ -1145,26 +1132,4 @@ $(document).ready(function() {
 });
 </script>
 
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script>
-$(document).ready(function() {
-    $('.select2-field').select2({
-        width: '100%',
-        dropdownAutoWidth: true
-    });
-
-    // Enter key navigation in grid
-    $(document).on('keydown', '#gridModal input, #gridModal select', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            var inputs = $('#gridModal').find('.excel-input, .excel-select');
-            var index = inputs.index(this);
-            if (index > -1 && index < inputs.length - 1) {
-                inputs.eq(index + 1).focus();
-            }
-        }
-    });
-});
-</script>
 <?php require_once dirname(__FILE__) . '/../includes/footer.php'; ?>

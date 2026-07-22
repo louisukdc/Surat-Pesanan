@@ -437,42 +437,7 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                     </table>
                     </div>
                 </div>
-            
-            <!-- Signature Block (For Printing/View) -->
-            <div class="row mt-4 mb-2 signature-block justify-content-center" style="display:none;">
-                <div class="col-4 text-center">
-                    <p class="mb-5">Dibuat Oleh,</p>
-                    <p class="font-weight-bold mb-0" style="text-transform:uppercase;"><u>( <?php echo htmlspecialchars($selected_po['user_nama'] ?? 'Staff Pembelian'); ?> )</u></p>
-                    <p class="small">Pembelian</p>
-                </div>
-                <div class="col-4 text-center">
-                    <p class="mb-5">Disetujui Oleh,</p>
-                    <p class="font-weight-bold mb-0" style="text-transform:uppercase;"><u>( <?php echo ($selected_po['total_setelah_diskon'] < 5000000) ? 'Pembelian' : 'Direktur'; ?> )</u></p>
-                    <p class="small"><?php echo ($selected_po['total_setelah_diskon'] < 5000000) ? 'Bagian Pembelian' : 'Direktur Utama'; ?></p>
-                </div>
-                <div class="col-4 text-center">
-                    <p class="mb-5">Mengetahui (Bayar),</p>
-                    <p class="font-weight-bold mb-0" style="text-transform:uppercase;"><u>( Direktur )</u></p>
-                    <p class="small">Direktur Utama</p>
-                </div>
             </div>
-            
-            <style>
-                @media print {
-                    .signature-block {
-                        display: flex !important;
-                        page-break-inside: avoid;
-                        margin-top: 50px !important;
-                        color: #000 !important;
-                    }
-                    .no-print {
-                        display: none !important;
-                    }
-                    .table th, .table td { border: 1px solid #000 !important; color: #000 !important; }
-                    .bp-panel-header { display: none !important; }
-                    .bp-panel { border: none !important; box-shadow: none !important; }
-                }
-            </style>
 
 
             <!-- Split Panel: Logs and Approval Forms -->

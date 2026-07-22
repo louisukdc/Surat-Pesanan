@@ -26,6 +26,38 @@ function db_escape($value) {
 // ============================================================
 
 /**
+ * Ambil daftar master unit
+ */
+function db_get_units() {
+    $conn = isset($GLOBALS['db_conn']) ? $GLOBALS['db_conn'] : null;
+    if (!$conn) return array();
+    $result = mysqli_query($conn, "SELECT * FROM sp_unit ORDER BY nama_unit ASC");
+    $units = array();
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $units[] = $row;
+        }
+    }
+    return $units;
+}
+
+/**
+ * Ambil daftar master pengadaan (sisuper)
+ */
+function db_get_pengadaan() {
+    $conn = isset($GLOBALS['db_conn']) ? $GLOBALS['db_conn'] : null;
+    if (!$conn) return array();
+    $result = mysqli_query($conn, "SELECT * FROM sp_pengadaan ORDER BY id DESC LIMIT 200");
+    $data = array();
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $data[] = $row;
+        }
+    }
+    return $data;
+}
+
+/**
  * Ambil daftar supplier dari askes.m_supplier
  * Mengembalikan array berisi id, kode, dan nama supplier
  */

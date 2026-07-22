@@ -164,7 +164,7 @@ if (count($sp_multigrup) > 1) {
                 <li class="nav-item">
                     <a href="<?php echo $base_url; ?>/home.php?page=pembayaran" class="nav-link <?php echo $active_menu == 'pembayaran' ? 'active' : ''; ?>">
                         <i class="fas fa-credit-card"></i>
-                        <span>Menu Bayar</span>
+                        <span><?php echo ($sp_usergrup_utama == 2) ? 'Persetujuan Pembayaran' : 'Pengajuan Pembayaran'; ?></span>
                         <?php if ($pending_pay_count > 0): ?>
                             <span class="badge badge-danger ml-auto"><?php echo $pending_pay_count; ?></span>
                         <?php endif; ?>
@@ -173,7 +173,25 @@ if (count($sp_multigrup) > 1) {
                 <?php endif; ?>
                 
                 <?php if (count($sp_multigrup) > 1): ?>
-                <li class="nav-item mt-3" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
+                <!-- Dropdown Settings -->
+                <?php if (_header_boleh($sp_usergrup_utama, array(1))): ?>
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSettings" aria-expanded="true" aria-controls="collapseSettings">
+                        <i class="fas fa-fw fa-cog"></i>
+                        <span>Pengaturan</span>
+                    </a>
+                    <div id="collapseSettings" class="collapse <?php echo in_array($active_menu, ['master_unit', 'master_pengadaan']) ? 'show' : ''; ?>" aria-labelledby="headingSettings" data-parent="#accordionSidebar">
+                        <div class="bg-white py-2 collapse-inner rounded">
+                            <h6 class="collapse-header">Master Data:</h6>
+                            <a class="collapse-item <?php echo $active_menu == 'master_unit' ? 'active' : ''; ?>" href="<?php echo $base_url; ?>/home.php?page=master_unit">Unit / Bagian</a>
+                            <a class="collapse-item <?php echo $active_menu == 'master_pengadaan' ? 'active' : ''; ?>" href="<?php echo $base_url; ?>/home.php?page=master_pengadaan">Data Pengadaan</a>
+                        </div>
+                    </div>
+                </li>
+                <?php endif; ?>
+                
+                <hr class="sidebar-divider" style="border-top: 1px solid rgba(255,255,255,0.1); margin: 0 1rem 1rem 1rem;">
+                <li class="nav-item" style="padding-top: 10px;">
                     <a href="javascript:void(0)" class="nav-link" id="btnSwitchRole" style="color: #818cf8;">
                         <i class="fas fa-exchange-alt" style="color: #818cf8;"></i>
                         <span>Ganti Role</span>
