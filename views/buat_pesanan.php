@@ -391,11 +391,11 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                         <div class="col-sm-6">
                             <div class="form-group mb-3">
                                 <label class="bp-field-label">No Permintaan</label>
-                                                                <select name="no_permintaan" id="no_permintaan" class="form-control form-control-sm bp-input select2-field">
+                                <select name="no_permintaan" id="no_permintaan" class="form-control form-control-sm bp-input select2-field">
                                     <option value="">-- Pilih No Surat --</option>
                                     <?php foreach ($master_pengadaans as $p): ?>
-                                        <option value="<?php echo htmlspecialchars($p['no_permintaan']); ?>" <?php echo (isset($_POST['no_permintaan']) && $_POST['no_permintaan'] == $p['no_permintaan']) ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($p['no_permintaan'] . ' - ' . $p['perihal']); ?>
+                                        <option value="<?php echo htmlspecialchars($p['notiket']); ?>" <?php echo (isset($_POST['no_permintaan']) && $_POST['no_permintaan'] == $p['notiket']) ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($p['notiket'] . ' - ' . $p['bagian'] . ' (' . $p['diminta'] . ')'); ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
@@ -622,6 +622,32 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                         <!-- Filled by Javascript -->
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SIGNATURE PREVIEW ===== -->
+    <div class="bp-panel mt-3 mb-2" style="background-color: #f8f9fa;">
+        <div class="bp-panel-body" style="padding: 15px;">
+            <div class="row text-center" style="font-size: 0.9rem;">
+                <div class="col-4">
+                    <p class="mb-4 text-muted">Dibuat Oleh,</p>
+                    <p class="font-weight-bold mb-0"><u>( <?php echo htmlspecialchars($_SESSION['NamaUser'] ?? 'Staff Pembelian'); ?> )</u></p>
+                    <p class="small text-muted">Pembelian</p>
+                </div>
+                <div class="col-4">
+                    <p class="mb-4 text-muted">Disetujui Oleh,</p>
+                    <p class="font-weight-bold mb-0" id="preview_acc_sp"><u>( Direktur )</u></p>
+                    <p class="small text-muted" id="preview_acc_jabatan">Direktur Utama</p>
+                </div>
+                <div class="col-4">
+                    <p class="mb-4 text-muted">Mengetahui (Bayar),</p>
+                    <p class="font-weight-bold mb-0"><u>( Direktur )</u></p>
+                    <p class="small text-muted">Direktur Utama</p>
+                </div>
+            </div>
+            <div class="text-center mt-2">
+                <small class="text-info"><i class="fas fa-info-circle"></i> <i>Penyetuju SP otomatis menyesuaikan total nilai pesanan ( > 5 Juta oleh Direktur, < 5 Juta oleh Pembelian )</i></small>
             </div>
         </div>
     </div>
@@ -1045,6 +1071,15 @@ function calculateGlobal() {
     // update harga_vendor formatted value using original input-rupiah class styling if needed, but since it's readonly now:
     let formatted_harga_vendor = formatCurrency(harga_vendor);
     $('#harga_vendor').val(formatted_harga_vendor);
+    
+    // Dynamic Signature
+    if (grand_total < 5000000) {
+        $('#preview_acc_sp').html('<u>( Pembelian )</u>');
+        $('#preview_acc_jabatan').text('Bagian Pembelian');
+    } else {
+        $('#preview_acc_sp').html('<u>( Direktur )</u>');
+        $('#preview_acc_jabatan').text('Direktur Utama');
+    }
 }
 
 function submitAs(status) {

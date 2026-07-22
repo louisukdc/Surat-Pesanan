@@ -261,6 +261,34 @@ require_once dirname(__FILE__) . '/../includes/header.php';
                 <div class="mt-4" style="font-size: 12pt;">
                     <p>Terima Kasih atas perhatian dan kerjasamanya.</p>
                 </div>
+                
+                <?php
+                // Dynamic signature logic for print
+                $is_direktur = ($p_gtotal >= 5000000);
+                $acc_sp_name = $is_direktur ? '( Direktur )' : '( Pembelian )';
+                $acc_sp_title = $is_direktur ? 'Direktur Utama' : 'Bagian Pembelian';
+                $tgl_sp_formatted = isset($selected_po['tgl_sp']) ? format_date($selected_po['tgl_sp']) : format_date(date('Y-m-d'));
+                ?>
+                <div class="text-right" style="font-size: 12pt; margin-top: 2rem; margin-bottom: 0.5rem; padding-right: 40px;">
+                    Semarang, <?php echo $tgl_sp_formatted; ?>
+                </div>
+                <div class="row text-center" style="font-size: 12pt; color: #000; margin-top: 1rem;">
+                    <div class="col-4">
+                        <p style="margin-bottom: 70px;">Dibuat Oleh,</p>
+                        <p class="font-weight-bold mb-0"><u>( ..................................... )</u></p>
+                        <p>Pembelian</p>
+                    </div>
+                    <div class="col-4">
+                        <p style="margin-bottom: 70px;">Disetujui Oleh,</p>
+                        <p class="font-weight-bold mb-0"><u><?php echo $acc_sp_name; ?></u></p>
+                        <p><?php echo $acc_sp_title; ?></p>
+                    </div>
+                    <div class="col-4">
+                        <p style="margin-bottom: 70px;">Mengetahui (Bayar),</p>
+                        <p class="font-weight-bold mb-0"><u>( Direktur )</u></p>
+                        <p>Direktur Utama</p>
+                    </div>
+                </div>
             </div>
 
             <!-- Visual Progress Tracker Tracker (No Print) -->

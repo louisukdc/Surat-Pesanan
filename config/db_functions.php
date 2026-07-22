@@ -43,11 +43,19 @@ function db_get_units() {
 
 /**
  * Ambil daftar master pengadaan (sisuper)
+ * Dari database material.smohon_pengadaan_m yang belum closed
  */
 function db_get_pengadaan() {
     $conn = isset($GLOBALS['db_conn']) ? $GLOBALS['db_conn'] : null;
     if (!$conn) return array();
-    $result = mysqli_query($conn, "SELECT * FROM sp_pengadaan ORDER BY id DESC LIMIT 200");
+    
+    // Status belum closed: closing = '' dan flag = ''
+    $query = "SELECT notiket, bagian, diminta, tanggal 
+              FROM material.smohon_pengadaan_m 
+              WHERE closing = '' AND flag = '' 
+              ORDER BY id DESC LIMIT 200";
+              
+    $result = mysqli_query($conn, $query);
     $data = array();
     if ($result) {
         while ($row = mysqli_fetch_assoc($result)) {
