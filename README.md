@@ -57,7 +57,7 @@ Proyek ini memisahkan logika backend (*API endpoint*) dari antarmuka visual (UI)
 
 2. **Kloning Repositori**
    ```bash
-   git clone https://github.com/username-anda/repo-pembelian.git
+   git clone https://github.com/username-anda/repo-sp_umum.git
    ```
    Letakkan folder proyek ini di dalam direktori root server Anda (misalnya `htdocs` untuk XAMPP).
 
