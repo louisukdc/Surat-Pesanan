@@ -470,7 +470,7 @@ require_once dirname(__FILE__) . '/../includes/header.php';
             <div class="row mt-4 mb-2 signature-block justify-content-center" style="display:none;">
                 <div class="col-4 text-center">
                     <p class="mb-5">Dibuat Oleh,</p>
-                    <p class="font-weight-bold mb-0" style="text-transform:uppercase;"><u>( <?php echo htmlspecialchars($selected_po['user_nama'] ?? 'Staff Pembelian'); ?> )</u></p>
+                    <p class="font-weight-bold mb-0" style="text-transform:uppercase;"><u>( <?php echo htmlspecialchars(isset($selected_po['user_nama']) ? $selected_po['user_nama'] : 'Staff Pembelian'); ?> )</u></p>
                     <p class="small">Pembelian</p>
                 </div>
                 <div class="col-4 text-center">

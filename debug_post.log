@@ -1,0 +1,192 @@
+2026-07-22 15:21:57 - POST Data:
+Array
+(
+    [action_status] => diajukan
+    [ppn_nilai] => 1112760
+    [no_pesanan] => PO/0017/2026/07
+    [no_permintaan] => 26/07/B/63
+    [tgl_pesanan] => 2026-06-01
+    [tglkirim] => 2026-07-15
+    [unit] => ADMINISTRASI
+    [nama_lampiran_existing] => 
+    [nama_vendor] => ABADI BERKAT PERKASA PT
+    [no_tawar] => 06/FH/XI/MFR/IX/2025/REV
+    [tgl_tawar] => 2026-07-01
+    [pembayaran] => Tunai / Cash
+    [pembayaran1] => -
+    [notein] => ok
+    [noteout] => ok
+    [harga_vendor] => 11240000
+    [diskon_type] => percent
+    [diskon_vendor] => 10
+    [nama_barang] => Array
+        (
+            [0] => Kaos Textile
+        )
+
+    [spec] => Array
+        (
+            [0] => Sport
+        )
+
+    [merk] => Array
+        (
+            [0] => SMAX
+        )
+
+    [Tipe] => Array
+        (
+            [0] => Sport
+        )
+
+    [jumlah] => Array
+        (
+            [0] => 150
+        )
+
+    [satuan] => Array
+        (
+            [0] => pcs
+        )
+
+    [harga_satuan] => Array
+        (
+            [0] => 75000
+        )
+
+    [disc_item] => Array
+        (
+            [0] => 10000
+        )
+
+)
+
+
+2026-07-22 15:22:11 - POST Data:
+Array
+(
+    [action_status] => diajukan
+    [ppn_nilai] => 0
+    [no_pesanan] => PO/0017/2026/07
+    [no_permintaan] => 26/07/B/64
+    [tgl_pesanan] => 2026-06-01
+    [tglkirim] => 2026-07-15
+    [unit] => ADMINISTRASI
+    [nama_lampiran_existing] => 
+    [nama_vendor] => ABADI BERKAT PERKASA PT
+    [no_tawar] => 06/FH/XI/MFR/IX/2025/REV
+    [tgl_tawar] => 2026-07-01
+    [pembayaran] => Tunai / Cash
+    [pembayaran1] => -
+    [notein] => ok
+    [noteout] => ok
+    [harga_vendor] => 11240000
+    [diskon_type] => percent
+    [diskon_vendor] => 10
+    [nama_barang] => Array
+        (
+            [0] => Kaos Textile
+        )
+
+    [spec] => Array
+        (
+            [0] => Sport
+        )
+
+    [merk] => Array
+        (
+            [0] => SMAX
+        )
+
+    [Tipe] => Array
+        (
+            [0] => Sport
+        )
+
+    [jumlah] => Array
+        (
+            [0] => 150
+        )
+
+    [satuan] => Array
+        (
+            [0] => pcs
+        )
+
+    [harga_satuan] => Array
+        (
+            [0] => 75000
+        )
+
+    [disc_item] => Array
+        (
+            [0] => 10000
+        )
+
+)
+
+
+2026-07-22 15:22:26 - POST Data:
+Array
+(
+    [action_status] => diajukan
+    [ppn_nilai] => 0
+    [no_pesanan] => PO/0017/2026/07
+    [no_permintaan] => 26/07/B/65
+    [tgl_pesanan] => 2026-06-01
+    [tglkirim] => 2026-07-15
+    [unit] => ADMINISTRASI
+    [nama_lampiran_existing] => 
+    [nama_vendor] => ABADI BERKAT PERKASA PT
+    [no_tawar] => 06/FH/XI/MFR/IX/2025/REV
+    [tgl_tawar] => 2026-07-01
+    [pembayaran] => Tunai / Cash
+    [pembayaran1] => -
+    [notein] => ok
+    [noteout] => ok
+    [harga_vendor] => 11240000
+    [diskon_type] => percent
+    [diskon_vendor] => 10
+    [nama_barang] => Array
+        (
+            [0] => Kaos Textile
+        )
+
+    [spec] => Array
+        (
+            [0] => Sport
+        )
+
+    [merk] => Array
+        (
+            [0] => SMAX
+        )
+
+    [Tipe] => Array
+        (
+            [0] => Sport
+        )
+
+    [jumlah] => Array
+        (
+            [0] => 150
+        )
+
+    [satuan] => Array
+        (
+            [0] => pcs
+        )
+
+    [harga_satuan] => Array
+        (
+            [0] => 75000
+        )
+
+    [disc_item] => Array
+        (
+            [0] => 10000
+        )
+
+)
+
+

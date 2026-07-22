@@ -632,7 +632,7 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
             <div class="row text-center" style="font-size: 0.9rem;">
                 <div class="col-4">
                     <p class="mb-4 text-muted">Dibuat Oleh,</p>
-                    <p class="font-weight-bold mb-0"><u>( <?php echo htmlspecialchars($_SESSION['NamaUser'] ?? 'Staff Pembelian'); ?> )</u></p>
+                    <p class="font-weight-bold mb-0"><u>( <?php echo htmlspecialchars(isset($_SESSION['NamaUser']) ? $_SESSION['NamaUser'] : 'Staff Pembelian'); ?> )</u></p>
                     <p class="small text-muted">Pembelian</p>
                 </div>
                 <div class="col-4">
