@@ -43,7 +43,7 @@ Proyek ini memisahkan logika backend (*API endpoint*) dari antarmuka visual (UI)
 ├── database/             # File instalasi database (.sql)
 ├── img/                  # Aset gambar & ilustrasi visual
 ├── pages/                # Halaman UI Module Dashboard (home, list_pesanan, dll)
-├── uploads/lampiran/     # Folder penyimpanan upload dokumen PDF
+├── uploads/dokumen/      # Folder penyimpanan upload dokumen PDF
 ├── auth.php              # Logika pengecekan sesi & login/logout
 ├── config.php            # File konfigurasi koneksi Database
 ├── dashboard.php         # Kerangka dasar (Router & Layout Dashboard Utama)

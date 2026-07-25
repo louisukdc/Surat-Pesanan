@@ -48,20 +48,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nama_lampiran_arr = array_map('trim', explode(',', $_POST['nama_lampiran_existing']));
     }
     
+    $has_new_upload = false;
     if (isset($_FILES['lampiran_pdf'])) {
-        $upload_dir = dirname(__FILE__) . '/../uploads/lampiran/';
-        if (!is_dir($upload_dir)) {
-            @mkdir($upload_dir, 0755, true);
-        }
         $file_count = count($_FILES['lampiran_pdf']['name']);
         for ($i = 0; $i < $file_count; $i++) {
             if ($_FILES['lampiran_pdf']['error'][$i] === UPLOAD_ERR_OK) {
-                $tmp_name = $_FILES['lampiran_pdf']['tmp_name'][$i];
-                $name = basename($_FILES['lampiran_pdf']['name'][$i]);
-                $safe_name = time() . '_' . preg_replace('/[^a-zA-Z0-9_.-]/', '_', $name);
-                if (move_uploaded_file($tmp_name, $upload_dir . $safe_name)) {
-                    $nama_lampiran_arr[] = $safe_name;
-                }
+                $has_new_upload = true;
+                break;
             }
         }
     }
@@ -96,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Harga dari vendor harus lebih besar dari 0.';
     } elseif (empty($item_names)) {
         $error = 'Minimal harus memasukkan 1 barang pesanan.';
-    } elseif ($action_status === 'diajukan' && empty($nama_lampiran_arr)) {
+    } elseif ($action_status === 'diajukan' && empty($nama_lampiran_arr) && !$has_new_upload) {
         $error = 'Lampiran Surat Pesanan wajib diunggah sebelum dapat diajukan.';
     } else {
         $items = array();
@@ -104,8 +97,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $name   = trim($item_names[$i]);
             $qty    = (float)(isset($item_qtys[$i])   ? $item_qtys[$i]   : 0);
             $price  = isset($item_prices[$i]) ? clean_rupiah($item_prices[$i]) : 0;
-            $disc_i = isset($item_discs[$i])  ? clean_rupiah($item_discs[$i])  : 0;
-            $subtotal = max(0, ($qty * $price) - $disc_i);
+            $disc_i = isset($item_discs[$i])  ? (float)$item_discs[$i]  : 0;
+            if ($disc_i > 100) $disc_i = 100;
+            $nominal_disc = ($price * $qty) * ($disc_i / 100);
+            $subtotal = max(0, ($qty * $price) - $nominal_disc);
             if ($name !== '' && $qty > 0) {
                 $items[] = array(
                     'nama_barang'  => $name,
@@ -149,6 +144,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if ($po_id !== false) {
+                // Upload files to server 234 if there's any new upload
+                $uploaded_files = array();
+                if ($has_new_upload) {
+                    $file_count = count($_FILES['lampiran_pdf']['name']);
+                    $upload_time = time();
+                    
+                    // The remote script save_upload.php expects all files in one go under lampiran[]
+                    // We will send them all in a single cURL request
+                    $post_data = array(
+                        'id_input' => 'PO_' . $po_id . '_' . $upload_time
+                    );
+                    
+                    $file_index = 0;
+                    for ($i = 0; $i < $file_count; $i++) {
+                        if ($_FILES['lampiran_pdf']['error'][$i] === UPLOAD_ERR_OK) {
+                            $tmp_name = $_FILES['lampiran_pdf']['tmp_name'][$i];
+                            $type     = $_FILES['lampiran_pdf']['type'][$i];
+                            $name     = basename($_FILES['lampiran_pdf']['name'][$i]);
+                            $ext      = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+                            
+                            $cfile = new CURLFile($tmp_name, $type, $name);
+                            // curl accepts array fields by using index: lampiran[0], lampiran[1] etc
+                            $post_data["lampiran[$file_index]"] = $cfile;
+                            
+                            // remote script names them: {id_input}-{index}.{ext}
+                            $remote_filename = 'PO_' . $po_id . '_' . $upload_time . '-' . $file_index . '.' . $ext;
+                            $uploaded_files[] = $remote_filename;
+                            
+                            $file_index++;
+                        }
+                    }
+                    
+                    if ($file_index > 0) {
+                        $ch = curl_init();
+                        curl_setopt($ch, CURLOPT_URL, "http://192.168.2.234/upload/sp_umum/save_upload.php");
+                        curl_setopt($ch, CURLOPT_POST, true);
+                        curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
+                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+                        $response = curl_exec($ch);
+                        curl_close($ch);
+                        
+                        // Update DB with the new filenames appended
+                        $final_nama_lampiran = implode(',', array_merge($nama_lampiran_arr, $uploaded_files));
+                        $escaped_nama_lampiran = db_escape($final_nama_lampiran);
+                        mysqli_query($GLOBALS['db_conn'], "UPDATE spu_h SET nama_lampiran = '$escaped_nama_lampiran' WHERE id = $po_id");
+                    }
+                }
+
                 if ($is_auto_acc) {
                     $u_name = 'Pembelian';
                     if (function_exists('db_get_user_by_id')) {
@@ -566,16 +610,16 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
 
                     <!-- Diskon -->
                     <div class="mb-2">
-                        <label class="bp-field-label">Diskon Global</label>
+                        <label class="bp-field-label">Diskon Global (Otomatis)</label>
                         <div class="input-group input-group-sm">
-                            <select name="diskon_type" id="diskon_type" class="form-control form-control-sm bp-input" style="max-width:4rem; height:auto; padding:0.2rem 0.3rem; border-right:0; border-radius:0.35rem 0 0 0.35rem; font-size:0.7rem;" onchange="calculateGlobal()">
-                                <option value="rp" <?php echo (isset($_POST['diskon_type']) && $_POST['diskon_type']==='rp') ? 'selected' : ''; ?>>Rp</option>
-                                <option value="percent" <?php echo (!isset($_POST['diskon_type']) || $_POST['diskon_type']==='percent') ? 'selected' : 'selected'; ?>>%</option>
-                            </select>
-                            <input type="number" name="diskon_vendor" id="diskon_vendor"
-                                class="form-control form-control-sm bp-input text-right"
-                                placeholder="0"
-                                value="<?php echo isset($_POST['diskon_vendor']) ? htmlspecialchars($_POST['diskon_vendor']) : '0'; ?>" onkeyup="calculateGlobal()" onchange="calculateGlobal()">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" style="font-size:0.7rem; border-radius:0.35rem 0 0 0.35rem; background:#e2e8f0; color:#475569;">Rp</span>
+                            </div>
+                            <input type="text" name="diskon_vendor_display" id="diskon_vendor_display"
+                                class="form-control form-control-sm bp-input text-right font-weight-bold"
+                                placeholder="0" value="0" readonly style="background-color: #f1f5f9; cursor: not-allowed;">
+                            <input type="hidden" name="diskon_type" id="diskon_type" value="rp">
+                            <input type="hidden" name="diskon_vendor" id="diskon_vendor" value="<?php echo isset($_POST['diskon_vendor']) ? htmlspecialchars($_POST['diskon_vendor']) : '0'; ?>">
                         </div>
                     </div>
 
@@ -613,7 +657,7 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
                             <th style="min-width:6rem;">Merk/Tipe</th>
                             <th class="text-center" style="width:5rem;">Qty</th>
                             <th class="text-right" style="width:9rem;">Harga Satuan</th>
-                            <th class="text-right" style="width:7.5rem;">Diskon Item</th>
+                            <th class="text-right" style="width:7.5rem;">Diskon (%)</th>
                             <th class="text-right" style="width:8.5rem;">Subtotal</th>
                             <th class="text-center" style="width:4.5rem;">Aksi</th>
                         </tr>
@@ -632,7 +676,7 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
             <div class="row text-center" style="font-size: 0.9rem;">
                 <div class="col-4">
                     <p class="mb-4 text-muted">Dibuat Oleh,</p>
-                    <p class="font-weight-bold mb-0"><u>( <?php echo htmlspecialchars(isset($_SESSION['NamaUser']) ? $_SESSION['NamaUser'] : 'Staff Pembelian'); ?> )</u></p>
+                    <p class="font-weight-bold mb-0"><u>( <?php echo htmlspecialchars($_SESSION['NamaUser'] ?? 'Staff Pembelian'); ?> )</u></p>
                     <p class="small text-muted">Pembelian</p>
                 </div>
                 <div class="col-4">
@@ -655,8 +699,8 @@ $opts_bayar = array('Tunai / Cash','Transfer Bank','Kredit 30 Hari','Kredit 60 H
     <!-- ===== ACTION BAR ===== -->
     <div class="bp-action-bar">
         <div class="bp-action-hint">
-            <strong><i class="fas fa-info-circle mr-1"></i> Draft</strong> — simpan tanpa mengajukan.<br>
-            <strong><i class="fas fa-paper-plane mr-1"></i> Ajukan</strong> — langsung dikirim ke Direktur untuk persetujuan.
+            <strong><i class="fas fa-info-circle mr-1"></i> Draft</strong> â€” simpan tanpa mengajukan.<br>
+            <strong><i class="fas fa-paper-plane mr-1"></i> Ajukan</strong> â€” langsung dikirim ke Direktur untuk persetujuan.
         </div>
         <div>
             <button type="button" class="bp-btn-draft" onclick="submitAs('draft')">
@@ -876,7 +920,9 @@ function closeGridModal() {
 function updateItem(idx, field, value) {
     if(field === 'jumlah' || field === 'harga_satuan' || field === 'disc') {
         orderItems[idx][field] = parseFloat(value) || 0;
-        orderItems[idx].subtotal = Math.max(0, (orderItems[idx].jumlah * orderItems[idx].harga_satuan) - orderItems[idx].disc);
+        if (field === 'disc' && orderItems[idx].disc > 100) orderItems[idx].disc = 100;
+        let nominal_disc = (orderItems[idx].jumlah * orderItems[idx].harga_satuan) * (orderItems[idx].disc / 100);
+        orderItems[idx].subtotal = Math.max(0, (orderItems[idx].jumlah * orderItems[idx].harga_satuan) - nominal_disc);
         $('#grid_subtotal_' + idx).text('Rp ' + formatCurrency(orderItems[idx].subtotal));
         calculateGlobal(); // To keep background total in sync if needed
     } else {
@@ -921,11 +967,15 @@ function updateItemGrid(idx, field, elm) {
     let value = elm.value;
     if(field === 'jumlah' || field === 'harga_satuan' || field === 'disc') {
         let numVal = unformatCurrency(value);
-        if(field !== 'jumlah') {
+        if(field === 'disc') {
+            if (numVal > 100) numVal = 100;
+            elm.value = numVal;
+        } else if(field !== 'jumlah') {
             elm.value = formatCurrency(numVal); // Re-format input field
         }
         orderItems[idx][field] = numVal;
-        orderItems[idx].subtotal = Math.max(0, (orderItems[idx].jumlah * orderItems[idx].harga_satuan) - orderItems[idx].disc);
+        let nominal_disc = (orderItems[idx].jumlah * orderItems[idx].harga_satuan) * (orderItems[idx].disc / 100);
+        orderItems[idx].subtotal = Math.max(0, (orderItems[idx].jumlah * orderItems[idx].harga_satuan) - nominal_disc);
         $('#grid_subtotal_' + idx).text('Rp ' + formatCurrency(orderItems[idx].subtotal));
         calculateGlobal(); // To keep background total in sync if needed
     } else {
@@ -970,7 +1020,7 @@ function renderGridTable() {
                     <input type="text" class="excel-input text-right font-weight-bold" value="${formatCurrency(item.harga_satuan)}" onchange="updateItemGrid(${idx}, 'harga_satuan', this)" onfocus="this.select()">
                 </td>
                 <td class="excel-cell align-middle">
-                    <input type="text" class="excel-input text-right text-danger" value="${formatCurrency(item.disc)}" onchange="updateItemGrid(${idx}, 'disc', this)" onfocus="this.select()">
+                    <input type="number" class="excel-input text-right text-danger" value="${item.disc}" min="0" max="100" step="0.01" onchange="updateItemGrid(${idx}, 'disc', this)" onfocus="this.select()">
                 </td>
                 <td class="text-right align-middle font-weight-bold text-success" id="grid_subtotal_${idx}">Rp ${formatCurrency(item.subtotal)}</td>
                 <td class="text-center align-middle">
@@ -1011,7 +1061,7 @@ function renderItemsTable() {
                     <span class="small text-muted">${item.satuan}</span>
                 </td>
                 <td class="text-right align-middle">Rp ${formatCurrency(item.harga_satuan)}</td>
-                <td class="text-right align-middle text-danger">Rp ${formatCurrency(item.disc)}</td>
+                <td class="text-right align-middle text-danger">${item.disc}%</td>
                 <td class="text-right align-middle font-weight-bold text-success">Rp ${formatCurrency(item.subtotal)}</td>
                 <td class="text-center align-middle">
                     <!-- Removed inline edit/delete since it's managed via modal now -->
@@ -1034,20 +1084,23 @@ function escapeHtml(text) {
 }
 
 function calculateGlobal() {
-    let harga_vendor = orderItems.reduce((sum, item) => sum + (item.jumlah * item.harga_satuan) - item.disc, 0);
+    let harga_vendor = 0;
+    let total_diskon_rp = 0;
+    
+    orderItems.forEach(item => {
+        let nominal_disc = (item.jumlah * item.harga_satuan) * (item.disc / 100);
+        harga_vendor += (item.jumlah * item.harga_satuan);
+        total_diskon_rp += nominal_disc;
+    });
     
     // Formatting total harga_vendor as string for display
     $('#harga_vendor').val(harga_vendor); // hidden val could be string with , or raw number, but logic below parses it
     
-    let diskon_raw = parseFloat($('#diskon_vendor').val()) || 0;
-    let diskon_type = $('#diskon_type').val();
-    let diskon_rp = 0;
+    // Update global diskon automatically
+    $('#diskon_vendor').val(total_diskon_rp);
+    $('#diskon_vendor_display').val(formatCurrency(total_diskon_rp));
     
-    if (diskon_type === 'percent') {
-        diskon_rp = harga_vendor * (Math.min(diskon_raw, 100) / 100.0);
-    } else {
-        diskon_rp = Math.min(diskon_raw, harga_vendor);
-    }
+    let diskon_rp = total_diskon_rp;
     
     let subtotal_setelah_diskon = Math.max(0, harga_vendor - diskon_rp);
     
@@ -1055,7 +1108,7 @@ function calculateGlobal() {
     let ppn_nilai = 0;
     if(isPpn) {
         ppn_nilai = subtotal_setelah_diskon * 0.11;
-        $('#ppn_nilai').val(ppn_nilai);
+        $('#ppn_nilai').val(11);
         $('#row_ppn_nominal').show();
         $('#ppn_nominal').val(formatCurrency(ppn_nilai));
         $('#ppn_label').text('Pakai PPN 11%').css('color', '#059669');
